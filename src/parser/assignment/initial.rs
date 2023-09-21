@@ -1,8 +1,5 @@
 use crate::parser::{
-    ast::{
-        identifier::Identifier, literal_value::LiteralValue, vars::VariableDeclarator, ASTNode,
-        Expression,
-    },
+    ast::{identifier::Identifier, vars::VariableDeclarator, ASTNode},
     bool::parse_bool,
 };
 use nom::{
@@ -11,6 +8,7 @@ use nom::{
     character::complete::{alphanumeric1, multispace0},
     combinator::map,
     error::{ContextError, VerboseError, VerboseErrorKind},
+    multi::separated_list1,
     IResult, Parser,
 };
 
@@ -39,6 +37,23 @@ pub fn parse_assignment(input: &str) -> IResult<&str, ASTNode, VerboseError<&str
     let (input, keyword) = parse_variable_keyword(input)?;
 
     let (input, _) = multispace0(input)?;
+    let (input, declarations) = separated_list1(tag(","), parse_single_declaration)(input)?;
+
+    let result = (
+        input,
+        ASTNode::VariableDeclaration {
+            declarations,
+            kind: keyword,
+        },
+    );
+
+    Ok(result)
+}
+
+pub fn parse_single_declaration(
+    input: &str,
+) -> IResult<&str, VariableDeclarator, VerboseError<&str>> {
+    let (input, _) = multispace0(input)?;
     let (input, name) = alphanumeric1(input)?;
 
     if VariableKeyword::equals_any(name) {
@@ -53,7 +68,7 @@ pub fn parse_assignment(input: &str) -> IResult<&str, ASTNode, VerboseError<&str
             },
         );
         return Err(nom::Err::Error(e));
-    };
+    }
 
     let (input, _) = multispace0(input)?;
 
@@ -61,20 +76,14 @@ pub fn parse_assignment(input: &str) -> IResult<&str, ASTNode, VerboseError<&str
     let (input, _) = multispace0(input)?;
     let (input, value) = parse_bool(input)?;
 
-    let result = (
-        input,
-        ASTNode::VariableDeclaration {
-            declarations: vec![VariableDeclarator {
-                id: Identifier {
-                    name: name.to_owned(),
-                },
-                init: value,
-            }],
-            kind: keyword,
+    let declarator = VariableDeclarator {
+        id: Identifier {
+            name: name.to_owned(),
         },
-    );
+        init: value,
+    };
 
-    Ok(result)
+    Ok((input, declarator))
 }
 
 fn parse_variable_keyword(i: &str) -> IResult<&str, VariableKeyword, VerboseError<&str>> {

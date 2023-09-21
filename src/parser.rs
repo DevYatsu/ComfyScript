@@ -11,12 +11,18 @@ mod operations;
 mod strings;
 
 pub fn parse_input(input: &str) -> IResult<&str, &str, VerboseError<&str>> {
-    let (input, _) = multispace0(input)?;
+    let mut remaining_input = input;
+    let mut assignments = Vec::new();
 
-    let (input, assignment) = parse_assignment(input)?;
+    while !remaining_input.is_empty() {
+        let (new_input, _) = multispace0(remaining_input)?;
+        let (new_input, assignment) = parse_assignment(new_input)?;
 
-    println!("assignment {:?}", assignment);
-    println!("{:?}", input);
+        remaining_input = new_input;
+        assignments.push(assignment);
+    }
 
-    Ok((input, input))
+    println!("{:?}", assignments);
+
+    Ok((remaining_input, input))
 }
