@@ -1,7 +1,7 @@
 use nom::{character::complete::one_of, error::VerboseError, IResult};
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
-pub enum Operation {
+pub enum Operator {
     Plus,
     Minus,
     Times,
@@ -10,18 +10,18 @@ pub enum Operation {
     Not,   // !=
 }
 
-pub fn parse_operator(i: &str) -> IResult<&str, Operation, VerboseError<&str>> {
+pub fn parse_operator(i: &str) -> IResult<&str, Operator, VerboseError<&str>> {
     // one_of matches one of the characters we give it
     let (i, t) = one_of("+-*/=")(i)?;
 
     Ok((
         i,
         match t {
-            '+' => Operation::Plus,
-            '-' => Operation::Minus,
-            '*' => Operation::Times,
-            '/' => Operation::Divide,
-            '=' => Operation::Equal,
+            '+' => Operator::Plus,
+            '-' => Operator::Minus,
+            '*' => Operator::Times,
+            '/' => Operator::Divide,
+            '=' => Operator::Equal,
             _ => unreachable!(),
         },
     ))

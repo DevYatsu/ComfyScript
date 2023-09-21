@@ -1,4 +1,10 @@
-use crate::parser::{bool::parse_bool, builtins::Atom};
+use crate::parser::{
+    ast::{
+        identifier::Identifier, literal_value::LiteralValue, vars::VariableDeclarator, ASTNode,
+        Expression,
+    },
+    bool::parse_bool,
+};
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -29,22 +35,7 @@ impl ToString for VariableKeyword {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Clone)]
-pub enum Assignment {
-    Constant { name: String, value: Atom },
-    Mutable { name: String, value: Atom },
-}
-
-impl Assignment {
-    pub fn new(keyword: VariableKeyword, name: String, value: Atom) -> Self {
-        match keyword {
-            VariableKeyword::Var => Assignment::Mutable { name, value },
-            VariableKeyword::Let => Assignment::Constant { name, value },
-        }
-    }
-}
-
-pub fn parse_assignment(input: &str) -> IResult<&str, Assignment, VerboseError<&str>> {
+pub fn parse_assignment(input: &str) -> IResult<&str, ASTNode, VerboseError<&str>> {
     let (input, keyword) = parse_variable_keyword(input)?;
 
     let (input, _) = multispace0(input)?;
@@ -70,7 +61,18 @@ pub fn parse_assignment(input: &str) -> IResult<&str, Assignment, VerboseError<&
     let (input, _) = multispace0(input)?;
     let (input, value) = parse_bool(input)?;
 
-    let result = (input, Assignment::new(keyword, name.to_owned(), value));
+    let result = (
+        input,
+        ASTNode::VariableDeclaration {
+            declarations: vec![VariableDeclarator {
+                id: Identifier {
+                    name: name.to_owned(),
+                },
+                init: value,
+            }],
+            kind: keyword,
+        },
+    );
 
     Ok(result)
 }

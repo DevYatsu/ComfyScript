@@ -1,5 +1,6 @@
 mod command;
 mod parser;
+
 use parser::parse_input;
 
 use crate::command::{get_command, Command};
@@ -32,7 +33,11 @@ fn main() -> Result<(), Box<dyn Error>> {
     reader.read_to_string(&mut content)?;
 
     match parse_input(&content) {
-        Err(e) => println!("{:?}", e),
+        Err(e) => match e {
+            nom::Err::Incomplete(e) => println!("{:?}", e),
+            nom::Err::Error(e) => println!("{} at '{}'", e.errors[0].0, e.errors[1].0),
+            nom::Err::Failure(e) => println!("{} at '{}'", e.errors[0].0, e.errors[1].0),
+        },
         Ok(_) => println!("working"),
     };
 

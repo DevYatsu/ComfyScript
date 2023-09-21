@@ -2,12 +2,18 @@ use nom::{
     branch::alt, bytes::complete::tag, combinator::map, error::VerboseError, IResult, Parser,
 };
 
-use super::builtins::Atom;
+use super::ast::{literal_value::LiteralValue, Expression};
 
-pub fn parse_bool(i: &str) -> IResult<&str, Atom, VerboseError<&str>> {
+pub fn parse_bool(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
     alt((
-        map(tag("true"), |_| Atom::Boolean(true)),
-        map(tag("false"), |_| Atom::Boolean(false)),
+        map(tag("true"), |_| Expression::Literal {
+            value: LiteralValue::Boolean(true),
+            raw: String::from("true"),
+        }),
+        map(tag("false"), |_| Expression::Literal {
+            value: LiteralValue::Boolean(false),
+            raw: String::from("false"),
+        }),
     ))
     .parse(i)
 }

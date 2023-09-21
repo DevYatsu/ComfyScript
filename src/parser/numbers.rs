@@ -8,7 +8,8 @@ use nom::{
 };
 use std::str;
 
-use super::builtins::Atom;
+use super::ast::literal_value::LiteralValue;
+use super::ast::Expression;
 
 fn parse_integer(i: &str) -> IResult<&str, f32, VerboseError<&str>> {
     let (i, sign) = opt(alt((char('+'), char('-'))))(i)?;
@@ -26,8 +27,14 @@ fn parse_float(i: &str) -> IResult<&str, f32, VerboseError<&str>> {
     float(i)
 }
 
-pub fn parse_number(i: &str) -> IResult<&str, Atom, VerboseError<&str>> {
+pub fn parse_number(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
     let (i, num) = alt((parse_float, parse_integer))(i)?;
 
-    Ok((i, Atom::Num(num as i32))) // todo!! update to support f32 in the future
+    Ok((
+        i,
+        Expression::Literal {
+            value: LiteralValue::Number(num),
+            raw: num.to_string(),
+        },
+    ))
 }
