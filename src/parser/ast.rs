@@ -4,7 +4,7 @@ pub mod literal_value;
 mod object;
 pub mod vars;
 
-use self::{literal_value::LiteralValue, object::Property, vars::VariableDeclarator};
+use self::{literal_value::LiteralValue, object::Property, vars::VariableDeclarator, identifier::Identifier};
 
 use super::assignment::initial::VariableKeyword;
 
@@ -46,10 +46,17 @@ pub enum Expression {
     },
     Object {
         properties: Vec<Property>,
+        name: String
     },
     BinaryExpression {
         left: Box<Expression>,
         operator: Operator,
         right: Box<Expression>,
     },
+    MemberExpression {
+        object: Identifier,
+        property: Identifier,
+        computed: bool, 
+        optional: bool
+    }
 }
