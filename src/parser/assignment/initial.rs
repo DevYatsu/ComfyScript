@@ -6,12 +6,8 @@ use crate::parser::{
     utils::alpha_not_reserved,
 };
 use nom::{
-    branch::alt,
-    character::complete::{alphanumeric1, multispace0},
-    combinator::map,
-    error::{ContextError, VerboseError, VerboseErrorKind},
-    multi::separated_list1,
-    IResult, Parser,
+    branch::alt, character::complete::multispace0, combinator::map, error::VerboseError,
+    multi::separated_list1, IResult, Parser,
 };
 use nom_supreme::tag::complete::tag;
 
@@ -19,12 +15,6 @@ use nom_supreme::tag::complete::tag;
 pub enum VariableKeyword {
     Var,
     Let,
-}
-
-impl VariableKeyword {
-    pub fn equals_any(s: &str) -> bool {
-        s == VariableKeyword::Let.to_string() || s == VariableKeyword::Var.to_string()
-    }
 }
 
 impl ToString for VariableKeyword {
