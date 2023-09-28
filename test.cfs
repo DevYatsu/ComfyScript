@@ -1,2 +1,1 @@
-import test as str from "test"
-let hey = "s", dude = 1, bool = true
+import test as str from "test";let hey = "s", dude = 1, bool = true;

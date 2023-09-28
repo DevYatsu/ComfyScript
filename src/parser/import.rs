@@ -1,8 +1,9 @@
 use nom::{
     character::complete::{alphanumeric1, multispace0},
+    combinator::opt,
     error::VerboseError,
     multi::separated_list1,
-    IResult, combinator::opt,
+    IResult,
 };
 use nom_supreme::tag::complete::tag;
 
@@ -43,17 +44,17 @@ fn parse_import_ids(input: &str) -> IResult<&str, ImportSpecifier, VerboseError<
         let (input, _) = multispace0(input)?;
         let (input, local_name) = alpha_not_reserved(input)?;
 
-            return Ok((
-        input,
-        ImportSpecifier {
-            local: Identifier {
-                name: local_name.to_owned(),
+        return Ok((
+            input,
+            ImportSpecifier {
+                local: Identifier {
+                    name: local_name.to_owned(),
+                },
+                imported: Identifier {
+                    name: imported_name.to_owned(),
+                },
             },
-            imported: Identifier {
-                name: imported_name.to_owned(),
-            },
-        },
-    ))
+        ));
     }
 
     //todo!! add support for "as" keyword to rename import locally

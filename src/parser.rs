@@ -1,6 +1,16 @@
-use nom::{branch::alt, character::complete::multispace0, error::VerboseError, IResult};
+use nom::{
+    branch::alt,
+    character::complete::multispace0,
+    combinator::{map, opt},
+    error::VerboseError,
+    multi::{many0, many1},
+    IResult,
+};
+use nom_supreme::tag::complete::tag;
 
 use crate::parser::{assignment::initial::parse_assignment, import::parse_import};
+
+use self::ast::ASTNode;
 
 mod assignment;
 mod ast;
@@ -12,19 +22,31 @@ mod operations;
 mod strings;
 mod utils;
 
-pub fn parse_input(input: &str) -> IResult<&str, &str, VerboseError<&str>> {
-    let mut remaining_input = input;
+pub fn parse_input(input: &str) -> IResult<&str, Vec<ASTNode>, VerboseError<&str>> {
+    let (input, _) = multispace0(input)?;
     let mut assignments = Vec::new();
 
-    while !remaining_input.is_empty() {
-        let (new_input, _) = multispace0(remaining_input)?;
-        let (new_input, assignment) = alt((parse_assignment, parse_import))(new_input)?;
+    let (mut input, assignment) = alt((parse_assignment, parse_import))(input)?;
 
-        remaining_input = new_input;
-        assignments.push(assignment);
+    assignments.push(assignment);
+
+    while !input.is_empty() {
+        let (new_input, _) = many0(tag(" "))(input)?;
+
+        let (new_input, _) = alt((tag("\n"), tag(";")))(new_input)?;
+
+        let (new_input, _) = many0(alt((tag("\n"), tag(";"))))(new_input)?;
+
+        let (new_input, assignment) = opt(alt((parse_assignment, parse_import)))(new_input)?;
+
+        if let Some(assignment) = assignment {
+            assignments.push(assignment);
+        }
+
+        input = new_input;
     }
 
     println!("{:?}", assignments);
 
-    Ok((remaining_input, input))
+    Ok((input, assignments))
 }

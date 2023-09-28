@@ -2,7 +2,8 @@ use crate::parser::{
     ast::{identifier::Identifier, vars::VariableDeclarator, ASTNode},
     bool::parse_bool,
     numbers::parse_number,
-    strings::parse_string, utils::alpha_not_reserved,
+    strings::parse_string,
+    utils::alpha_not_reserved,
 };
 use nom::{
     branch::alt,
