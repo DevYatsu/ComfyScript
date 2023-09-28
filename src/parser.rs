@@ -1,10 +1,6 @@
 use nom::{
-    branch::alt,
-    character::complete::multispace0,
-    combinator::{map, opt},
-    error::VerboseError,
-    multi::{many0, many1},
-    IResult,
+    branch::alt, character::complete::multispace0, combinator::opt, error::VerboseError,
+    multi::many0, IResult,
 };
 use nom_supreme::tag::complete::tag;
 

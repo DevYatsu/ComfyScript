@@ -1,14 +1,11 @@
 use nom::{
-    character::complete::{alphanumeric1, multispace0},
-    combinator::opt,
-    error::VerboseError,
-    multi::separated_list1,
+    character::complete::multispace0, combinator::opt, error::VerboseError, multi::separated_list1,
     IResult,
 };
 use nom_supreme::tag::complete::tag;
 
 use super::{
-    ast::{identifier::Identifier, import::ImportSpecifier, ASTNode, Expression},
+    ast::{identifier::Identifier, import::ImportSpecifier, ASTNode},
     strings::parse_string,
     utils::alpha_not_reserved,
 };

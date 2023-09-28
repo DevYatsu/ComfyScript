@@ -2,7 +2,7 @@ use crate::reserved_keywords::RESERVED_KEYWORD;
 use nom::{
     character::complete::alphanumeric1,
     error::{ContextError, VerboseError, VerboseErrorKind},
-    Err, IResult,
+    IResult,
 };
 
 pub fn alpha_not_reserved(input: &str) -> IResult<&str, &str, VerboseError<&str>> {
