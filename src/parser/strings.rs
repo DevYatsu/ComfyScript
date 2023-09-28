@@ -12,7 +12,6 @@ enum Quote {
 }
 
 pub fn parse_string(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
-    let (i, _) = multispace0(i)?;
     let (i, quote) = parse_quote(i)?;
 
     match quote {
