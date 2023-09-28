@@ -5,6 +5,8 @@ use nom::{
 };
 use nom_supreme::tag::complete::tag;
 
+use crate::parser::utils::alpha_not_reserved;
+
 use super::ast::ASTNode;
 
 pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, VerboseError<&str>> {
@@ -17,7 +19,7 @@ pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, VerboseError<&
     let (input, _) = tag("in")(input)?;
     let (input, _) = multispace0(input)?;
 
-    let (input, indexed) = tag("")(input)?; // todo!! call a fn to parse expression here
+    let (input, indexed) = alpha_not_reserved(input)?; // todo!! call a fn to parse expression here
     let (input, _) = multispace0(input)?;
 
     let (input, _) = tag("{")(input)?;
