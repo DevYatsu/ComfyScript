@@ -1,6 +1,8 @@
 use crate::parser::{
     ast::{identifier::Identifier, vars::VariableDeclarator, ASTNode},
     bool::parse_bool,
+    numbers::parse_number,
+    strings::parse_string, utils::alpha_not_reserved,
 };
 use nom::{
     branch::alt,
@@ -54,27 +56,13 @@ pub fn parse_single_declaration(
     input: &str,
 ) -> IResult<&str, VariableDeclarator, VerboseError<&str>> {
     let (input, _) = multispace0(input)?;
-    let (input, name) = alphanumeric1(input)?;
-
-    if VariableKeyword::equals_any(name) {
-        let e = VerboseError::add_context(
-            input,
-            "Invalid variable name!",
-            VerboseError {
-                errors: vec![(
-                    "Invalid variable name!",
-                    VerboseErrorKind::Context("Invalid variable name!"),
-                )],
-            },
-        );
-        return Err(nom::Err::Error(e));
-    }
+    let (input, name) = alpha_not_reserved(input)?;
 
     let (input, _) = multispace0(input)?;
 
     let (input, _) = tag("=")(input)?;
     let (input, _) = multispace0(input)?;
-    let (input, value) = parse_bool(input)?;
+    let (input, value) = alt((parse_bool, parse_number, parse_string))(input)?;
 
     let declarator = VariableDeclarator {
         id: Identifier {
