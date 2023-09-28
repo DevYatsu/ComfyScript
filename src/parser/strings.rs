@@ -1,5 +1,5 @@
 use nom::{
-    branch::alt, bytes::complete::take_until, character::complete::multispace0, combinator::map,
+    branch::alt, bytes::complete::take_until, combinator::map,
     error::VerboseError, IResult,
 };
 use nom_supreme::tag::complete::tag;
