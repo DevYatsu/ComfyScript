@@ -1,0 +1,2 @@
+let hey = true, hihi = false
+import test from "hey"
