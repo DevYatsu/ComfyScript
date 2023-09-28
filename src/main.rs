@@ -1,5 +1,7 @@
 mod command;
+mod errors;
 mod parser;
+mod reserved_keywords;
 
 use parser::parse_input;
 
@@ -35,7 +37,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     match parse_input(&content) {
         Err(e) => match e {
             nom::Err::Incomplete(e) => println!("{:?}", e),
-            nom::Err::Error(e) => println!("{} at '{}'", e.errors[0].0, e.errors[1].0),
+            nom::Err::Error(e) => {
+                println!("{:?}", e);
+            }
             nom::Err::Failure(e) => println!("{} at '{}'", e.errors[0].0, e.errors[1].0),
         },
         Ok(_) => println!("working"),

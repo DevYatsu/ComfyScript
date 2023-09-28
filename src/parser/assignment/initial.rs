@@ -4,13 +4,13 @@ use crate::parser::{
 };
 use nom::{
     branch::alt,
-    bytes::complete::tag,
     character::complete::{alphanumeric1, multispace0},
     combinator::map,
     error::{ContextError, VerboseError, VerboseErrorKind},
     multi::separated_list1,
     IResult, Parser,
 };
+use nom_supreme::tag::complete::tag;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum VariableKeyword {

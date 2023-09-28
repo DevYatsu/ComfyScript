@@ -1,6 +1,5 @@
-use nom::{
-    branch::alt, bytes::complete::tag, combinator::map, error::VerboseError, IResult, Parser,
-};
+use nom::{branch::alt, combinator::map, error::VerboseError, IResult, Parser};
+use nom_supreme::tag::complete::tag;
 
 use super::ast::{literal_value::LiteralValue, Expression};
 

@@ -1,9 +1,9 @@
 use nom::{
-    bytes::complete::tag,
     character::complete::{alphanumeric1, multispace0},
     error::VerboseError,
     IResult,
 };
+use nom_supreme::tag::complete::tag;
 
 use super::ast::ASTNode;
 
@@ -25,6 +25,7 @@ pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, VerboseError<&
 
     // parse for content
     // todo!!
+    unimplemented!();
 
     let (input, identifier) = tag("}")(input)?;
     Ok((input, ASTNode::ForStatement {}))
