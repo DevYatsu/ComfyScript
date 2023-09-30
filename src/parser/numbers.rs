@@ -28,13 +28,17 @@ fn parse_float(i: &str) -> IResult<&str, f32, VerboseError<&str>> {
 }
 
 pub fn parse_number(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
+    let start = i.len();
     let (i, num) = alt((parse_float, parse_integer))(i)?;
+    let end = i.len();
 
     Ok((
         i,
         Expression::Literal {
             value: LiteralValue::Number(num),
             raw: num.to_string(),
+            start,
+            end,
         },
     ))
 }

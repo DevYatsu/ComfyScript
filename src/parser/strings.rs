@@ -1,6 +1,5 @@
 use nom::{
-    branch::alt, bytes::complete::take_until, combinator::map,
-    error::VerboseError, IResult,
+    branch::alt, bytes::complete::take_until, combinator::map, error::VerboseError, IResult,
 };
 use nom_supreme::tag::complete::tag;
 
@@ -12,7 +11,9 @@ enum Quote {
 }
 
 pub fn parse_string(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
+    let start = i.len();
     let (i, quote) = parse_quote(i)?;
+    let end = i.len();
 
     match quote {
         Quote::Unique => {
@@ -23,6 +24,8 @@ pub fn parse_string(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
                 Expression::Literal {
                     value: super::ast::literal_value::LiteralValue::Str(result.to_owned()),
                     raw: c.to_owned() + result + c,
+                    start,
+                    end,
                 },
             ));
         }
@@ -34,6 +37,8 @@ pub fn parse_string(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
                 Expression::Literal {
                     value: super::ast::literal_value::LiteralValue::Str(result.to_owned()),
                     raw: c.to_owned() + result + c,
+                    start,
+                    end,
                 },
             ));
         }

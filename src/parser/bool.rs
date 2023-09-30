@@ -3,16 +3,31 @@ use nom_supreme::tag::complete::tag;
 
 use super::ast::{literal_value::LiteralValue, Expression};
 
+enum Bool {
+    True,
+    False,
+}
+
 pub fn parse_bool(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
-    alt((
-        map(tag("true"), |_| Expression::Literal {
-            value: LiteralValue::Boolean(true),
-            raw: String::from("true"),
-        }),
-        map(tag("false"), |_| Expression::Literal {
-            value: LiteralValue::Boolean(false),
-            raw: String::from("false"),
-        }),
+    let start = i.len();
+    let (i, boolean) = alt((
+        map(tag("true"), |_| Bool::True),
+        map(tag("false"), |_| Bool::False),
     ))
-    .parse(i)
+    .parse(i)?;
+
+    let end = i.len();
+
+    Ok((
+        i,
+        Expression::Literal {
+            value: match boolean {
+                Bool::True => LiteralValue::Boolean(true),
+                Bool::False => LiteralValue::Boolean(false),
+            },
+            raw: String::from("true"),
+            start,
+            end,
+        },
+    ))
 }

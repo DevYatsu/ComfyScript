@@ -11,6 +11,7 @@ use super::{
 };
 
 pub fn parse_import(i: &str) -> IResult<&str, ASTNode, VerboseError<&str>> {
+    let start = i.len();
     let (input, _) = tag("import")(i)?;
 
     let (input, _) = multispace0(input)?;
@@ -21,12 +22,15 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, VerboseError<&str>> {
     let (input, _) = multispace0(input)?;
 
     let (input, source) = parse_string(input)?; // todo! add expression Literal support instead
+    let end = i.len();
 
     Ok((
         input,
         ASTNode::ImportDeclaration {
             specifiers: import_specifiers,
             source,
+            start,
+            end,
         },
     ))
 }
