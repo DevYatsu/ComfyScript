@@ -6,4 +6,5 @@ from "test_package"
 
 let hey = "s",
     dude = -1.0, 
-    bool = true
+    bool = true,
+    nil_value = nil
