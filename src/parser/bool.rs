@@ -1,19 +1,21 @@
-use nom::{branch::alt, combinator::map, error::VerboseError, IResult,bytes::complete::tag};
+use nom::{branch::alt, bytes::complete::tag, combinator::map, error::VerboseError, IResult};
 
-use super::ast::{literal_value::LiteralValue, Expression};
+use super::{
+    ast::{literal_value::LiteralValue, Expression},
+    Span,
+};
 
 enum Bool {
     True,
     False,
 }
 
-pub fn parse_bool(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
+pub fn parse_bool(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let start = i.len();
     let (i, boolean) = alt((
         map(tag("true"), |_| Bool::True),
         map(tag("false"), |_| Bool::False),
-    ))
-    (i)?;
+    ))(i)?;
 
     let end = i.len();
 

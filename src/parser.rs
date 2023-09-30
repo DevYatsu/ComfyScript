@@ -1,7 +1,8 @@
 use nom::{
-    branch::alt, character::complete::multispace0, combinator::opt, error::VerboseError,
-    multi::many0, IResult, bytes::complete::tag,
+    branch::alt, bytes::complete::tag, character::complete::multispace0, combinator::opt,
+    error::VerboseError, multi::many0, IResult,
 };
+use nom_locate::LocatedSpan;
 
 use crate::parser::{assignment::initial::parse_assignment, import::parse_import};
 
@@ -16,8 +17,11 @@ mod numbers;
 mod operations;
 mod strings;
 mod utils;
+type Span<'a> = LocatedSpan<&'a str>;
 
-pub fn parse_input(input: &str) -> IResult<&str, Vec<ASTNode>, VerboseError<&str>> {
+pub fn parse_input(input: &str) -> IResult<Span, Vec<ASTNode>, VerboseError<Span>> {
+    let input = Span::new(input);
+
     let (input, _) = multispace0(input)?;
     let mut assignments = Vec::new();
 

@@ -1,15 +1,16 @@
 use nom::{
-    character::complete::multispace0, combinator::opt, error::VerboseError, multi::separated_list1,
-    IResult,bytes::complete::tag
+    bytes::complete::tag, character::complete::multispace0, combinator::opt, error::VerboseError,
+    multi::separated_list1, IResult, InputIter,
 };
 
 use super::{
     ast::{identifier::Identifier, import::ImportSpecifier, ASTNode},
     strings::parse_string,
     utils::alpha_not_reserved,
+    Span,
 };
 
-pub fn parse_import(i: &str) -> IResult<&str, ASTNode, VerboseError<&str>> {
+pub fn parse_import(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let start = i.len();
     let (i, _) = tag("import")(i)?;
 
@@ -34,7 +35,7 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, VerboseError<&str>> {
     ))
 }
 
-fn parse_import_ids(input: &str) -> IResult<&str, ImportSpecifier, VerboseError<&str>> {
+fn parse_import_ids(input: Span) -> IResult<Span, ImportSpecifier, VerboseError<Span>> {
     let (input, _) = multispace0(input)?;
     let (input, imported_name) = alpha_not_reserved(input)?;
     let (input, _) = multispace0(input)?;
@@ -48,10 +49,10 @@ fn parse_import_ids(input: &str) -> IResult<&str, ImportSpecifier, VerboseError<
             input,
             ImportSpecifier {
                 local: Identifier {
-                    name: local_name.to_owned(),
+                    name: local_name.fragment().to_string(),
                 },
                 imported: Identifier {
-                    name: imported_name.to_owned(),
+                    name: imported_name.fragment().to_string(),
                 },
             },
         ));
@@ -63,10 +64,10 @@ fn parse_import_ids(input: &str) -> IResult<&str, ImportSpecifier, VerboseError<
         input,
         ImportSpecifier {
             local: Identifier {
-                name: imported_name.to_owned(),
+                name: imported_name.fragment().to_string(),
             },
             imported: Identifier {
-                name: imported_name.to_owned(),
+                name: imported_name.fragment().to_string(),
             },
         },
     ))

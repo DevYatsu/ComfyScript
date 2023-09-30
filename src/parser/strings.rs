@@ -1,15 +1,16 @@
 use nom::{
-    branch::alt, bytes::complete::take_until, combinator::map, error::VerboseError, IResult,bytes::complete::tag
+    branch::alt, bytes::complete::tag, bytes::complete::take_until, combinator::map,
+    error::VerboseError, IResult,
 };
 
-use super::ast::Expression;
+use super::{ast::Expression, Span};
 
 enum Quote {
     Unique,
     Double,
 }
 
-pub fn parse_string(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
+pub fn parse_string(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let start = i.len();
     let (i, quote) = parse_quote(i)?;
 
@@ -22,8 +23,10 @@ pub fn parse_string(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
             return Ok((
                 i,
                 Expression::Literal {
-                    value: super::ast::literal_value::LiteralValue::Str(result.to_owned()),
-                    raw: c.to_owned() + result + c,
+                    value: super::ast::literal_value::LiteralValue::Str(
+                        result.fragment().to_string(),
+                    ),
+                    raw: c.fragment().to_string() + result.fragment() + c.fragment(),
                     start,
                     end,
                 },
@@ -37,8 +40,10 @@ pub fn parse_string(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
             return Ok((
                 i,
                 Expression::Literal {
-                    value: super::ast::literal_value::LiteralValue::Str(result.to_owned()),
-                    raw: c.to_owned() + result + c,
+                    value: super::ast::literal_value::LiteralValue::Str(
+                        result.fragment().to_string(),
+                    ),
+                    raw: c.fragment().to_string() + result.fragment() + c.fragment(),
                     start,
                     end,
                 },
@@ -48,7 +53,7 @@ pub fn parse_string(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
 }
 // todo!
 
-fn parse_quote(i: &str) -> IResult<&str, Quote, VerboseError<&str>> {
+fn parse_quote(i: Span) -> IResult<Span, Quote, VerboseError<Span>> {
     alt((
         map(tag("\""), |_| Quote::Double),
         map(tag("'"), |_| Quote::Unique),

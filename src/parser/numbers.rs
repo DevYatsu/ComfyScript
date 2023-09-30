@@ -1,35 +1,21 @@
 use nom::error::VerboseError;
 use nom::number::complete::float;
-use nom::{
-    branch::alt,
-    character::complete::{char, digit1},
-    combinator::{map_res, opt},
-    IResult,
-};
-use std::str;
+use nom::{branch::alt, character::complete::char, combinator::opt, IResult};
 
 use super::ast::literal_value::LiteralValue;
 use super::ast::Expression;
+use super::Span;
 
-fn parse_integer(i: &str) -> IResult<&str, f32, VerboseError<&str>> {
-    let (i, sign) = opt(alt((char('+'), char('-'))))(i)?;
-    let (i, integer) = map_res(digit1, str::parse::<f32>)(i)?;
-
-    let integer_value = match sign {
-        Some('-') => -integer,
-        _ => integer,
-    };
-
-    Ok((i, integer_value))
-}
-
-fn parse_float(i: &str) -> IResult<&str, f32, VerboseError<&str>> {
-    float(i)
-}
-
-pub fn parse_number(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
+pub fn parse_number(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let start = i.len();
-    let (i, num) = alt((parse_float, parse_integer))(i)?;
+    let (i, sign) = opt(alt((char('+'), char('-'))))(i)?;
+
+    let (i, num) = float(i)?;
+
+    let num = match sign {
+        Some('-') => -num,
+        _ => num,
+    };
     let end = i.len();
 
     Ok((

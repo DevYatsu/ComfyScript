@@ -3,6 +3,7 @@ mod errors;
 mod parser;
 mod reserved_keywords;
 
+use nom::error::convert_error;
 use parser::parse_input;
 
 use crate::command::{get_command, Command};
@@ -36,11 +37,11 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     match parse_input(&content) {
         Err(e) => match e {
-            nom::Err::Incomplete(e) => println!("{:?}", e),
             nom::Err::Error(e) => {
                 println!("{:?}", e);
             }
             nom::Err::Failure(e) => println!("{} at '{}'", e.errors[0].0, e.errors[1].0),
+            _ => unreachable!(),
         },
         Ok(_) => println!("working"),
     };

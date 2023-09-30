@@ -4,10 +4,11 @@ use crate::parser::{
     numbers::parse_number,
     strings::parse_string,
     utils::alpha_not_reserved,
+    Span,
 };
 use nom::{
-    branch::alt, character::complete::multispace0, combinator::map, error::VerboseError,
-    multi::separated_list1, IResult, bytes::complete::tag,
+    branch::alt, bytes::complete::tag, character::complete::multispace0, combinator::map,
+    error::VerboseError, multi::separated_list1, IResult,
 };
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -25,7 +26,7 @@ impl ToString for VariableKeyword {
     }
 }
 
-pub fn parse_assignment(input: &str) -> IResult<&str, ASTNode, VerboseError<&str>> {
+pub fn parse_assignment(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let start = input.len();
     let (input, keyword) = parse_variable_keyword(input)?;
 
@@ -48,8 +49,8 @@ pub fn parse_assignment(input: &str) -> IResult<&str, ASTNode, VerboseError<&str
 }
 
 pub fn parse_single_declaration(
-    input: &str,
-) -> IResult<&str, VariableDeclarator, VerboseError<&str>> {
+    input: Span,
+) -> IResult<Span, VariableDeclarator, VerboseError<Span>> {
     let (input, _) = multispace0(input)?;
     let (input, name) = alpha_not_reserved(input)?;
 
@@ -61,7 +62,7 @@ pub fn parse_single_declaration(
 
     let declarator = VariableDeclarator {
         id: Identifier {
-            name: name.to_owned(),
+            name: name.fragment().to_string(),
         },
         init: value,
     };
@@ -69,10 +70,9 @@ pub fn parse_single_declaration(
     Ok((input, declarator))
 }
 
-fn parse_variable_keyword(i: &str) -> IResult<&str, VariableKeyword, VerboseError<&str>> {
+fn parse_variable_keyword(i: Span) -> IResult<Span, VariableKeyword, VerboseError<Span>> {
     alt((
         map(tag("let"), |_| VariableKeyword::Let),
         map(tag("var"), |_| VariableKeyword::Var),
-    ))
-    (i)
+    ))(i)
 }

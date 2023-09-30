@@ -1,14 +1,15 @@
 use nom::{
+    bytes::complete::tag,
     character::complete::{alphanumeric1, multispace0},
     error::VerboseError,
-    IResult,bytes::complete::tag
+    IResult,
 };
 
 use crate::parser::utils::alpha_not_reserved;
 
-use super::ast::ASTNode;
+use super::{ast::ASTNode, Span};
 
-pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, VerboseError<&str>> {
+pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let (input, _) = tag("for")(input)?;
     let (input, _) = multispace0(input)?;
 

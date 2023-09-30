@@ -1,24 +1,13 @@
 use crate::reserved_keywords::RESERVED_KEYWORD;
-use nom::{
-    character::complete::alphanumeric1,
-    error::{ContextError, VerboseError, VerboseErrorKind},
-    IResult,
-};
+use nom::{character::complete::alphanumeric1, error::VerboseError, Err, IResult};
 
-pub fn alpha_not_reserved(input: &str) -> IResult<&str, &str, VerboseError<&str>> {
+use super::Span;
+
+pub fn alpha_not_reserved(input: Span) -> IResult<Span, Span, VerboseError<Span>> {
     let (input, value) = alphanumeric1(input)?;
 
     if RESERVED_KEYWORD.contains(&value) {
-        Err(nom::Err::Error(VerboseError::add_context(
-            input,
-            "Keyword reserved!",
-            VerboseError {
-                errors: vec![(
-                    "Invalid input!",
-                    VerboseErrorKind::Context("Invalid input!"),
-                )],
-            },
-        )))
+        Err(Err::Error(VerboseError { errors: vec![] })) // return an error
     } else {
         Ok((input, value))
     }
