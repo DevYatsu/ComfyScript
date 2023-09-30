@@ -1,8 +1,7 @@
 use nom::{
     character::complete::multispace0, combinator::opt, error::VerboseError, multi::separated_list1,
-    IResult,
+    IResult,bytes::complete::tag
 };
-use nom_supreme::tag::complete::tag;
 
 use super::{
     ast::{identifier::Identifier, import::ImportSpecifier, ASTNode},

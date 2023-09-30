@@ -1,7 +1,6 @@
 use nom::{
-    branch::alt, bytes::complete::take_until, combinator::map, error::VerboseError, IResult,
+    branch::alt, bytes::complete::take_until, combinator::map, error::VerboseError, IResult,bytes::complete::tag
 };
-use nom_supreme::tag::complete::tag;
 
 use super::ast::Expression;
 

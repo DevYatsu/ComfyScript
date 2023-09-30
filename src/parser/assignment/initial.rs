@@ -7,9 +7,8 @@ use crate::parser::{
 };
 use nom::{
     branch::alt, character::complete::multispace0, combinator::map, error::VerboseError,
-    multi::separated_list1, IResult, Parser,
+    multi::separated_list1, IResult, bytes::complete::tag,
 };
-use nom_supreme::tag::complete::tag;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum VariableKeyword {
@@ -75,5 +74,5 @@ fn parse_variable_keyword(i: &str) -> IResult<&str, VariableKeyword, VerboseErro
         map(tag("let"), |_| VariableKeyword::Let),
         map(tag("var"), |_| VariableKeyword::Var),
     ))
-    .parse(i)
+    (i)
 }

@@ -1,5 +1,4 @@
-use nom::{branch::alt, combinator::map, error::VerboseError, IResult, Parser};
-use nom_supreme::tag::complete::tag;
+use nom::{branch::alt, combinator::map, error::VerboseError, IResult,bytes::complete::tag};
 
 use super::ast::{literal_value::LiteralValue, Expression};
 
@@ -14,7 +13,7 @@ pub fn parse_bool(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
         map(tag("true"), |_| Bool::True),
         map(tag("false"), |_| Bool::False),
     ))
-    .parse(i)?;
+    (i)?;
 
     let end = i.len();
 

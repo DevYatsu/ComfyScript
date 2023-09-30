@@ -1,8 +1,7 @@
 use nom::{
     branch::alt, character::complete::multispace0, combinator::opt, error::VerboseError,
-    multi::many0, IResult,
+    multi::many0, IResult, bytes::complete::tag,
 };
-use nom_supreme::tag::complete::tag;
 
 use crate::parser::{assignment::initial::parse_assignment, import::parse_import};
 

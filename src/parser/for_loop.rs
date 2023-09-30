@@ -1,9 +1,8 @@
 use nom::{
     character::complete::{alphanumeric1, multispace0},
     error::VerboseError,
-    IResult,
+    IResult,bytes::complete::tag
 };
-use nom_supreme::tag::complete::tag;
 
 use crate::parser::utils::alpha_not_reserved;
 
