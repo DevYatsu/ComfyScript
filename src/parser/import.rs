@@ -21,6 +21,7 @@ pub fn parse_import(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     } else {
         (i, vec![]) // no specifier means everything (*)
     };
+    
     let (i, _) = multispace0(i)?;
 
     let (i, _) = tag("from")(i)?;
