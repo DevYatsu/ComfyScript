@@ -1,10 +1,7 @@
 use crate::parser::{
     ast::{identifier::Identifier, vars::VariableDeclarator, ASTNode},
-    bool::parse_bool,
-    numbers::parse_number,
-    strings::parse_string,
     utils::alpha_not_reserved,
-    Span,
+    Span, primitive_values::{numbers::parse_number, bool::parse_bool, strings::parse_string},
 };
 use nom::{
     branch::alt, bytes::complete::tag, character::complete::multispace0, combinator::map,

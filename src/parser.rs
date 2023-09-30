@@ -10,13 +10,12 @@ use self::ast::ASTNode;
 
 mod assignment;
 mod ast;
-mod bool;
+mod primitive_values;
 mod for_loop;
 mod import;
-mod numbers;
 mod operations;
-mod strings;
 mod utils;
+
 type Span<'a> = LocatedSpan<&'a str>;
 
 pub fn parse_input(input: &str) -> IResult<Span, Vec<ASTNode>, VerboseError<Span>> {

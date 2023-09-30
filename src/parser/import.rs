@@ -1,13 +1,12 @@
 use nom::{
     bytes::complete::tag, character::complete::multispace0, combinator::opt, error::VerboseError,
-    multi::separated_list1, IResult, InputIter,
+    multi::separated_list1, IResult
 };
 
 use super::{
     ast::{identifier::Identifier, import::ImportSpecifier, ASTNode},
-    strings::parse_string,
     utils::alpha_not_reserved,
-    Span,
+    Span, primitive_values::strings::parse_string,
 };
 
 pub fn parse_import(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
