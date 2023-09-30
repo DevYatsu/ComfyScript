@@ -4,6 +4,8 @@ import
     boo as test 
 from "test_package"
 
+import * from "http"
+
 let hey = "s",
     dude = -1, 
     bool = true,
