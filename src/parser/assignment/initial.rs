@@ -3,7 +3,7 @@ use crate::parser::{
     primitive_values::{
         bool::parse_bool, nil::parse_nil, numbers::parse_number, strings::parse_string,
     },
-    utils::alpha_not_reserved,
+    utils::parse_keyword,
     Span,
 };
 use nom::{
@@ -47,7 +47,7 @@ pub fn parse_single_declaration(
     input: Span,
 ) -> IResult<Span, VariableDeclarator, VerboseError<Span>> {
     let (input, _) = multispace0(input)?;
-    let (input, name) = alpha_not_reserved(input)?;
+    let (input, name) = parse_keyword(input)?;
 
     let (input, _) = multispace0(input)?;
 

@@ -6,7 +6,7 @@ use nom::{
 use super::{
     ast::{identifier::Identifier, import::ImportSpecifier, ASTNode},
     primitive_values::strings::parse_string,
-    utils::alpha_not_reserved,
+    utils::parse_keyword,
     Span,
 };
 
@@ -33,13 +33,13 @@ pub fn parse_import(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
 
 fn parse_import_ids(input: Span) -> IResult<Span, ImportSpecifier, VerboseError<Span>> {
     let (input, _) = multispace0(input)?;
-    let (input, imported_name) = alpha_not_reserved(input)?;
+    let (input, imported_name) = parse_keyword(input)?;
     let (input, _) = multispace0(input)?;
     let (input, opt_val) = opt(tag("as"))(input)?;
 
     if opt_val != None {
         let (input, _) = multispace0(input)?;
-        let (input, local_name) = alpha_not_reserved(input)?;
+        let (input, local_name) = parse_keyword(input)?;
 
         return Ok((
             input,

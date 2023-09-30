@@ -7,7 +7,7 @@ use nom::{
 
 use super::Span;
 
-pub fn alpha_not_reserved(i: Span) -> IResult<Span, String, VerboseError<Span>> {
+pub fn parse_keyword(i: Span) -> IResult<Span, String, VerboseError<Span>> {
     let (mut i, word) = alphanumeric1(i)?;
     let mut word = word.fragment().to_string();
 
