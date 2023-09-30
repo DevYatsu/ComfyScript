@@ -5,6 +5,6 @@ import
 from "test_package"
 
 let hey = "s",
-    dude = -1.0, 
+    dude = -1, 
     bool = true,
     nil_value = nil

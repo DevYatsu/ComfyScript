@@ -3,8 +3,10 @@ use nom::{
     error::VerboseError, IResult,
 };
 
-use crate::parser::{ast::{Expression, literal_value::LiteralValue}, Span};
-
+use crate::parser::{
+    ast::{literal_value::LiteralValue, Expression},
+    Span,
+};
 
 enum Quote {
     Unique,
@@ -22,9 +24,7 @@ pub fn parse_string(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
             return Ok((
                 i,
                 Expression::Literal {
-                    value: LiteralValue::Str(
-                        result.fragment().to_string(),
-                    ),
+                    value: LiteralValue::Str(result.fragment().to_string()),
                     raw: c.fragment().to_string() + result.fragment() + c.fragment(),
                 },
             ));
@@ -36,9 +36,7 @@ pub fn parse_string(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
             return Ok((
                 i,
                 Expression::Literal {
-                    value: LiteralValue::Str(
-                        result.fragment().to_string(),
-                    ),
+                    value: LiteralValue::Str(result.fragment().to_string()),
                     raw: c.fragment().to_string() + result.fragment() + c.fragment(),
                 },
             ));

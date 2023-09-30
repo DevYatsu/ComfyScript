@@ -10,10 +10,10 @@ use self::ast::ASTNode;
 
 mod assignment;
 mod ast;
-mod primitive_values;
 mod for_loop;
 mod import;
 mod operations;
+mod primitive_values;
 mod utils;
 
 type Span<'a> = LocatedSpan<&'a str>;

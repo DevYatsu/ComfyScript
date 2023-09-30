@@ -1,12 +1,13 @@
 use nom::{
     bytes::complete::tag, character::complete::multispace0, combinator::opt, error::VerboseError,
-    multi::separated_list1, IResult
+    multi::separated_list1, IResult,
 };
 
 use super::{
     ast::{identifier::Identifier, import::ImportSpecifier, ASTNode},
+    primitive_values::strings::parse_string,
     utils::alpha_not_reserved,
-    Span, primitive_values::strings::parse_string,
+    Span,
 };
 
 pub fn parse_import(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
@@ -43,11 +44,9 @@ fn parse_import_ids(input: Span) -> IResult<Span, ImportSpecifier, VerboseError<
         return Ok((
             input,
             ImportSpecifier {
-                local: Identifier {
-                    name: local_name.fragment().to_string(),
-                },
+                local: Identifier { name: local_name },
                 imported: Identifier {
-                    name: imported_name.fragment().to_string(),
+                    name: imported_name,
                 },
             },
         ));
@@ -59,10 +58,10 @@ fn parse_import_ids(input: Span) -> IResult<Span, ImportSpecifier, VerboseError<
         input,
         ImportSpecifier {
             local: Identifier {
-                name: imported_name.fragment().to_string(),
+                name: imported_name.to_owned(),
             },
             imported: Identifier {
-                name: imported_name.fragment().to_string(),
+                name: imported_name,
             },
         },
     ))
