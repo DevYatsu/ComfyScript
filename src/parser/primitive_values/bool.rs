@@ -8,13 +8,11 @@ enum Bool {
 }
 
 pub fn parse_bool(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    let start = i.len();
     let (i, boolean) = alt((
         map(tag("true"), |_| Bool::True),
         map(tag("false"), |_| Bool::False),
     ))(i)?;
 
-    let end = i.len();
 
     Ok((
         i,
@@ -24,8 +22,6 @@ pub fn parse_bool(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
                 Bool::False => LiteralValue::Boolean(false),
             },
             raw: String::from("true"),
-            start,
-            end,
         },
     ))
 }

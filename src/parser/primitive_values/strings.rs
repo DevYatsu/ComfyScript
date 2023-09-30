@@ -12,14 +12,12 @@ enum Quote {
 }
 
 pub fn parse_string(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    let start = i.len();
     let (i, quote) = parse_quote(i)?;
 
     match quote {
         Quote::Unique => {
             let (i, result) = take_until("'")(i)?;
             let (i, c) = tag("'")(i)?;
-            let end = i.len();
 
             return Ok((
                 i,
@@ -28,15 +26,12 @@ pub fn parse_string(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
                         result.fragment().to_string(),
                     ),
                     raw: c.fragment().to_string() + result.fragment() + c.fragment(),
-                    start,
-                    end,
                 },
             ));
         }
         Quote::Double => {
             let (i, result) = take_until("\"")(i)?;
             let (i, c) = tag("\"")(i)?;
-            let end = i.len();
 
             return Ok((
                 i,
@@ -45,8 +40,6 @@ pub fn parse_string(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
                         result.fragment().to_string(),
                     ),
                     raw: c.fragment().to_string() + result.fragment() + c.fragment(),
-                    start,
-                    end,
                 },
             ));
         }

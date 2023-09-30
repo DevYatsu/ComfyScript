@@ -24,21 +24,16 @@ impl ToString for VariableKeyword {
 }
 
 pub fn parse_assignment(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
-    let start = input.len();
     let (input, keyword) = parse_variable_keyword(input)?;
 
     let (input, _) = multispace0(input)?;
     let (input, declarations) = separated_list1(tag(","), parse_single_declaration)(input)?;
-
-    let end = input.len();
 
     let result = (
         input,
         ASTNode::VariableDeclaration {
             declarations,
             kind: keyword,
-            start,
-            end,
         },
     );
 

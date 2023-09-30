@@ -8,7 +8,6 @@ use crate::parser::ast::literal_value::LiteralValue;
 
 
 pub fn parse_number(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    let start = i.len();
     let (i, sign) = opt(alt((char('+'), char('-'))))(i)?;
 
     let (i, num) = float(i)?;
@@ -17,15 +16,12 @@ pub fn parse_number(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
         Some('-') => -num,
         _ => num,
     };
-    let end = i.len();
 
     Ok((
         i,
         Expression::Literal {
             value: LiteralValue::Number(num),
             raw: num.to_string(),
-            start,
-            end,
         },
     ))
 }
