@@ -3,7 +3,6 @@ mod errors;
 mod parser;
 mod reserved_keywords;
 
-use nom::error::convert_error;
 use parser::parse_input;
 
 use crate::command::{get_command, Command};
