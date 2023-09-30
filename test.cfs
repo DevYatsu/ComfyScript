@@ -1,7 +1,8 @@
 import 
     bar as foo, 
     foo as bar,
-    boo as test from "test_package"
+    boo as test 
+from "test_package"
 
 import * from "math"
 
@@ -9,4 +10,3 @@ let hey = "s",
     dude = -1, 
     bool = true,
     _nil_value_ = nil
-

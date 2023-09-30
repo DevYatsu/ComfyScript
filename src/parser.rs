@@ -29,11 +29,15 @@ pub fn parse_input(input: &str) -> IResult<Span, Vec<ASTNode>, VerboseError<Span
 
     while !input.is_empty() {
         let (new_input, statement) = alt((parse_assignment, parse_import))(input)?;
-        let (new_input, _) = parse_new_lines(new_input)?;
+        
+        if new_input.len() != 0 {
+            let (new_input, _) = parse_new_lines(new_input)?;
+            statements.push(statement);
 
-        statements.push(statement);
-
-        input = new_input;
+            input = new_input;
+        } else {
+            break;
+        }
     }
 
     println!("{:?}", statements);
