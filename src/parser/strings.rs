@@ -13,12 +13,13 @@ enum Quote {
 pub fn parse_string(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
     let start = i.len();
     let (i, quote) = parse_quote(i)?;
-    let end = i.len();
 
     match quote {
         Quote::Unique => {
             let (i, result) = take_until("'")(i)?;
             let (i, c) = tag("'")(i)?;
+            let end = i.len();
+
             return Ok((
                 i,
                 Expression::Literal {
@@ -32,6 +33,8 @@ pub fn parse_string(i: &str) -> IResult<&str, Expression, VerboseError<&str>> {
         Quote::Double => {
             let (i, result) = take_until("\"")(i)?;
             let (i, c) = tag("\"")(i)?;
+            let end = i.len();
+
             return Ok((
                 i,
                 Expression::Literal {
