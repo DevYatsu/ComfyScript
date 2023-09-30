@@ -1,7 +1,7 @@
 use crate::parser::{
     ast::{identifier::Identifier, vars::VariableDeclarator, ASTNode},
     utils::alpha_not_reserved,
-    Span, primitive_values::{numbers::parse_number, bool::parse_bool, strings::parse_string},
+    Span, primitive_values::{numbers::parse_number, bool::parse_bool, strings::parse_string, nil::parse_nil},
 };
 use nom::{
     branch::alt, bytes::complete::tag, character::complete::multispace0, combinator::map,
@@ -50,7 +50,7 @@ pub fn parse_single_declaration(
 
     let (input, _) = tag("=")(input)?;
     let (input, _) = multispace0(input)?;
-    let (input, value) = alt((parse_bool, parse_number, parse_string))(input)?;
+    let (input, value) = alt((parse_string, parse_number, parse_bool, parse_nil))(input)?;
 
     let declarator = VariableDeclarator {
         id: Identifier {
