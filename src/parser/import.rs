@@ -1,6 +1,10 @@
 use nom::{
-    bytes::complete::tag, character::complete::multispace0, combinator::opt, error::VerboseError,
-    multi::separated_list1, IResult,
+    bytes::complete::tag,
+    character::complete::{multispace0, multispace1},
+    combinator::opt,
+    error::VerboseError,
+    multi::separated_list1,
+    IResult,
 };
 
 use super::{
@@ -12,38 +16,39 @@ use super::{
 
 pub fn parse_import(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let (i, _) = tag("import")(i)?;
+    let (i, _) = multispace1(i)?;
 
-    let (i, _) = multispace0(i)?;
     let (i, all) = opt(tag("*"))(i)?;
 
-    let (i, specifiers) = if let None = all {
+    let (i, specifiers) = if None == all {
         separated_list1(tag(","), parse_import_specifier)(i)?
     } else {
+        let (i, _) = multispace1(i)?;
+
         (i, vec![]) // no specifier means everything (*)
     };
 
-    let (i, _) = multispace0(i)?;
-
     let (i, _) = tag("from")(i)?;
-    let (i, _) = multispace0(i)?;
+    let (i, _) = multispace1(i)?;
 
     let (i, source) = parse_string(i)?; // todo! add expression Literal support instead
 
     Ok((i, ASTNode::ImportDeclaration { specifiers, source }))
 }
 
-fn parse_import_specifier(input: Span) -> IResult<Span, ImportSpecifier, VerboseError<Span>> {
-    let (input, _) = multispace0(input)?;
-    let (input, imported_name) = parse_identifier(input)?;
-    let (input, _) = multispace0(input)?;
-    let (input, opt_val) = opt(tag("as"))(input)?;
+fn parse_import_specifier(i: Span) -> IResult<Span, ImportSpecifier, VerboseError<Span>> {
+    let (i, _) = multispace0(i)?;
+    let (i, imported_name) = parse_identifier(i)?;
+    let (i, _) = multispace0(i)?;
+    let (i, opt_val) = opt(tag("as"))(i)?;
 
     if opt_val != None {
-        let (input, _) = multispace0(input)?;
-        let (input, local_name) = parse_identifier(input)?;
+        let (i, _) = multispace1(i)?;
+        let (i, local_name) = parse_identifier(i)?;
+        let (i, _) = multispace0(i)?;
 
         return Ok((
-            input,
+            i,
             ImportSpecifier {
                 local: Identifier { name: local_name },
                 imported: Identifier {
@@ -56,7 +61,7 @@ fn parse_import_specifier(input: Span) -> IResult<Span, ImportSpecifier, Verbose
     //todo!! add support for "as" keyword to rename import locally
 
     Ok((
-        input,
+        i,
         ImportSpecifier {
             local: Identifier {
                 name: imported_name.to_owned(),

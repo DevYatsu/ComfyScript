@@ -5,8 +5,13 @@ use crate::parser::{
     Span,
 };
 use nom::{
-    branch::alt, bytes::complete::tag, character::complete::multispace0, combinator::map,
-    error::VerboseError, multi::separated_list1, IResult,
+    branch::alt,
+    bytes::complete::tag,
+    character::complete::{multispace0, multispace1},
+    combinator::map,
+    error::VerboseError,
+    multi::separated_list1,
+    IResult,
 };
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -27,7 +32,7 @@ impl ToString for VariableKeyword {
 pub fn parse_assignment(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let (input, keyword) = parse_variable_keyword(input)?;
 
-    let (input, _) = multispace0(input)?;
+    let (input, _) = multispace1(input)?;
     let (input, declarations) = separated_list1(tag(","), parse_single_declaration)(input)?;
 
     let result = (
