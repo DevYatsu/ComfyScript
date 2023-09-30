@@ -5,7 +5,7 @@ use nom::{
     IResult,
 };
 
-use crate::parser::utils::parse_keyword;
+use crate::parser::utils::parse_identifier;
 
 use super::{ast::ASTNode, Span};
 
@@ -19,7 +19,7 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
     let (input, _) = tag("in")(input)?;
     let (input, _) = multispace0(input)?;
 
-    let (input, indexed) = parse_keyword(input)?; // todo!! call a fn to parse expression here
+    let (input, indexed) = parse_identifier(input)?; // todo!! call a fn to parse expression here
     let (input, _) = multispace0(input)?;
 
     let (input, _) = tag("{")(input)?;

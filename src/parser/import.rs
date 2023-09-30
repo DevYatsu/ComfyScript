@@ -6,7 +6,7 @@ use nom::{
 use super::{
     ast::{identifier::Identifier, import::ImportSpecifier, ASTNode},
     primitive_values::strings::parse_string,
-    utils::parse_keyword,
+    utils::parse_identifier,
     Span,
 };
 
@@ -14,32 +14,32 @@ pub fn parse_import(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let (i, _) = tag("import")(i)?;
 
     let (i, _) = multispace0(i)?;
-    let (i, import_specifiers) = separated_list1(tag(","), parse_import_ids)(i)?;
+    let (i, all) = opt(tag("*"))(i)?;
 
+    let (i, specifiers) = if let None = all {
+        separated_list1(tag(","), parse_import_specifier)(i)?
+    } else {
+        (i, vec![]) // no specifier means everything (*)
+    };
     let (i, _) = multispace0(i)?;
+
     let (i, _) = tag("from")(i)?;
     let (i, _) = multispace0(i)?;
 
     let (i, source) = parse_string(i)?; // todo! add expression Literal support instead
 
-    Ok((
-        i,
-        ASTNode::ImportDeclaration {
-            specifiers: import_specifiers,
-            source,
-        },
-    ))
+    Ok((i, ASTNode::ImportDeclaration { specifiers, source }))
 }
 
-fn parse_import_ids(input: Span) -> IResult<Span, ImportSpecifier, VerboseError<Span>> {
+fn parse_import_specifier(input: Span) -> IResult<Span, ImportSpecifier, VerboseError<Span>> {
     let (input, _) = multispace0(input)?;
-    let (input, imported_name) = parse_keyword(input)?;
+    let (input, imported_name) = parse_identifier(input)?;
     let (input, _) = multispace0(input)?;
     let (input, opt_val) = opt(tag("as"))(input)?;
 
     if opt_val != None {
         let (input, _) = multispace0(input)?;
-        let (input, local_name) = parse_keyword(input)?;
+        let (input, local_name) = parse_identifier(input)?;
 
         return Ok((
             input,
