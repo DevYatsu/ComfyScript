@@ -15,11 +15,19 @@ pub fn parse_identifier(i: Span) -> IResult<Span, String, VerboseError<Span>> {
         match parse_char::<Span, VerboseError<Span>>('_')(i) {
             Ok((input, c)) => {
                 word.push(c);
-                let (input, w) = alphanumeric1(input)?;
-                word.push_str(w.fragment());
-                i = input;
+
+                match alphanumeric1::<Span, VerboseError<Span>>(input) {
+                    Ok((input, w)) => {
+                        word.push_str(w.fragment());
+                        i = input;
+                    }
+                    Err(_) => {
+                        i = input;
+                        break;
+                    }
+                };
             }
-            Result::Err(_) => break,
+            Err(_) => break,
         }
     }
 

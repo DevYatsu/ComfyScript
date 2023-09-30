@@ -4,9 +4,10 @@ import
     boo as test 
 from "test_package"
 
-import * from "http"
+import * from "math"
 
 let hey = "s",
     dude = -1, 
     bool = true,
-    nil_value = nil
+    nil_value_ = nil
+
