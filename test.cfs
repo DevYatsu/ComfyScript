@@ -9,5 +9,5 @@ import * from "math"
 let hey = "s",
     dude = -1, 
     bool = true,
-    nil_value_ = nil
+    _nil_value_ = nil
 
