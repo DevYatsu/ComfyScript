@@ -1,8 +1,7 @@
 use crate::reserved_keywords::RESERVED_KEYWORD;
 use nom::{
-    character::complete::{alphanumeric1},
-    error::VerboseError,
-    Err, IResult, bytes::complete::tag, branch::alt,
+    branch::alt, bytes::complete::tag, character::complete::alphanumeric1, error::VerboseError,
+    Err, IResult,
 };
 
 use super::Span;
