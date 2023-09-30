@@ -12,20 +12,20 @@ use super::{
 
 pub fn parse_import(i: &str) -> IResult<&str, ASTNode, VerboseError<&str>> {
     let start = i.len();
-    let (input, _) = tag("import")(i)?;
+    let (i, _) = tag("import")(i)?;
 
-    let (input, _) = multispace0(input)?;
-    let (input, import_specifiers) = separated_list1(tag(","), parse_import_ids)(input)?;
+    let (i, _) = multispace0(i)?;
+    let (i, import_specifiers) = separated_list1(tag(","), parse_import_ids)(i)?;
 
-    let (input, _) = multispace0(input)?;
-    let (input, _) = tag("from")(input)?;
-    let (input, _) = multispace0(input)?;
+    let (i, _) = multispace0(i)?;
+    let (i, _) = tag("from")(i)?;
+    let (i, _) = multispace0(i)?;
 
-    let (input, source) = parse_string(input)?; // todo! add expression Literal support instead
+    let (i, source) = parse_string(i)?; // todo! add expression Literal support instead
     let end = i.len();
 
     Ok((
-        input,
+        i,
         ASTNode::ImportDeclaration {
             specifiers: import_specifiers,
             source,

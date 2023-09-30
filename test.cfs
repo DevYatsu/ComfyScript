@@ -1,2 +1,3 @@
-import test as hey from "test"
+import test as hey, hihi as quoicoubeuh,
+hey as test from "test"
 let hey = "s", dude = -1.0, bool = true
