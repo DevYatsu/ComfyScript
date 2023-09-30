@@ -1,5 +1,4 @@
 mod command;
-mod errors;
 pub mod parser;
 mod reserved_keywords;
 mod comfy;
