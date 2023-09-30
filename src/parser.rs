@@ -9,7 +9,7 @@ use crate::parser::{assignment::initial::parse_assignment, import::parse_import}
 use self::ast::ASTNode;
 
 mod assignment;
-mod ast;
+pub mod ast;
 mod for_loop;
 mod import;
 mod operations;
