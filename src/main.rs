@@ -2,6 +2,7 @@ mod command;
 mod errors;
 mod parser;
 mod reserved_keywords;
+mod comfy;
 
 use parser::parse_input;
 
