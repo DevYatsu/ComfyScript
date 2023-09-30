@@ -1,8 +1,6 @@
 use crate::parser::{
     ast::{identifier::Identifier, vars::VariableDeclarator, ASTNode},
-    primitive_values::{
-        bool::parse_bool, nil::parse_nil, numbers::parse_number, strings::parse_string,
-    },
+    primitive_values::parse_primitive_value,
     utils::parse_identifier,
     Span,
 };
@@ -53,7 +51,7 @@ pub fn parse_single_declaration(
 
     let (input, _) = tag("=")(input)?;
     let (input, _) = multispace0(input)?;
-    let (input, value) = alt((parse_number, parse_bool, parse_nil, parse_string))(input)?;
+    let (input, value) = parse_primitive_value(input)?;
 
     let declarator = VariableDeclarator {
         id: Identifier { name },
