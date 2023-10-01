@@ -1,6 +1,6 @@
 use nom::{
-    branch::alt, bytes::complete::tag, character::complete::multispace0, error::VerboseError,
-    multi::many0, IResult,
+    branch::alt, bytes::complete::tag, character::complete::multispace0, combinator::opt,
+    error::VerboseError, IResult,
 };
 use nom_locate::LocatedSpan;
 
@@ -20,14 +20,25 @@ mod utils;
 
 type Span<'a> = LocatedSpan<&'a str>;
 
-pub fn parse_input(input: &str) -> IResult<Span, Vec<ASTNode>, VerboseError<Span>> {
-    let input = Span::new(input);
+pub fn parse_input<'a>(
+    input: Span<'a>,
+    until: Option<&'static str>,
+) -> IResult<Span<'a>, Vec<ASTNode>, VerboseError<Span<'a>>> {
     let (input, _) = multispace0(input)?;
-    let (mut input, _) = many0(tag(";"))(input)?;
+    let (mut input, _) = opt(parse_new_lines)(input)?;
 
     let mut statements = Vec::new();
 
     while !input.is_empty() {
+        if let Some(limit) = until {
+            let (new_input, opt) = opt(tag(limit))(input)?;
+
+            if let Some(_) = opt {
+                input = new_input;
+                break;
+            }
+        }
+
         let (new_input, statement) = parse_statement(input)?;
         statements.push(statement);
 

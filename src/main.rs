@@ -3,6 +3,7 @@ mod command;
 pub mod parser;
 mod reserved_keywords;
 
+use nom_locate::LocatedSpan;
 use parser::parse_input;
 
 use crate::command::{get_command, Command};
@@ -34,7 +35,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut content = String::new();
     reader.read_to_string(&mut content)?;
 
-    match parse_input(&content) {
+    match parse_input(LocatedSpan::new(&content), None) {
         Err(e) => match e {
             nom::Err::Error(e) => {
                 println!("{:?}", e);

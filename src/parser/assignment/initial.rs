@@ -1,7 +1,6 @@
 use crate::parser::{
-    ast::{identifier::Identifier, vars::VariableDeclarator, ASTNode},
+    ast::{identifier::parse_identifier, vars::VariableDeclarator, ASTNode},
     primitive_values::parse_primitive_value,
-    utils::parse_identifier,
     Span,
 };
 use nom::{
@@ -59,7 +58,7 @@ pub fn parse_single_declaration(
     let (input, value) = parse_primitive_value(input)?;
 
     let declarator = VariableDeclarator {
-        id: Identifier { name },
+        id: name,
         init: value,
     };
 

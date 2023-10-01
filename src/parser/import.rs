@@ -8,9 +8,8 @@ use nom::{
 };
 
 use super::{
-    ast::{identifier::Identifier, import::ImportSpecifier, ASTNode},
+    ast::{identifier::parse_identifier, import::ImportSpecifier, ASTNode},
     primitive_values::strings::parse_string,
-    utils::parse_identifier,
     Span,
 };
 
@@ -50,10 +49,8 @@ fn parse_import_specifier(i: Span) -> IResult<Span, ImportSpecifier, VerboseErro
         return Ok((
             i,
             ImportSpecifier {
-                local: Identifier { name: local_name },
-                imported: Identifier {
-                    name: imported_name,
-                },
+                local: local_name,
+                imported: imported_name,
             },
         ));
     }
@@ -63,12 +60,8 @@ fn parse_import_specifier(i: Span) -> IResult<Span, ImportSpecifier, VerboseErro
     Ok((
         i,
         ImportSpecifier {
-            local: Identifier {
-                name: imported_name.to_owned(),
-            },
-            imported: Identifier {
-                name: imported_name,
-            },
+            local: imported_name.to_owned(),
+            imported: imported_name,
         },
     ))
 }

@@ -36,7 +36,11 @@ pub enum ASTNode {
         params: Vec<Identifier>,
         body: Vec<ASTNode>,
     },
-    ForStatement {},
+    ForStatement {
+        declarations: Vec<VariableDeclarator>,
+        source: Expression,
+        body: Vec<ASTNode>,
+    },
     WhileStatement {
         test: Expression,
         body: Vec<ASTNode>,
