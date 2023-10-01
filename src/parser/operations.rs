@@ -11,6 +11,10 @@ pub enum Operator {
     Equal, // ==
     Not,   // !=
     Modulo,
+    Greater,        // >
+    GreaterOrEqual, // >=
+    Smaller,        // <
+    SmallerOrEqual, // <=
 }
 
 pub fn parse_operator(i: &str) -> IResult<&str, Operator, VerboseError<&str>> {
@@ -20,9 +24,13 @@ pub fn parse_operator(i: &str) -> IResult<&str, Operator, VerboseError<&str>> {
         tag("-"),
         tag("*"),
         tag("/"),
-        tag("=="),
         tag("%"),
+        tag("=="),
         tag("!="),
+        tag(">"),
+        tag(">="),
+        tag("<"),
+        tag("<="),
     ))(i)?;
 
     Ok((
@@ -35,6 +43,10 @@ pub fn parse_operator(i: &str) -> IResult<&str, Operator, VerboseError<&str>> {
             "%" => Operator::Modulo,
             "==" => Operator::Equal,
             "!=" => Operator::Not,
+            ">" => Operator::Greater,
+            ">=" => Operator::GreaterOrEqual,
+            "<" => Operator::Smaller,
+            "<=" => Operator::SmallerOrEqual,
 
             _ => unreachable!(),
         },
