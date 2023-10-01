@@ -8,5 +8,5 @@ import * from "math"
 
 let hey = "s",
     dude = -1, 
-    bool = true,
+    boolValue = true,
     _nil_value_ = nil
