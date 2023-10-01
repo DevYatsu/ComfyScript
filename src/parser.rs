@@ -28,13 +28,11 @@ pub fn parse_input(input: &str) -> IResult<Span, Vec<ASTNode>, VerboseError<Span
     let mut statements = Vec::new();
 
     while !input.is_empty() {
-        println!("{:?}", input);
         let (new_input, statement) = parse_statement(input)?;
-                       statements.push(statement);
+        statements.push(statement);
 
         if new_input.len() != 0 {
- let (new_input, _) = parse_new_lines(new_input)?;        
-
+            let (new_input, _) = parse_new_lines(new_input)?;
 
             input = new_input;
         } else {
