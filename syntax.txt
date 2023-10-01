@@ -1,0 +1,44 @@
+fn test() {
+    >> "test"
+}
+
+// shortcut to define function
+fn test => "test"
+
+// anonymous function
+anon fn {
+    // do something and call it instantly
+}()
+
+class Human {
+    properties:     
+        age, 
+        name
+
+// define keyword used to define some behaviours for classes
+    define new (name, age) {
+        return Human {name, age}
+    }
+    define operations {
+        "+": anon fn (human1, human2) {
+            >> Human {age: (human1.age + human2.age)/2, name: human1.name + human2.name}
+        }
+    }
+
+    method sayHello {
+        >> "hi" + self.name
+    }
+    method calculate (num1, num2) {
+        >> num1 + num2
+    }
+
+// setter 
+    set name (value) {
+        self.name = value
+    }
+
+// getter 
+    get age {
+        return self.age
+    }
+}
