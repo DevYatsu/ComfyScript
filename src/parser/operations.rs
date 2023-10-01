@@ -1,9 +1,9 @@
-use nom::{
-    branch::alt, bytes::complete::tag, error::VerboseError, IResult,
-};
+use nom::{branch::alt, bytes::complete::tag, error::VerboseError, IResult};
+
+use super::Span;
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
-pub enum Operator {
+pub enum BinaryOperator {
     Plus,
     Minus,
     Times,
@@ -17,7 +17,7 @@ pub enum Operator {
     SmallerOrEqual, // <=
 }
 
-pub fn parse_operator(i: &str) -> IResult<&str, Operator, VerboseError<&str>> {
+pub fn parse_binary_operation(i: Span) -> IResult<Span, BinaryOperator, VerboseError<Span>> {
     // one_of matches one of the characters we give it
     let (i, t) = alt((
         tag("+"),
@@ -35,19 +35,49 @@ pub fn parse_operator(i: &str) -> IResult<&str, Operator, VerboseError<&str>> {
 
     Ok((
         i,
-        match t {
-            "+" => Operator::Plus,
-            "-" => Operator::Minus,
-            "*" => Operator::Times,
-            "/" => Operator::Divide,
-            "%" => Operator::Modulo,
-            "==" => Operator::Equal,
-            "!=" => Operator::Not,
-            ">" => Operator::Greater,
-            ">=" => Operator::GreaterOrEqual,
-            "<" => Operator::Smaller,
-            "<=" => Operator::SmallerOrEqual,
+        match t.fragment() {
+            &"+" => BinaryOperator::Plus,
+            &"-" => BinaryOperator::Minus,
+            &"*" => BinaryOperator::Times,
+            &"/" => BinaryOperator::Divide,
+            &"%" => BinaryOperator::Modulo,
+            &"==" => BinaryOperator::Equal,
+            &"!=" => BinaryOperator::Not,
+            &">" => BinaryOperator::Greater,
+            &">=" => BinaryOperator::GreaterOrEqual,
+            &"<" => BinaryOperator::Smaller,
+            &"<=" => BinaryOperator::SmallerOrEqual,
 
+            _ => unreachable!(),
+        },
+    ))
+}
+
+#[derive(Debug, Eq, PartialEq, Clone, Copy)]
+pub enum AssignmentOperator {
+    Equal,       // =
+    PlusEqual,   // =+
+    MinusEqual,  // =-
+    TimesEqual,  // =*
+    DivideEqual, // =/
+    ModuloEqual, // =%
+}
+
+pub fn parse_assignment_operation(
+    i: Span,
+) -> IResult<Span, AssignmentOperator, VerboseError<Span>> {
+    // one_of matches one of the characters we give it
+    let (i, t) = alt((tag("+="), tag("-="), tag("*="), tag("/="), tag("%=")))(i)?;
+
+    Ok((
+        i,
+        match t.fragment() {
+            &"=" => AssignmentOperator::Equal,
+            &"+=" => AssignmentOperator::PlusEqual,
+            &"-=" => AssignmentOperator::MinusEqual,
+            &"*=" => AssignmentOperator::TimesEqual,
+            &"/=" => AssignmentOperator::DivideEqual,
+            &"%=" => AssignmentOperator::ModuloEqual,
             _ => unreachable!(),
         },
     ))

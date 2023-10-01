@@ -1,4 +1,3 @@
-use crate::parser::operations::Operator;
 pub mod identifier;
 pub mod import;
 pub mod literal_value;
@@ -10,7 +9,7 @@ use self::{
     vars::VariableDeclarator,
 };
 
-use super::assignment::initial::VariableKeyword;
+use super::{assignment::initial::VariableKeyword, operations::BinaryOperator};
 
 #[derive(Debug, Clone)]
 pub enum ASTNode {
@@ -66,7 +65,7 @@ pub enum Expression {
     },
     BinaryExpression {
         left: Box<Expression>,
-        operator: Operator,
+        operator: BinaryOperator,
         right: Box<Expression>,
     },
     MemberExpression {
