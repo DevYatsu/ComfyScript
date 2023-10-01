@@ -11,11 +11,11 @@ anon fn {
 }()
 
 class Human {
-    properties:     
+// define keyword used to define some behaviours for classes
+    define properties:     
         age, 
         name
 
-// define keyword used to define some behaviours for classes
     define new (name, age) {
         return Human {name, age}
     }
