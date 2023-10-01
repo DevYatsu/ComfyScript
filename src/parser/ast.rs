@@ -10,8 +10,7 @@ use self::{
 };
 
 use super::{
-    assignment::initial::VariableKeyword,
-    operations::{AssignmentOperator, BinaryOperator},
+    assignment::initial::VariableKeyword, operations::{assignment::AssignmentOperator, binary::BinaryOperator},
 };
 
 #[derive(Debug, Clone)]

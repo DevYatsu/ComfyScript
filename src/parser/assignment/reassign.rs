@@ -2,7 +2,7 @@ use nom::{character::complete::multispace0, error::VerboseError, IResult};
 
 use crate::parser::{
     ast::{identifier::parse_identifier, ASTNode, Expression},
-    operations::parse_assignment_operator,
+    operations::assignment::parse_assignment_operator,
     primitive_values::parse_primitive_value,
     Span,
 };
