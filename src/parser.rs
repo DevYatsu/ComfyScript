@@ -4,11 +4,12 @@ use nom::{
 };
 use nom_locate::LocatedSpan;
 
-use crate::parser::{
-    assignment::initial::parse_assignment, import::parse_import, utils::parse_new_lines,
-};
+use crate::parser::{import::parse_import, utils::parse_new_lines};
 
-use self::ast::ASTNode;
+use self::{
+    assignment::{initial::parse_var_init, reassign::parse_assignment},
+    ast::ASTNode,
+};
 
 mod assignment;
 pub mod ast;
@@ -57,5 +58,5 @@ pub fn parse_input<'a>(
 }
 
 fn parse_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
-    alt((parse_assignment, parse_import))(input)
+    alt((parse_var_init, parse_import, parse_assignment))(input)
 }

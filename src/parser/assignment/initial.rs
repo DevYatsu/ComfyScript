@@ -28,7 +28,7 @@ impl ToString for VariableKeyword {
     }
 }
 
-pub fn parse_assignment(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+pub fn parse_var_init(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let (input, keyword) = parse_variable_keyword(input)?;
 
     let (input, _) = multispace1(input)?;

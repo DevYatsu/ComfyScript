@@ -65,7 +65,14 @@ pub enum AssignmentOperator {
 
 pub fn parse_assignment_operator(i: Span) -> IResult<Span, AssignmentOperator, VerboseError<Span>> {
     // one_of matches one of the characters we give it
-    let (i, t) = alt((tag("+="), tag("-="), tag("*="), tag("/="), tag("%=")))(i)?;
+    let (i, t) = alt((
+        tag("="),
+        tag("+="),
+        tag("-="),
+        tag("*="),
+        tag("/="),
+        tag("%="),
+    ))(i)?;
 
     Ok((
         i,

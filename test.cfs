@@ -10,3 +10,6 @@ let hey = "s",
     dude = -1, 
     boolValue = true,
     _nil_value_ = nil
+
+
+hey = "str"
