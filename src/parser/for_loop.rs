@@ -2,7 +2,7 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::{multispace0, multispace1},
-    combinator::{map, opt},
+    combinator::opt,
     error::VerboseError,
     multi::separated_list1,
     IResult,
@@ -13,7 +13,7 @@ use crate::parser::ast::identifier::parse_identifier;
 use super::{
     assignment::initial::VariableKeyword,
     ast::{vars::VariableDeclarator, ASTNode},
-    Span, parse_input,
+    parse_input, Span,
 };
 
 pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
