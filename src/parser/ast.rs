@@ -4,8 +4,13 @@ pub mod literal_value;
 pub mod object;
 pub mod vars;
 
+use std::fmt;
+
 use self::{
-    identifier::Identifier, import::ImportSpecifier, literal_value::LiteralValue, object::Property,
+    identifier::Identifier,
+    import::{ImportSource, ImportSpecifier},
+    literal_value::LiteralValue,
+    object::Property,
     vars::VariableDeclarator,
 };
 
@@ -15,14 +20,20 @@ use super::{
 };
 
 #[derive(Debug, Clone)]
+pub enum ProgramSrc {
+    Module,
+    Main,
+}
+
+#[derive(Debug, Clone)]
 pub enum ASTNode {
     Program {
         body: Vec<ASTNode>,
-        source_type: String, // use this for modules or main file
+        source_type: ProgramSrc, // use this for modules or main file
     },
     ImportDeclaration {
         specifiers: Vec<ImportSpecifier>,
-        source: Expression,
+        source: ImportSource,
     },
 
     VariableDeclaration {
@@ -58,6 +69,7 @@ pub enum Expression {
     TemplateLiteral {
         value: String,
         expressions: Vec<Expression>,
+        // syntax like this: #"hey {name}, I am {age} years old"
     },
     Array {
         elements: Vec<Expression>,
@@ -74,12 +86,11 @@ pub enum Expression {
         object: Identifier,
         property: Identifier,
         computed: bool,
-        optional: bool,
     },
     CallExpression {
         callee: Box<Expression>,
+        // can be an IdentifierExpression or a MemberExpression  depending if it's a function call or a method call
         args: Vec<Expression>,
-        optional: bool,
     },
     AssignmentExpression {
         operator: AssignmentOperator,
@@ -89,4 +100,140 @@ pub enum Expression {
     IdentifierExpression {
         identifier: Identifier,
     },
+}
+
+impl fmt::Display for ASTNode {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            ASTNode::Program { body, .. } => Ok(for node in body {
+                write!(f, "{}", node)?;
+            }),
+            ASTNode::ImportDeclaration { specifiers, source } => {
+                write!(f, "import ")?;
+                for specifier in specifiers {
+                    write!(f, "{}", specifier)?;
+                }
+                write!(f, " from {};", source)
+            }
+            ASTNode::VariableDeclaration { declarations, kind } => {
+                write!(f, "{} ", kind)?;
+                for declaration in declarations {
+                    write!(f, "{}", declaration)?;
+                }
+                write!(f, ";")
+            }
+            ASTNode::ExpressionStatement { expression } => {
+                write!(f, "{};", expression)
+            }
+            ASTNode::FunctionDeclaration { id, params, body } => {
+                write!(f, "fn {}(", id)?;
+                for param in params {
+                    write!(f, "{},", param)?;
+                }
+                write!(f, "){{")?;
+                for node in body {
+                    write!(f, "{}", node)?;
+                }
+
+                write!(f, "}}")
+            }
+            ASTNode::ForStatement {
+                declarations,
+                source,
+                body,
+            } => {
+                write!(f, "for ")?;
+
+                for declaration in declarations {
+                    write!(f, "{},", declaration)?;
+                }
+                write!(f, " in ")?;
+                write!(f, "{}", source)?;
+
+                write!(f, "{{")?;
+                for node in body {
+                    write!(f, "{}", node)?;
+                }
+
+                write!(f, "}}")
+            }
+            ASTNode::WhileStatement { test, body } => {
+                write!(f, "while ")?;
+
+                write!(f, "{test}")?;
+
+                write!(f, "{{")?;
+                for node in body {
+                    write!(f, "{}", node)?;
+                }
+
+                write!(f, "}}")
+            }
+        }
+    }
+}
+
+impl fmt::Display for Expression {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Expression::Literal { raw, .. } => {
+                write!(f, "{}", raw)
+            }
+            Expression::TemplateLiteral { value, .. } => {
+                write!(f, "{}", value)? //todo! update n the future
+                ;
+                todo!()
+            }
+            Expression::Array { elements } => {
+                write!(f, "[")?;
+                for element in elements {
+                    write!(f, "{},", element)?;
+                }
+
+                write!(f, "]")
+            }
+            Expression::Object { properties } => {
+                write!(f, "{{")?;
+                for prop in properties {
+                    write!(f, "{},", prop)?;
+                }
+
+                write!(f, "}}")
+            }
+            Expression::BinaryExpression {
+                left,
+                operator,
+                right,
+            } => {
+                write!(f, "{}", left)?;
+                write!(f, "{}", operator)?;
+                write!(f, "{}", right)
+            }
+            Expression::MemberExpression {
+                object, property, ..
+            } => {
+                write!(f, "{}.{};", object, property)
+            }
+            Expression::CallExpression { callee, args } => {
+                write!(f, "{}(", callee)?;
+                for arg in args {
+                    write!(f, "{},", arg)?;
+                }
+                write!(f, ");")?;
+                todo!()
+            }
+            Expression::AssignmentExpression {
+                operator,
+                id,
+                assigned,
+            } => {
+                write!(f, "{}", id)?;
+                write!(f, "{}", operator)?;
+                write!(f, "{};", assigned)
+            }
+            Expression::IdentifierExpression { identifier } => {
+                write!(f, "{}", identifier)
+            }
+        }
+    }
 }

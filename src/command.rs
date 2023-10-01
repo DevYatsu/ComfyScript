@@ -4,6 +4,7 @@ use std::{env::args, path::PathBuf};
 pub enum Command {
     RunFile(PathBuf),
     NotFound,
+    MinifyFile(PathBuf),
 }
 
 pub fn get_command() -> Command {
@@ -15,8 +16,10 @@ pub fn get_command() -> Command {
     }
 
     if let Some(arg) = args.next_back() {
-        if arg == "run" {
-            return Command::RunFile(file_name.unwrap().into());
+        match arg.as_str() {
+            "run" => return Command::RunFile(file_name.unwrap().into()),
+            "minify" => return Command::MinifyFile(file_name.unwrap().into()),
+            _ => (),
         }
     }
 

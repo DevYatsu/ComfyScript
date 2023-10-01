@@ -2,9 +2,6 @@ fn test() {
     >> "test"
 }
 
-// shortcut to define function
-fn test => "test"
-
 // anonymous function
 anon fn {
     // do something and call it instantly

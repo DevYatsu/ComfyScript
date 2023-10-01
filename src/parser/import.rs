@@ -8,7 +8,12 @@ use nom::{
 };
 
 use super::{
-    ast::{identifier::parse_identifier, import::ImportSpecifier, ASTNode},
+    ast::{
+        identifier::parse_identifier,
+        import::{ImportSource, ImportSpecifier},
+        literal_value::LiteralValue,
+        ASTNode, Expression,
+    },
     primitive_values::strings::parse_string,
     Span,
 };
@@ -31,6 +36,14 @@ pub fn parse_import(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let (i, _) = multispace1(i)?;
 
     let (i, source) = parse_string(i)?; // todo! add expression Literal support instead
+
+    let source = match source {
+        Expression::Literal { value, .. } => match value {
+            LiteralValue::Str(value) => ImportSource { value },
+            _ => unreachable!(),
+        },
+        _ => unreachable!(),
+    };
 
     Ok((i, ASTNode::ImportDeclaration { specifiers, source }))
 }

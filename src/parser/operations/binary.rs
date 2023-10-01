@@ -1,3 +1,5 @@
+use std::fmt;
+
 use nom::{branch::alt, bytes::complete::tag, error::VerboseError, IResult};
 
 use crate::parser::Span;
@@ -51,4 +53,22 @@ pub fn parse_binary_operator(i: Span) -> IResult<Span, BinaryOperator, VerboseEr
             _ => unreachable!(),
         },
     ))
+}
+
+impl fmt::Display for BinaryOperator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            BinaryOperator::Plus => write!(f, "+"),
+            BinaryOperator::Minus => write!(f, "-"),
+            BinaryOperator::Times => write!(f, "*"),
+            BinaryOperator::Divide => write!(f, "/"),
+            BinaryOperator::Equal => write!(f, "=="),
+            BinaryOperator::Not => write!(f, "!="),
+            BinaryOperator::Modulo => write!(f, "%"),
+            BinaryOperator::Greater => write!(f, ">"),
+            BinaryOperator::GreaterOrEqual => write!(f, ">="),
+            BinaryOperator::Smaller => write!(f, "<"),
+            BinaryOperator::SmallerOrEqual => write!(f, "<="),
+        }
+    }
 }

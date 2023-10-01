@@ -45,7 +45,6 @@ fn parse_property(i: Span) -> IResult<Span, Property, VerboseError<Span>> {
         Property {
             method: false,
             shorthand: false,
-            computed: false,
             key: id,
             value: expr,
             kind: PropertyKind::Init,

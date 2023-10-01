@@ -1,9 +1,9 @@
 mod comfy;
 mod command;
+mod minify;
 pub mod parser;
 mod reserved_keywords;
 
-use nom::{Finish, error::convert_error};
 use nom_locate::LocatedSpan;
 use parser::parse_input;
 
@@ -13,17 +13,31 @@ use std::{
     error::Error,
     fs::{self, File},
     io::{BufReader, Read},
+    path::Path,
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
-    let file_path = match get_command() {
-        Command::RunFile(path) => path,
+    let command = get_command();
+
+    match command {
+        Command::RunFile(path) => {
+            let file_content = get_file_content(&path)?;
+            let input = LocatedSpan::new_extra(file_content.as_str(), "");
+            let e = parse_input(input, None);
+            println!("{:?}", e);
+        }
+        Command::MinifyFile(path) => {
+            let file_content = get_file_content(&path)?;
+        }
         Command::NotFound => {
             println!("Invalid command!");
             std::process::exit(1)
-        } // temporary solution until more commands are add
-    };
+        }
+    }
+    Ok(())
+}
 
+fn get_file_content(file_path: &Path) -> Result<String, Box<dyn Error>> {
     let file_metadata = fs::metadata(&file_path)?;
 
     if file_metadata.len() == 0 {
@@ -36,8 +50,5 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut content = String::new();
     reader.read_to_string(&mut content)?;
 
-    let input = LocatedSpan::new_extra(content.as_str(), "");
-    let e = parse_input(input, None);
-    println!("{:?}", e);
-    Ok(())
+    Ok(content)
 }

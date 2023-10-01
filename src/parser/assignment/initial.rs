@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::fmt;
 
 use crate::parser::{
     ast::{identifier::parse_identifier, vars::VariableDeclarator, ASTNode},
@@ -10,13 +10,11 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::{multispace0, multispace1},
-    combinator::{cut, map},
-    error::{context, ContextError, VerboseError, VerboseErrorKind},
+    combinator::map,
+    error::{context, ContextError, VerboseError},
     multi::separated_list1,
-    sequence::{preceded, terminated},
     IResult,
 };
-use nom_locate::LocatedSpan;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum VariableKeyword {
@@ -24,11 +22,11 @@ pub enum VariableKeyword {
     Let,
 }
 
-impl ToString for VariableKeyword {
-    fn to_string(&self) -> String {
+impl fmt::Display for VariableKeyword {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            VariableKeyword::Var => String::from("var"),
-            VariableKeyword::Let => String::from("let"),
+            VariableKeyword::Var => write!(f, "var"),
+            VariableKeyword::Let => write!(f, "let"),
         }
     }
 }
@@ -54,7 +52,7 @@ pub fn parse_single_declaration(
     input: Span,
 ) -> IResult<Span, VariableDeclarator, VerboseError<Span>> {
     let (mut input, _) = multispace0(input)?;
-        input.extra = "test";
+    input.extra = "test";
     println!("{}", input.extra);
 
     let (input, id) = parse_identifier(input)?;

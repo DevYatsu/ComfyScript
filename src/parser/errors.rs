@@ -1,4 +1,4 @@
-use nom::error::{ParseError, ErrorKind, ContextError};
+use nom::error::{ContextError, ErrorKind, ParseError};
 
 pub struct DebugError {
     message: String,

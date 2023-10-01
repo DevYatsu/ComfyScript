@@ -14,13 +14,13 @@ use self::{
 mod assignment;
 pub mod ast;
 mod composite_types;
+mod errors;
 mod expression;
 mod for_loop;
 mod import;
 mod operations;
 mod primitive_values;
 mod utils;
-mod errors;
 
 type Span<'a> = LocatedSpan<&'a str, &'a str>;
 

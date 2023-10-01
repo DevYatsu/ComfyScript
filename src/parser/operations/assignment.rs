@@ -1,3 +1,5 @@
+use std::fmt;
+
 use nom::{branch::alt, bytes::complete::tag, error::VerboseError, IResult};
 
 use crate::parser::Span;
@@ -35,4 +37,17 @@ pub fn parse_assignment_operator(i: Span) -> IResult<Span, AssignmentOperator, V
             _ => unreachable!(),
         },
     ))
+}
+
+impl fmt::Display for AssignmentOperator {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            AssignmentOperator::Equal => write!(f, "="),
+            AssignmentOperator::PlusEqual => write!(f, "+="),
+            AssignmentOperator::MinusEqual => write!(f, "-="),
+            AssignmentOperator::TimesEqual => write!(f, "*="),
+            AssignmentOperator::DivideEqual => write!(f, "/="),
+            AssignmentOperator::ModuloEqual => write!(f, "%="),
+        }
+    }
 }
