@@ -1,5 +1,5 @@
 use nom::{
-    branch::alt, bytes::complete::tag, character::complete::one_of, error::VerboseError, IResult,
+    branch::alt, bytes::complete::tag, error::VerboseError, IResult,
 };
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
