@@ -17,7 +17,7 @@ pub enum BinaryOperator {
     SmallerOrEqual, // <=
 }
 
-pub fn parse_binary_operation(i: Span) -> IResult<Span, BinaryOperator, VerboseError<Span>> {
+pub fn parse_binary_operator(i: Span) -> IResult<Span, BinaryOperator, VerboseError<Span>> {
     // one_of matches one of the characters we give it
     let (i, t) = alt((
         tag("+"),
@@ -63,9 +63,7 @@ pub enum AssignmentOperator {
     ModuloEqual, // =%
 }
 
-pub fn parse_assignment_operation(
-    i: Span,
-) -> IResult<Span, AssignmentOperator, VerboseError<Span>> {
+pub fn parse_assignment_operator(i: Span) -> IResult<Span, AssignmentOperator, VerboseError<Span>> {
     // one_of matches one of the characters we give it
     let (i, t) = alt((tag("+="), tag("-="), tag("*="), tag("/="), tag("%=")))(i)?;
 

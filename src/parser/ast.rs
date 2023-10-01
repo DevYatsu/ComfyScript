@@ -9,7 +9,10 @@ use self::{
     vars::VariableDeclarator,
 };
 
-use super::{assignment::initial::VariableKeyword, operations::BinaryOperator};
+use super::{
+    assignment::initial::VariableKeyword,
+    operations::{AssignmentOperator, BinaryOperator},
+};
 
 #[derive(Debug, Clone)]
 pub enum ASTNode {
@@ -78,5 +81,13 @@ pub enum Expression {
         callee: Box<Expression>,
         args: Vec<Expression>,
         optional: bool,
+    },
+    AssignmentExpression {
+        operator: AssignmentOperator,
+        id: Identifier,
+        assigned: Box<Expression>,
+    },
+    IdentifierExpression {
+        identifier: Identifier,
     },
 }
