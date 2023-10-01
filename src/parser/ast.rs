@@ -1,7 +1,7 @@
 pub mod identifier;
 pub mod import;
 pub mod literal_value;
-mod object;
+pub mod object;
 pub mod vars;
 
 use self::{
@@ -10,7 +10,8 @@ use self::{
 };
 
 use super::{
-    assignment::initial::VariableKeyword, operations::{assignment::AssignmentOperator, binary::BinaryOperator},
+    assignment::initial::VariableKeyword,
+    operations::{assignment::AssignmentOperator, binary::BinaryOperator},
 };
 
 #[derive(Debug, Clone)]
@@ -63,7 +64,6 @@ pub enum Expression {
     },
     Object {
         properties: Vec<Property>,
-        name: String,
     },
     BinaryExpression {
         left: Box<Expression>,

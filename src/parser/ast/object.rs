@@ -7,5 +7,10 @@ pub struct Property {
     pub computed: bool,
     pub key: Identifier,
     pub value: Expression,
-    pub kind: String,
+    pub kind: PropertyKind,
+}
+
+#[derive(Debug, Clone)]
+pub enum PropertyKind {
+    Init, Get, Set
 }
