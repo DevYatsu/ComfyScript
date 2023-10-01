@@ -1,29 +1,24 @@
-use nom::{branch::alt, bytes::complete::tag, combinator::map, error::VerboseError, IResult};
+use nom::{branch::alt, bytes::complete::tag, error::VerboseError, IResult};
 
 use crate::parser::{
     ast::{literal_value::LiteralValue, Expression},
     Span,
 };
 
-enum Bool {
-    True,
-    False,
-}
-
 pub fn parse_bool(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    let (i, boolean) = alt((
-        map(tag("true"), |_| Bool::True),
-        map(tag("false"), |_| Bool::False),
-    ))(i)?;
+    let (i, boolean) = alt((tag("true"), tag("false")))(i)?;
+
+    let value = match boolean.fragment() {
+        &"true" => LiteralValue::Boolean(true),
+        &"false" => LiteralValue::Boolean(false),
+        _ => unreachable!(),
+    };
 
     Ok((
         i,
         Expression::Literal {
-            value: match boolean {
-                Bool::True => LiteralValue::Boolean(true),
-                Bool::False => LiteralValue::Boolean(false),
-            },
-            raw: String::from("true"),
+            value,
+            raw: boolean.fragment().to_string(),
         },
     ))
 }

@@ -11,5 +11,20 @@ var hey = "s",
     boolValue = true,
     _nil_value_ = nil
 
-
 hey = "str"
+
+let x = [
+    true, 
+    nil, 
+    "str", 
+    false, 
+    "test"
+]
+
+let y = {
+    test: true, 
+    null: nil, 
+    s: "str", 
+    b:false, 
+    s2: "test"
+}

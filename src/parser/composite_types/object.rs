@@ -3,19 +3,35 @@ use nom::{
     multi::separated_list0, IResult,
 };
 
-use crate::parser::{ast::{Expression, identifier::parse_identifier, object::{Property, PropertyKind}}, primitive_values::parse_primitive_value, Span};
+use crate::parser::{
+    ast::{
+        identifier::parse_identifier,
+        object::{Property, PropertyKind},
+        Expression,
+    },
+    primitive_values::parse_primitive_value,
+    Span,
+};
 
 pub fn parse_object(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (i, _) = tag("{")(i)?;
     let (i, _) = multispace0(i)?;
 
     let (i, elements) = separated_list0(tag(","), parse_property)(i)?;
+    let (i, _) = multispace0(i)?;
+
     let (i, _) = tag("}")(i)?;
 
-    Ok((i, Expression::Object { properties: elements }))
+    Ok((
+        i,
+        Expression::Object {
+            properties: elements,
+        },
+    ))
 }
 
 fn parse_property(i: Span) -> IResult<Span, Property, VerboseError<Span>> {
+    let (i, _) = multispace0(i)?;
     let (i, id) = parse_identifier(i)?;
 
     let (i, _) = multispace0(i)?;
@@ -24,5 +40,16 @@ fn parse_property(i: Span) -> IResult<Span, Property, VerboseError<Span>> {
 
     let (i, expr) = parse_primitive_value(i)?; //todo! parse expression
 
-    Ok((i, Property { method: false, shorthand: false, computed: false, key: id, value: expr, kind: PropertyKind::Init }))
+    Ok((
+        i,
+        Property {
+            method: false,
+            shorthand: false,
+            computed: false,
+            key: id,
+            value: expr,
+            kind: PropertyKind::Init,
+        },
+    ))
+    // for now is simplified
 }

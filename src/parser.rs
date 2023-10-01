@@ -54,7 +54,9 @@ pub fn parse_input<'a>(
         }
     }
 
-    println!("{:?}", statements);
+    for statement in &statements {
+        println!("{:?}", statement);
+    }
 
     Ok((input, statements))
 }

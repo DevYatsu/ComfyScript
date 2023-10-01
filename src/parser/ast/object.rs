@@ -12,5 +12,7 @@ pub struct Property {
 
 #[derive(Debug, Clone)]
 pub enum PropertyKind {
-    Init, Get, Set
+    Init,
+    Get,
+    Set,
 }
