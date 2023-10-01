@@ -3,6 +3,7 @@ mod command;
 pub mod parser;
 mod reserved_keywords;
 
+use nom::{Finish, error::convert_error};
 use nom_locate::LocatedSpan;
 use parser::parse_input;
 
@@ -35,16 +36,8 @@ fn main() -> Result<(), Box<dyn Error>> {
     let mut content = String::new();
     reader.read_to_string(&mut content)?;
 
-    match parse_input(LocatedSpan::new(&content), None) {
-        Err(e) => match e {
-            nom::Err::Error(e) => {
-                println!("{:?}", e);
-            }
-            nom::Err::Failure(e) => println!("{} at '{}'", e.errors[0].0, e.errors[1].0),
-            _ => unreachable!(),
-        },
-        Ok(_) => println!("working"),
-    };
-
+    let input = LocatedSpan::new_extra(content.as_str(), "");
+    let e = parse_input(input, None);
+    println!("{:?}", e);
     Ok(())
 }

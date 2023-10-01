@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use crate::parser::{
     ast::{identifier::parse_identifier, vars::VariableDeclarator, ASTNode},
     composite_types::parse_composite_value,
@@ -8,11 +10,13 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::{multispace0, multispace1},
-    combinator::map,
-    error::VerboseError,
+    combinator::{cut, map},
+    error::{context, ContextError, VerboseError, VerboseErrorKind},
     multi::separated_list1,
+    sequence::{preceded, terminated},
     IResult,
 };
+use nom_locate::LocatedSpan;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum VariableKeyword {
@@ -49,20 +53,31 @@ pub fn parse_var_init(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>>
 pub fn parse_single_declaration(
     input: Span,
 ) -> IResult<Span, VariableDeclarator, VerboseError<Span>> {
-    let (input, _) = multispace0(input)?;
-    let (input, name) = parse_identifier(input)?;
+    let (mut input, _) = multispace0(input)?;
+        input.extra = "test";
+    println!("{}", input.extra);
+
+    let (input, id) = parse_identifier(input)?;
+
+    match id.name.parse::<i32>().is_ok() {
+        true => {
+            return Err(nom::Err::Error(VerboseError::add_context(
+                input,
+                "test",
+                VerboseError { errors: vec![] },
+            )));
+        }
+        false => (),
+    }
 
     let (input, _) = multispace0(input)?;
 
-    let (input, _) = tag("=")(input)?;
+    let (input, _) = context("Expected '='", tag("="))(input)?;
     let (input, _) = multispace0(input)?;
 
     let (input, value) = alt((parse_primitive_value, parse_composite_value))(input)?;
 
-    let declarator = VariableDeclarator {
-        id: name,
-        init: value,
-    };
+    let declarator = VariableDeclarator { id, init: value };
 
     Ok((input, declarator))
 }

@@ -6,25 +6,13 @@ from "test_package"
 
 import * from "math"
 
-var hey = "s",
+var t = "s",
     dude = -1, 
     boolValue = true,
     _nil_value_ = nil
 
 hey = "str"
 
-let x = [
-    true, 
-    nil, 
-    "str", 
-    false, 
-    "test"
-]
+let 1n = [0,1,2,3,4,5]
 
-let y = {
-    test: true, 
-    null: nil, 
-    s: "str", 
-    b:false, 
-    s2: "test"
-}
+let y = {1:1,2:2,3:3,4:4,5:5}

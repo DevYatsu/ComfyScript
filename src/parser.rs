@@ -20,8 +20,9 @@ mod import;
 mod operations;
 mod primitive_values;
 mod utils;
+mod errors;
 
-type Span<'a> = LocatedSpan<&'a str>;
+type Span<'a> = LocatedSpan<&'a str, &'a str>;
 
 pub fn parse_input<'a>(
     input: Span<'a>,
