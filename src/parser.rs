@@ -14,7 +14,6 @@ use self::{
 mod assignment;
 pub mod ast;
 mod composite_types;
-mod errors;
 mod expression;
 mod for_loop;
 mod import;

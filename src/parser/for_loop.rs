@@ -13,7 +13,7 @@ use crate::parser::ast::identifier::parse_identifier;
 use super::{
     assignment::initial::VariableKeyword,
     ast::{vars::VariableDeclarator, ASTNode},
-    parse_block, parse_input, Span,
+    parse_block, Span,
 };
 
 pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
