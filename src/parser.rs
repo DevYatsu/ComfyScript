@@ -22,9 +22,40 @@ mod operations;
 mod primitive_values;
 mod utils;
 
-type Span<'a> = LocatedSpan<&'a str, &'a str>;
+pub type Span<'a> = LocatedSpan<&'a str>;
 
-pub fn parse_input<'a>(
+pub fn parse_input<'a>(input: Span<'a>) -> IResult<Span, Vec<ASTNode>, VerboseError<Span>> {
+    let (input, _) = multispace0(input)?;
+    let (mut input, _) = opt(parse_new_lines)(input)?;
+
+    let mut statements = Vec::new();
+
+    while !input.is_empty() {
+        let (new_input, statement) = parse_statement(input)?;
+        statements.push(statement);
+
+        if new_input.len() != 0 {
+            let (new_input, _) = parse_new_lines(new_input)?;
+
+            input = new_input;
+        } else {
+            input = new_input;
+            break;
+        }
+    }
+
+    for statement in &statements {
+        println!("{:?}", statement);
+    }
+
+    Ok((input, statements))
+}
+
+fn parse_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+    alt((parse_var_init, parse_import, parse_assignment))(input)
+}
+
+pub fn parse_block<'a>(
     input: Span<'a>,
     until: Option<&'static str>,
 ) -> IResult<Span<'a>, Vec<ASTNode>, VerboseError<Span<'a>>> {
@@ -55,13 +86,5 @@ pub fn parse_input<'a>(
         }
     }
 
-    for statement in &statements {
-        println!("{:?}", statement);
-    }
-
     Ok((input, statements))
-}
-
-fn parse_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
-    alt((parse_var_init, parse_import, parse_assignment))(input)
 }

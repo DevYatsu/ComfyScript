@@ -1,19 +1,32 @@
-use std::{error::Error, path::Path};
+use std::{error::Error, fs, path::Path};
 
-use crate::parser::parse_input;
+use crate::{
+    get_file_content,
+    parser::{parse_input, Span},
+};
 
-pub fn minify(content: &'static str, file_path: &Path) -> Result<(), Box<dyn Error>> {
-    let (rest, ast_node) = parse_input(content.into(), None)?;
+pub fn minify_input(path: &Path) -> Result<(), Box<dyn Error>> {
+    let content = get_file_content(&path)?;
 
-    if rest.fragment().len() != 0 {
-        println!("Failed to minify: parsing step did not return empty input");
-        std::process::exit(0);
+    let span = Span::new(content.as_str());
+    let (rest, ast_nodes) = match parse_input(span) {
+        Ok(r) => r,
+        Err(_) => return Err("An error occurred!".into()),
+    };
+
+    if rest.len() != 0 {
+        return Err("Something went wrong! Input is not empty after parsing!".into());
     }
 
     let mut buffer = String::new();
 
-    for node in ast_node {
+    for node in ast_nodes {
         buffer.push_str(&node.to_string())
     }
+
+    let new_path = "minified.".to_owned() + &path.to_string_lossy();
+
+    fs::write(new_path, buffer.as_bytes())?;
+
     Ok(())
 }

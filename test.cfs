@@ -1,7 +1,7 @@
 import 
     bar as foo, 
     foo as bar,
-    boo as test 
+    boo as test
 from "test_package"
 
 import * from "math"
@@ -11,8 +11,8 @@ var t = "s",
     boolValue = true,
     _nil_value_ = nil
 
-hey = "str"
+dude *= 2
 
-let 1n = [0,1,2,3,4,5]
+let 1n = [0,1,2,3,4,5,]
 
-let y = {1:1,2:2,3:3,4:4,5:5}
+let y = {1:1,2:2,3:3,4:4,5:5,}

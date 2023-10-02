@@ -51,9 +51,7 @@ pub fn parse_var_init(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>>
 pub fn parse_single_declaration(
     input: Span,
 ) -> IResult<Span, VariableDeclarator, VerboseError<Span>> {
-    let (mut input, _) = multispace0(input)?;
-    input.extra = "test";
-    println!("{}", input.extra);
+    let (input, _) = multispace0(input)?;
 
     let (input, id) = parse_identifier(input)?;
 

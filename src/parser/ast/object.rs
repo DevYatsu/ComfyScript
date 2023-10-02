@@ -19,6 +19,6 @@ pub enum PropertyKind {
 }
 impl fmt::Display for Property {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}:{},", self.key, self.value)
+        write!(f, "{}:{}", self.key, self.value)
     }
 }

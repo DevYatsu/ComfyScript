@@ -24,8 +24,17 @@ pub fn parse_import(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
 
     let (i, all) = opt(tag("*"))(i)?;
 
-    let (i, specifiers) = if None == all {
-        separated_list1(tag(","), parse_import_specifier)(i)?
+    let (i, specifiers) = if all.is_none() {
+        let (i, specifiers) = separated_list1(tag(","), parse_import_specifier)(i)?;
+        let (i, _) = multispace0(i)?; 
+        let (i, comma) = opt(tag(","))(i)?;
+
+        if comma.is_some() {
+            let (i, _) = multispace1(i)?;
+            (i, specifiers)
+        } else {
+            (i, specifiers)
+        }
     } else {
         let (i, _) = multispace1(i)?;
 

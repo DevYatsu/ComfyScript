@@ -1,13 +1,16 @@
 mod comfy;
 mod command;
-mod minify;
+mod exec;
+pub mod minify;
 pub mod parser;
 mod reserved_keywords;
 
-use nom_locate::LocatedSpan;
-use parser::parse_input;
+use minify::minify_input;
 
-use crate::command::{get_command, Command};
+use crate::{
+    command::{get_command, Command},
+    exec::exec_script,
+};
 
 use std::{
     error::Error,
@@ -21,17 +24,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     match command {
         Command::RunFile(path) => {
-            let file_content = get_file_content(&path)?;
-            let input = LocatedSpan::new_extra(file_content.as_str(), "");
-            let e = parse_input(input, None);
-            println!("{:?}", e);
+            exec_script(&path)?;
         }
         Command::MinifyFile(path) => {
-            let file_content = get_file_content(&path)?;
+            minify_input(&path)?;
         }
         Command::NotFound => {
-            println!("Invalid command!");
-            std::process::exit(1)
+            return Err("Invalid command!".into());
         }
     }
     Ok(())

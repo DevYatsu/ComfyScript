@@ -110,16 +110,32 @@ impl fmt::Display for ASTNode {
             }),
             ASTNode::ImportDeclaration { specifiers, source } => {
                 write!(f, "import ")?;
-                for specifier in specifiers {
-                    write!(f, "{}", specifier)?;
+
+                if specifiers.len() == 0 {
+                    write!(f, "*")?;
+                } else {
+                    for (i, specifier) in specifiers.iter().enumerate() {
+                        if i == specifiers.len() - 1 {
+                            write!(f, "{}", specifier)?;
+                        } else {
+                            write!(f, "{},", specifier)?;
+                        }
+                    }
                 }
-                write!(f, " from {};", source)
+
+                write!(f, " from \"{}\";", source)
             }
             ASTNode::VariableDeclaration { declarations, kind } => {
                 write!(f, "{} ", kind)?;
-                for declaration in declarations {
-                    write!(f, "{}", declaration)?;
+
+                for (i, declaration) in declarations.iter().enumerate() {
+                    if i == declarations.len() - 1 {
+                        write!(f, "{}", declaration)?;
+                    } else {
+                        write!(f, "{},", declaration)?;
+                    }
                 }
+
                 write!(f, ";")
             }
             ASTNode::ExpressionStatement { expression } => {
@@ -219,7 +235,7 @@ impl fmt::Display for Expression {
                 for arg in args {
                     write!(f, "{},", arg)?;
                 }
-                write!(f, ");")?;
+                write!(f, ")")?;
                 todo!()
             }
             Expression::AssignmentExpression {
@@ -229,7 +245,7 @@ impl fmt::Display for Expression {
             } => {
                 write!(f, "{}", id)?;
                 write!(f, "{}", operator)?;
-                write!(f, "{};", assigned)
+                write!(f, "{}", assigned)
             }
             Expression::IdentifierExpression { identifier } => {
                 write!(f, "{}", identifier)

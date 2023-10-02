@@ -9,6 +9,6 @@ pub struct VariableDeclarator {
 }
 impl fmt::Display for VariableDeclarator {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{} = {}", self.id, self.init)
+        write!(f, "{}={}", self.id, self.init)
     }
 }
