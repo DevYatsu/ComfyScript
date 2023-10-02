@@ -11,10 +11,10 @@ pub fn exec_script(path: &Path) -> Result<(), Box<dyn Error>> {
     let span = Span::new(content.as_str());
     let (rest, _ast_node) = match parse_input(span) {
         Ok(r) => r,
-            Err(e) => {
-                    println!("{}", e);
-                return Err("An error occurred!".into())
-        },
+        Err(e) => {
+            println!("{}", e);
+            return Err("An error occurred!".into());
+        }
     };
 
     if rest.fragment().len() != 0 {

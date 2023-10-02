@@ -1,0 +1,9 @@
+import test from "test"
+
+import work as w from "test"
+
+import calc as c, draw as d from "draw"
+
+import * from "utils"
+
+import * as math from "math"

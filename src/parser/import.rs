@@ -9,7 +9,7 @@ use nom::{
 
 use super::{
     ast::{
-        identifier::parse_identifier,
+        identifier::{parse_identifier, Identifier},
         import::{ImportSource, ImportSpecifier},
         literal_value::LiteralValue,
         ASTNode, Expression,
@@ -22,11 +22,11 @@ pub fn parse_import(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let (i, _) = tag("import")(i)?;
     let (i, _) = multispace1(i)?;
 
-    let (i, all) = opt(tag("*"))(i)?;
+    let (i, asterisk) = opt(tag("*"))(i)?;
 
-    let (i, specifiers) = if all.is_none() {
+    let (i, specifiers) = if asterisk.is_none() {
         let (i, specifiers) = separated_list1(tag(","), parse_import_specifier)(i)?;
-        let (i, _) = multispace0(i)?; 
+        let (i, _) = multispace0(i)?;
         let (i, comma) = opt(tag(","))(i)?;
 
         if comma.is_some() {
@@ -37,8 +37,30 @@ pub fn parse_import(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
         }
     } else {
         let (i, _) = multispace1(i)?;
+        let (i, local) = opt_import_as(i)?;
+        let (i, _) = multispace0(i)?;
 
-        (i, vec![]) // no specifier means everything (*)
+        let asterisk = Identifier {
+            name: asterisk.unwrap().to_string(),
+        };
+
+        if let Some(local) = local {
+            (
+                i,
+                vec![ImportSpecifier {
+                    local,
+                    imported: asterisk,
+                }],
+            )
+        } else {
+            (
+                i,
+                vec![ImportSpecifier {
+                    local: asterisk.to_owned(),
+                    imported: asterisk,
+                }],
+            )
+        }
     };
 
     let (i, _) = tag("from")(i)?;
@@ -61,29 +83,40 @@ fn parse_import_specifier(i: Span) -> IResult<Span, ImportSpecifier, VerboseErro
     let (i, _) = multispace0(i)?;
     let (i, imported_name) = parse_identifier(i)?;
     let (i, _) = multispace0(i)?;
-    let (i, opt_val) = opt(tag("as"))(i)?;
+    let (i, local_name) = opt_import_as(i)?;
+    let (i, _) = multispace0(i)?;
 
-    if opt_val != None {
-        let (i, _) = multispace1(i)?;
-        let (i, local_name) = parse_identifier(i)?;
-        let (i, _) = multispace0(i)?;
-
-        return Ok((
+    match local_name {
+        Some(local_name) => {
+            return Ok((
+                i,
+                ImportSpecifier {
+                    local: local_name,
+                    imported: imported_name,
+                },
+            ));
+        }
+        None => Ok((
             i,
             ImportSpecifier {
-                local: local_name,
+                local: imported_name.to_owned(),
                 imported: imported_name,
             },
-        ));
+        )),
+    }
+}
+
+fn opt_import_as(i: Span) -> IResult<Span, Option<Identifier>, VerboseError<Span>> {
+    let (i, opt_val) = opt(tag("as"))(i)?;
+
+    if opt_val.is_some() {
+        let (i, _) = multispace1(i)?;
+        let (i, local_name) = parse_identifier(i)?;
+
+        return Ok((i, Some(local_name)));
     }
 
     //todo!! add support for "as" keyword to rename import locally
 
-    Ok((
-        i,
-        ImportSpecifier {
-            local: imported_name.to_owned(),
-            imported: imported_name,
-        },
-    ))
+    Ok((i, None))
 }

@@ -111,15 +111,11 @@ impl fmt::Display for ASTNode {
             ASTNode::ImportDeclaration { specifiers, source } => {
                 write!(f, "import ")?;
 
-                if specifiers.len() == 0 {
-                    write!(f, "*")?;
-                } else {
-                    for (i, specifier) in specifiers.iter().enumerate() {
-                        if i == specifiers.len() - 1 {
-                            write!(f, "{}", specifier)?;
-                        } else {
-                            write!(f, "{},", specifier)?;
-                        }
+                for (i, specifier) in specifiers.iter().enumerate() {
+                    if i == specifiers.len() - 1 {
+                        write!(f, "{}", specifier)?;
+                    } else {
+                        write!(f, "{},", specifier)?;
                     }
                 }
 
