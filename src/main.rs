@@ -38,7 +38,7 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 fn get_file_content(file_path: &Path) -> Result<String, Box<dyn Error>> {
     if !file_path.is_file() {
-        return Err(format!("No file found for path '{}'", file_path.to_string_lossy()).into())
+        return Err(format!("No file found for path '{}'", file_path.to_string_lossy()).into());
     }
 
     let file_metadata = fs::metadata(&file_path)?;

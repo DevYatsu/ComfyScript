@@ -1,4 +1,4 @@
-use std::{error::Error, fs, path::{Path, PathBuf}};
+use std::{error::Error, fs, path::Path};
 
 use crate::{
     get_file_content,
