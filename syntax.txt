@@ -1,6 +1,4 @@
-fn test() {
-    >> "test"
-}
+fn test() >> "test"
 
 // anonymous function
 anon fn {
@@ -8,34 +6,29 @@ anon fn {
 }()
 
 class Human {
-// define keyword used to define some behaviours for classes
-    define properties:     
-        age, 
-        name
-
-    define new (name, age) {
-        return Human {name, age}
-    }
-    define operations {
-        "+": anon fn (human1, human2) {
-            >> Human {age: (human1.age + human2.age)/2, name: human1.name + human2.name}
-        }
+    constructor(name, age) {
+        self.name = name
+        self.age = age
     }
 
-    method sayHello {
-        >> "hi" + self.name
+    operations {
+        "+": anon fn(human1, human2) {
+            let newName = human1.name + human2.name
+            let newAge = (human1.age + human2.age)/2
+            >> Human(newName, newAge)
+        },
+        "-": anon fn(h1, h2) >> Human(h1.name, (h1.age + h2.age)/3)
     }
-    method calculate (num1, num2) {
-        >> num1 + num2
-    }
+
+    fn sayHello >> "hi" + self.name
+
+    static fn calculate(num1, num2) >> num1 + num2
 
 // setter 
-    set name (value) {
-        self.name = value
-    }
+    set name(value) >> self.name = value
 
 // getter 
-    get age {
-        return self.age
-    }
+    get age >> self.age
 }
+
+let human = Human("john", 15)
