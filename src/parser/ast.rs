@@ -58,6 +58,10 @@ pub enum ASTNode {
         test: Expression,
         body: Vec<ASTNode>,
     },
+    ReturnStatement {
+        argument: Expression,
+        shortcut: bool,
+    },
 }
 
 #[derive(Debug, Clone)]
@@ -180,6 +184,17 @@ impl fmt::Display for ASTNode {
                 }
 
                 write!(f, "}}")
+            }
+            ASTNode::ReturnStatement { argument, shortcut } => {
+                if *shortcut {
+                    write!(f, ">>")?;
+                } else {
+                    write!(f, "return ")?;
+                }
+
+                write!(f, "{}", argument)?;
+
+                write!(f, ";")
             }
         }
     }
