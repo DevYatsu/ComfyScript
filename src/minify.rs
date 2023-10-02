@@ -33,7 +33,7 @@ pub fn minify_input(path: &Path) -> Result<(), Box<dyn Error>> {
     let parent_dir = path.parent().unwrap_or_else(|| Path::new(""));
 
     let new_path = parent_dir.join(format!("minified.{}", file_name));
-    println!("new path {:?}", new_path);
+
     fs::write(new_path, buffer.as_bytes())?;
 
     Ok(())
