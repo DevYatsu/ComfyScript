@@ -12,6 +12,7 @@ pub fn parse_array(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (i, elements) = separated_list0(tag(","), parse_values)(i)?;
     let (i, _) = multispace0(i)?;
     let (i, _) = opt(tag(","))(i)?;
+    let (i, _) = multispace0(i)?;
 
     let (i, _) = tag("]")(i)?;
 
