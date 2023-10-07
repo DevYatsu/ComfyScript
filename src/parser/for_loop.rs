@@ -47,21 +47,17 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
 
     let (input, body) = parse_block(input, Some("}"))?;
 
-
     let node = ASTNode::ForStatement {
-            declarations: identifiers
-                .into_iter()
-                .map(|id| VariableDeclarator {
-                    id,
-                    init: super::ast::Expression::Array { elements: vec![] },
-                })
-                .collect(),
-                source: todo!(),
-                body,
-        };
+        declarations: identifiers
+            .into_iter()
+            .map(|id| VariableDeclarator {
+                id,
+                init: super::ast::Expression::Array { elements: vec![] },
+            })
+            .collect(),
+        source: todo!(),
+        body,
+    };
 
-    Ok((
-        input,
-        node,
-    ))
+    Ok((input, node))
 }

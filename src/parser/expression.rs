@@ -1,21 +1,21 @@
-use nom::{branch::alt, bytes::complete::tag, error::VerboseError, IResult, character::complete::multispace0};
+use nom::{
+    branch::alt, bytes::complete::tag, character::complete::multispace0, error::VerboseError,
+    IResult,
+};
 
 use crate::parser::{
     ast::{literal_value::LiteralValue, Expression},
-    Span, composite_types::object::parse_object,
+    composite_types::object::parse_object,
+    Span,
 };
 
-use super::{primitive_values::bool::parse_bool, composite_types::array::parse_array};
+use super::{composite_types::array::parse_array, primitive_values::bool::parse_bool};
 // parsing expressions
 pub fn parse_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (i, expr) = alt((parse_bool, parse_array, parse_object))(i)?;
-// parse any operator following
+    // parse any operator following
     let (i, _) = multispace0(i)?;
 
-
     todo!();
-    Ok((
-        i,
-        Expression::Array { elements: vec![] },
-    ))
+    Ok((i, Expression::Array { elements: vec![] }))
 }

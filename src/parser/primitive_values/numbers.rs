@@ -12,7 +12,7 @@ pub fn parse_number(initial_i: Span) -> IResult<Span, Expression, VerboseError<S
 
     let (i, num) = float(i)?;
 
-    let (_, raw) = take((initial_i.len()-i.len()) as usize)(initial_i)?;
+    let (_, raw) = take((initial_i.len() - i.len()) as usize)(initial_i)?;
 
     let num = match sign {
         Some('-') => -num,
