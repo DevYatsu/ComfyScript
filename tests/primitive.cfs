@@ -1,6 +1,6 @@
 let one = 1
 let onee = 1.
-let oneee = +1
+let oneee = +1;
 let oneeee = 1.0000
 let oneeeee = +1e0
 
