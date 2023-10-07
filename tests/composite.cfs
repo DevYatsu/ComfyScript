@@ -1,4 +1,13 @@
 let test = {
     test: "de",
     1: true,
+    ef: nil
 }
+
+let arr = [
+    1,
+    2,
+    3,
+    "viva",
+    "l'Algérie"
+]
