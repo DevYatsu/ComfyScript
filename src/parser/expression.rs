@@ -1,8 +1,4 @@
-use nom::{
-    branch::alt,
-    error::VerboseError,
-    IResult,
-};
+use nom::{branch::alt, error::VerboseError, IResult};
 
 use crate::parser::{
     ast::Expression, composite_types::parse_composite_value, operations::parse_binary_operation,

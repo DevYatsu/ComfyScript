@@ -3,77 +3,69 @@ pub mod binary;
 
 //todo! create parser for binary expressions
 use nom::{
-    branch::alt, character::complete::multispace0, combinator::opt, error::VerboseError, IResult,
+    branch::alt, character::complete::multispace0, error::VerboseError, IResult,
 };
 
 use crate::parser::{ast::Expression, primitive_values::parse_primitive_value, Span};
 
-use self::binary::{get_operator_precedence, parse_binary_operator};
+use self::binary::{parse_binary_operator, BinaryOperator};
 
-use super::{composite_types::parse_composite_value, expression::parse_expression};
+use super::composite_types::parse_composite_value;
 
 pub fn parse_binary_operation(input: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    let (input, mut expr) = alt((parse_composite_value, parse_primitive_value))(input)?;
+    let mut expr_vec = Vec::new();
+    let mut operators_vec = Vec::new();
+
+    let (input, expr) = alt((parse_composite_value, parse_primitive_value))(input)?;
     let (mut input, _) = multispace0(input)?;
 
-    while let Ok((rest, mut operator)) = parse_binary_operator(input) {
-        let precedence = get_operator_precedence(&operator);
+    expr_vec.push(expr);
 
-        let (rest, _) = multispace0(rest)?;
-        let (initial_rest, mut right) = alt((parse_composite_value, parse_primitive_value))(rest)?;
-        let (rest, _) = multispace0(initial_rest)?;
+    loop {
+        let (i, op) = parse_binary_operator(input)?;
+        operators_vec.push(op);
 
-        let (rest, mut other_op) = opt(parse_binary_operator)(rest)?;
+        let (i, _) = multispace0(i)?;
 
-        if other_op.is_none() {
-            input = initial_rest;
-            expr = Expression::BinaryExpression {
-                left: Box::new(expr),
-                operator,
-                right: Box::new(right),
-            };
+        let (input_before_spaces_removed, expr) =
+            alt((parse_composite_value, parse_primitive_value))(i)?;
+        expr_vec.push(expr);
 
+        let (i, _) = multispace0(input_before_spaces_removed)?;
+
+        if let Err(_) = parse_binary_operator(i) {
+            input = input_before_spaces_removed;
             break;
         }
-
-        while let Some(next_op) = other_op {
-            let next_op_precedence = get_operator_precedence(&next_op);  
-
-            if precedence >= next_op_precedence {
-                let (rest, _) = multispace0(rest)?;
-                let (rest, other) = parse_expression(rest)?;
-
-                expr = Expression::BinaryExpression {
-                    left: Box::new(Expression::BinaryExpression {
-                        left: Box::new(expr),
-                        operator,
-                        right: Box::new(right),
-                    }),
-                    operator,
-                    right: Box::new(other),
-                };
-                input = rest;
-                break;
-            } else {
-                let (rest, _) = multispace0(rest)?;
-                let (rest, next_right) = alt((parse_composite_value, parse_primitive_value))(rest)?;
-                let (rest, _) = multispace0(rest)?;
-
-                expr = Expression::BinaryExpression {
-                    left: Box::new(expr),
-                    operator,
-                    right: Box::new(right),
-                };
-
-                right = next_right;
-                operator = next_op;
-
-                let (new_i, other) = opt(parse_binary_operator)(rest)?;
-                other_op = other;
-                input = new_i;
-            }
-        }
+        input = i;
     }
 
-    Ok((input, expr))
+    let binary_expression = build_binary_expression(expr_vec, operators_vec);
+    println!("{:?}", binary_expression);
+
+    Ok((input, binary_expression))
+}
+
+fn build_binary_expression(
+    expressions: Vec<Expression>,
+    operators: Vec<BinaryOperator>,
+) -> Expression {
+    if expressions.len() == 1 {
+        expressions.into_iter().next().unwrap()
+    } else {
+        // If there are multiple expressions, recursively build the binary expression
+        let (first_op, remaining_ops) = operators.split_at(1);
+        let (first_expr, remaining_exprs) = expressions.split_at(1);
+
+        let binary_expr = Expression::BinaryExpression {
+            left: Box::new(first_expr[0].clone()),
+            operator: first_op[0],
+            right: Box::new(build_binary_expression(
+                remaining_exprs.to_vec(),
+                remaining_ops.to_vec(),
+            )),
+        };
+
+        binary_expr
+    }
 }
