@@ -10,8 +10,8 @@ pub enum BinaryOperator {
     Minus,
     Times,
     Divide,
-    Equal, // ==
-    Not,   // !=
+    Equal,    // ==
+    NotEqual, // !=
     Modulo,
     Greater,        // >
     GreaterOrEqual, // >=
@@ -44,12 +44,11 @@ pub fn parse_binary_operator(i: Span) -> IResult<Span, BinaryOperator, VerboseEr
             &"/" => BinaryOperator::Divide,
             &"%" => BinaryOperator::Modulo,
             &"==" => BinaryOperator::Equal,
-            &"!=" => BinaryOperator::Not,
+            &"!=" => BinaryOperator::NotEqual,
             &">" => BinaryOperator::Greater,
             &">=" => BinaryOperator::GreaterOrEqual,
             &"<" => BinaryOperator::Smaller,
             &"<=" => BinaryOperator::SmallerOrEqual,
-
             _ => unreachable!(),
         },
     ))
@@ -63,12 +62,24 @@ impl fmt::Display for BinaryOperator {
             BinaryOperator::Times => write!(f, "*"),
             BinaryOperator::Divide => write!(f, "/"),
             BinaryOperator::Equal => write!(f, "=="),
-            BinaryOperator::Not => write!(f, "!="),
+            BinaryOperator::NotEqual => write!(f, "!="),
             BinaryOperator::Modulo => write!(f, "%"),
             BinaryOperator::Greater => write!(f, ">"),
             BinaryOperator::GreaterOrEqual => write!(f, ">="),
             BinaryOperator::Smaller => write!(f, "<"),
             BinaryOperator::SmallerOrEqual => write!(f, "<="),
         }
+    }
+}
+
+pub fn get_operator_precedence(op: &BinaryOperator) -> u8 {
+    match op {
+        BinaryOperator::Plus | BinaryOperator::Minus => 1,
+        BinaryOperator::Times | BinaryOperator::Divide | BinaryOperator::Modulo => 2,
+        BinaryOperator::Equal | BinaryOperator::NotEqual => 3,
+        BinaryOperator::Greater
+        | BinaryOperator::GreaterOrEqual
+        | BinaryOperator::Smaller
+        | BinaryOperator::SmallerOrEqual => 4,
     }
 }

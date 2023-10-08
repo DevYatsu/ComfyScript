@@ -6,9 +6,9 @@ use nom::{
 use super::Span;
 
 pub fn parse_new_lines(i: Span) -> IResult<Span, String, VerboseError<Span>> {
-    let (i, words) = many1(alt((multispace1, tag(";"))))(i)?;
+    let (i, separators) = many1(alt((multispace1, tag(";"))))(i)?;
 
-    let result: String = words
+    let result: String = separators
         .iter()
         .flat_map(|word| word.fragment().chars())
         .collect();

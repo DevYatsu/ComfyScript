@@ -2,9 +2,8 @@ use std::fmt;
 
 use crate::parser::{
     ast::{identifier::parse_identifier, vars::VariableDeclarator, ASTNode},
-    composite_types::parse_composite_value,
-    primitive_values::parse_primitive_value,
-    Span,
+    expression::parse_expression,
+    Span, utils::parse_new_lines,
 };
 use nom::{
     branch::alt,
@@ -71,8 +70,8 @@ pub fn parse_single_declaration(
     let (input, _) = context("Expected '='", tag("="))(input)?;
     let (input, _) = multispace0(input)?;
 
-    let (input, value) = alt((parse_primitive_value, parse_composite_value))(input)?;
-
+    let (input, value) = parse_expression(input)?;    
+    let (input, _) = parse_new_lines(input)?;
     let declarator = VariableDeclarator { id, init: value };
 
     Ok((input, declarator))
