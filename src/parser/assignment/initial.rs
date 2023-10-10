@@ -3,7 +3,6 @@ use std::fmt;
 use crate::parser::{
     ast::{identifier::parse_identifier, vars::VariableDeclarator, ASTNode},
     expression::parse_expression,
-    utils::parse_new_lines,
     Span,
 };
 use nom::{

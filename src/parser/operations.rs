@@ -3,7 +3,9 @@ pub mod binary;
 
 use nom::{branch::alt, character::complete::multispace0, error::VerboseError, IResult};
 
-use crate::parser::{primitive_values::parse_primitive_value, Span};
+use crate::parser::{
+    parenthesized::parse_parenthesized, primitive_values::parse_primitive_value, Span,
+};
 
 use self::binary::{parse_binary_operator, BinaryOperator};
 
@@ -13,7 +15,12 @@ pub fn parse_binary_operation(input: Span) -> IResult<Span, Expression, VerboseE
     let mut expr_vec = Vec::with_capacity(4); // Assuming a small initial capacity
     let mut operators_vec = Vec::with_capacity(3); // Assuming a small initial capacity
 
-    let (input, expr) = alt((parse_composite_value, parse_primitive_value))(input)?;
+    let (input, expr) = alt((
+        parse_composite_value,
+        parse_primitive_value,
+        parse_parenthesized,
+    ))(input)?;
+
     let (mut input, _) = multispace0(input)?;
 
     expr_vec.push(expr);
@@ -23,8 +30,12 @@ pub fn parse_binary_operation(input: Span) -> IResult<Span, Expression, VerboseE
 
         let (i, _) = multispace0(i)?;
 
-        let (input_before_spaces_removed, expr) =
-            alt((parse_composite_value, parse_primitive_value))(i)?;
+        let (input_before_spaces_removed, expr) = alt((
+            parse_composite_value,
+            parse_primitive_value,
+            parse_parenthesized,
+        ))(i)?;
+        
         expr_vec.push(expr);
 
         let (i, _) = multispace0(input_before_spaces_removed)?;

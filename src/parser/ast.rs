@@ -165,7 +165,7 @@ impl fmt::Display for ASTNode {
                 write!(f, " in ")?;
                 write!(f, "{}", source)?;
 
-                write!(f, "{{")?;
+                write!(f, " {{")?;
                 for node in body {
                     write!(f, "{}", node)?;
                 }
@@ -177,7 +177,7 @@ impl fmt::Display for ASTNode {
 
                 write!(f, "{test}")?;
 
-                write!(f, "{{")?;
+                write!(f, " {{")?;
                 for node in body {
                     write!(f, "{}", node)?;
                 }
@@ -186,7 +186,7 @@ impl fmt::Display for ASTNode {
             }
             ASTNode::ReturnStatement { argument, shortcut } => {
                 if *shortcut {
-                    write!(f, ">>")?;
+                    write!(f, ">> ")?;
                 } else {
                     write!(f, "return ")?;
                 }
@@ -262,7 +262,7 @@ impl fmt::Display for Expression {
             }
             Expression::Parenthesized(expr) => {
                 write!(f, "({})", expr)
-            },
+            }
         }
     }
 }
