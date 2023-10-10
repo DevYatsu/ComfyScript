@@ -35,7 +35,7 @@ pub fn parse_binary_operation(input: Span) -> IResult<Span, Expression, VerboseE
             parse_primitive_value,
             parse_parenthesized,
         ))(i)?;
-        
+
         expr_vec.push(expr);
 
         let (i, _) = multispace0(input_before_spaces_removed)?;
