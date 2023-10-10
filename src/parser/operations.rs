@@ -21,9 +21,9 @@ pub fn parse_binary_operation(input: Span) -> IResult<Span, Expression, VerboseE
         parse_parenthesized,
     ))(input)?;
 
-    let (mut input, _) = multispace0(input)?;
-
     expr_vec.push(expr);
+
+    let (mut input, _) = multispace0(input)?;
 
     while let Ok((i, op)) = parse_binary_operator(input) {
         operators_vec.push(op);

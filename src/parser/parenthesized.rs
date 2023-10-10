@@ -15,6 +15,7 @@ pub fn parse_parenthesized(initial_i: Span) -> IResult<Span, Expression, Verbose
 
     let (i, expr) = alt((
         parse_binary_operation,
+        parse_parenthesized,
         parse_composite_value,
         parse_primitive_value,
     ))(i)?;

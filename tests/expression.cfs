@@ -3,4 +3,4 @@ let test = 2 + 3 + 5 + 4
 let test = 2 + 7 * 4 * 2 + 4 * 2 + 3
 let test = 2 + 4 == 2
 
-let test = (2 + 7) * 4 * 2 + 4 * 2 + 3
+let test = (2 + 7)
