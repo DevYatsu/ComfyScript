@@ -101,9 +101,8 @@ pub enum Expression {
         id: Identifier,
         assigned: Box<Expression>,
     },
-    IdentifierExpression {
-        identifier: Identifier,
-    },
+    IdentifierExpression(Identifier),
+    Parenthesized(Box<Expression>),
 }
 
 impl fmt::Display for ASTNode {
@@ -258,9 +257,12 @@ impl fmt::Display for Expression {
                 write!(f, "{}", operator)?;
                 write!(f, "{}", assigned)
             }
-            Expression::IdentifierExpression { identifier } => {
+            Expression::IdentifierExpression(identifier) => {
                 write!(f, "{}", identifier)
             }
+            Expression::Parenthesized(expr) => {
+                write!(f, "({})", expr)
+            },
         }
     }
 }
