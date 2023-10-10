@@ -6,7 +6,7 @@ use crate::parser::ast::Expression;
 use crate::parser::Span;
 
 use super::composite_types::parse_composite_value;
-use super::operations::parse_binary_operation;
+use super::expression::parse_expression;
 use super::primitive_values::parse_primitive_value;
 
 pub fn parse_parenthesized(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
@@ -14,7 +14,7 @@ pub fn parse_parenthesized(i: Span) -> IResult<Span, Expression, VerboseError<Sp
     let (i, _) = multispace0(i)?;
 
     let (i, expr) = alt((
-        parse_binary_operation,
+        parse_expression,
         parse_parenthesized,
         parse_composite_value,
         parse_primitive_value,

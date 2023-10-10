@@ -1,10 +1,6 @@
 pub mod array;
 pub mod object;
-use nom::{
-    branch::alt,
-    error::VerboseError,
-    IResult,
-};
+use nom::{branch::alt, error::VerboseError, IResult};
 
 use crate::parser::{ast::Expression, Span};
 

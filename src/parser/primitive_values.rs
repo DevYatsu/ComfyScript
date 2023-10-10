@@ -3,11 +3,7 @@ pub mod nil;
 pub mod numbers;
 pub mod strings;
 
-use nom::{
-    branch::alt,
-    error::VerboseError,
-    IResult,
-};
+use nom::{branch::alt, error::VerboseError, IResult};
 
 use crate::parser::{ast::Expression, Span};
 
