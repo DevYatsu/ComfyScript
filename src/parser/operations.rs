@@ -1,7 +1,6 @@
 pub mod assignment;
 pub mod binary;
 
-//todo! create parser for binary expressions
 use nom::{branch::alt, character::complete::multispace0, error::VerboseError, IResult};
 
 use crate::parser::{primitive_values::parse_primitive_value, Span};
@@ -11,16 +10,15 @@ use self::binary::{parse_binary_operator, BinaryOperator};
 use super::{ast::Expression, composite_types::parse_composite_value};
 
 pub fn parse_binary_operation(input: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    let mut expr_vec = Vec::new();
-    let mut operators_vec = Vec::new();
+    let mut expr_vec = Vec::with_capacity(4); // Assuming a small initial capacity
+    let mut operators_vec = Vec::with_capacity(3); // Assuming a small initial capacity
 
     let (input, expr) = alt((parse_composite_value, parse_primitive_value))(input)?;
     let (mut input, _) = multispace0(input)?;
 
     expr_vec.push(expr);
 
-    loop {
-        let (i, op) = parse_binary_operator(input)?;
+    while let Ok((i, op)) = parse_binary_operator(input) {
         operators_vec.push(op);
 
         let (i, _) = multispace0(i)?;
@@ -31,11 +29,11 @@ pub fn parse_binary_operation(input: Span) -> IResult<Span, Expression, VerboseE
 
         let (i, _) = multispace0(input_before_spaces_removed)?;
 
-        if let Err(_) = parse_binary_operator(i) {
-            input = input_before_spaces_removed;
-            break;
-        }
-        input = i;
+        input = if let Ok(_) = parse_binary_operator(i) {
+            i
+        } else {
+            input_before_spaces_removed
+        };
     }
 
     let binary_expression = build_binary_expression(expr_vec, operators_vec);
@@ -52,6 +50,7 @@ fn build_binary_expression(
         let max_precedence_index = operators
             .iter()
             .enumerate()
+            .rev()
             .max_by_key(|(_, op)| op.get_precedence())
             .map(|(index, _)| index);
 
@@ -70,5 +69,5 @@ fn build_binary_expression(
         }
     }
 
-    expressions.remove(0)
+    expressions.pop().unwrap()
 }
