@@ -4,14 +4,11 @@ pub mod binary;
 //todo! create parser for binary expressions
 use nom::{branch::alt, character::complete::multispace0, error::VerboseError, IResult};
 
-use crate::parser::{
-    ast::Expression, operations::binary::get_operator_precedence,
-    primitive_values::parse_primitive_value, Span,
-};
+use crate::parser::{primitive_values::parse_primitive_value, Span};
 
 use self::binary::{parse_binary_operator, BinaryOperator};
 
-use super::composite_types::parse_composite_value;
+use super::{ast::Expression, composite_types::parse_composite_value};
 
 pub fn parse_binary_operation(input: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let mut expr_vec = Vec::new();
@@ -55,7 +52,7 @@ fn build_binary_expression(
         let max_precedence_index = operators
             .iter()
             .enumerate()
-            .max_by_key(|(_, op)| get_operator_precedence(op))
+            .max_by_key(|(_, op)| op.get_precedence())
             .map(|(index, _)| index);
 
         if let Some(index) = max_precedence_index {

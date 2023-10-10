@@ -72,14 +72,16 @@ impl fmt::Display for BinaryOperator {
     }
 }
 
-pub fn get_operator_precedence(op: &BinaryOperator) -> u8 {
-    match op {
-        BinaryOperator::Plus | BinaryOperator::Minus => 1,
-        BinaryOperator::Times | BinaryOperator::Divide | BinaryOperator::Modulo => 2,
-        BinaryOperator::Equal | BinaryOperator::NotEqual => 3,
-        BinaryOperator::Greater
-        | BinaryOperator::GreaterOrEqual
-        | BinaryOperator::Smaller
-        | BinaryOperator::SmallerOrEqual => 4,
+impl BinaryOperator {
+    pub fn get_precedence(&self) -> u8 {
+        match self {
+            BinaryOperator::Plus | BinaryOperator::Minus => 1,
+            BinaryOperator::Times | BinaryOperator::Divide | BinaryOperator::Modulo => 2,
+            BinaryOperator::Equal | BinaryOperator::NotEqual => 3,
+            BinaryOperator::Greater
+            | BinaryOperator::GreaterOrEqual
+            | BinaryOperator::Smaller
+            | BinaryOperator::SmallerOrEqual => 4,
+        }
     }
 }
