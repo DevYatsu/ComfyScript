@@ -50,7 +50,8 @@ pub enum ASTNode {
         body: Vec<ASTNode>,
     },
     ForStatement {
-        declarations: Vec<VariableDeclarator>,
+        declarations: Vec<Identifier>,
+        kind: VariableKeyword,
         source: Expression,
         body: Vec<ASTNode>,
     },
@@ -156,8 +157,9 @@ impl fmt::Display for ASTNode {
                 declarations,
                 source,
                 body,
+                kind,
             } => {
-                write!(f, "for ")?;
+                write!(f, "for {kind} ")?;
 
                 for declaration in declarations {
                     write!(f, "{},", declaration)?;

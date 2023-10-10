@@ -11,9 +11,8 @@ use nom::{
 use crate::parser::ast::identifier::parse_identifier;
 
 use super::{
-    assignment::initial::VariableKeyword,
-    ast::{vars::VariableDeclarator, ASTNode},
-    parse_block, Span,
+    assignment::initial::VariableKeyword, ast::ASTNode, expression::parse_expression, parse_block,
+    Span,
 };
 
 pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
@@ -24,8 +23,8 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
 
     let keyword = if let Some(k) = opt_keyword {
         match k.fragment() {
-            &"let" => VariableKeyword::Let,
-            _ => VariableKeyword::Var,
+            &"var" => VariableKeyword::Var,
+            _ => VariableKeyword::Let,
         }
     } else {
         VariableKeyword::Var
@@ -37,25 +36,17 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
     let (input, _) = tag("in")(input)?;
     let (input, _) = multispace1(input)?;
 
-    let (input, indexed) = parse_identifier(input)?; // todo!! call a fn to parse expression here
-    let (input, _) = multispace0(input)?; // for now we parse an identifier
+    let (input, indexed) = parse_expression(input)?;
+    let (input, _) = multispace0(input)?;
 
     let (input, _) = tag("{")(input)?;
-
-    // parse for content
-    // todo!!
 
     let (input, body) = parse_block(input, Some("}"))?;
 
     let node = ASTNode::ForStatement {
-        declarations: identifiers
-            .into_iter()
-            .map(|id| VariableDeclarator {
-                id,
-                init: super::ast::Expression::Array { elements: vec![] },
-            })
-            .collect(),
-        source: todo!(),
+        kind: keyword,
+        declarations: identifiers,
+        source: indexed,
         body,
     };
 

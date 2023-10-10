@@ -9,14 +9,17 @@ use crate::parser::{import::parse_import, utils::parse_new_lines};
 use self::{
     assignment::{initial::parse_var_init, reassign::parse_assignment},
     ast::ASTNode,
+    loop_for::parse_for_statement,
+    loop_while::parse_while_statement,
 };
 
 mod assignment;
 pub mod ast;
 mod composite_types;
 mod expression;
-mod for_loop;
 mod import;
+mod loop_for;
+mod loop_while;
 mod operations;
 mod parenthesized;
 mod primitive_values;
@@ -52,7 +55,13 @@ pub fn parse_input<'a>(input: Span<'a>) -> IResult<Span, Vec<ASTNode>, VerboseEr
 }
 
 fn parse_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
-    alt((parse_var_init, parse_import, parse_assignment))(input)
+    alt((
+        parse_var_init,
+        parse_import,
+        parse_assignment,
+        parse_for_statement,
+        parse_while_statement,
+    ))(input)
 }
 
 pub fn parse_block<'a>(
