@@ -2,11 +2,12 @@ pub mod assignment;
 pub mod binary;
 
 //todo! create parser for binary expressions
-use nom::{
-    branch::alt, character::complete::multispace0, error::VerboseError, IResult,
-};
+use nom::{branch::alt, character::complete::multispace0, error::VerboseError, IResult};
 
-use crate::parser::{ast::Expression, primitive_values::parse_primitive_value, Span};
+use crate::parser::{
+    ast::Expression, operations::binary::get_operator_precedence,
+    primitive_values::parse_primitive_value, Span,
+};
 
 use self::binary::{parse_binary_operator, BinaryOperator};
 
@@ -47,25 +48,30 @@ pub fn parse_binary_operation(input: Span) -> IResult<Span, Expression, VerboseE
 }
 
 fn build_binary_expression(
-    expressions: Vec<Expression>,
-    operators: Vec<BinaryOperator>,
+    mut expressions: Vec<Expression>,
+    mut operators: Vec<BinaryOperator>,
 ) -> Expression {
-    if expressions.len() == 1 {
-        expressions.into_iter().next().unwrap()
-    } else {
-        // If there are multiple expressions, recursively build the binary expression
-        let (first_op, remaining_ops) = operators.split_at(1);
-        let (first_expr, remaining_exprs) = expressions.split_at(1);
+    while !operators.is_empty() {
+        let max_precedence_index = operators
+            .iter()
+            .enumerate()
+            .max_by_key(|(_, op)| get_operator_precedence(op))
+            .map(|(index, _)| index);
 
-        let binary_expr = Expression::BinaryExpression {
-            left: Box::new(first_expr[0].clone()),
-            operator: first_op[0],
-            right: Box::new(build_binary_expression(
-                remaining_exprs.to_vec(),
-                remaining_ops.to_vec(),
-            )),
-        };
+        if let Some(index) = max_precedence_index {
+            let operator = operators.remove(index);
+            let right = expressions.remove(index + 1);
+            let left = expressions.remove(index);
 
-        binary_expr
+            let binary_op = Expression::BinaryExpression {
+                left: Box::new(left),
+                operator,
+                right: Box::new(right),
+            };
+
+            expressions.insert(index, binary_op);
+        }
     }
+
+    expressions.remove(0)
 }
