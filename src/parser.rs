@@ -65,6 +65,7 @@ pub fn parse_block<'a>(
 fn parse_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     alt((
         parse_var_init,
+        parse_assignment,
         parse_import,
         parse_assignment,
         parse_for_statement,
