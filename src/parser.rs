@@ -53,9 +53,15 @@ pub fn parse_block<'a>(
     input: Span<'a>,
     until: &'static str,
 ) -> IResult<Span<'a>, ASTNode, VerboseError<Span<'a>>> {
-    let (mut input, _) = opt(parse_new_lines)(input)?;
+    let (input, _) = opt(parse_new_lines)(input)?;
 
     let mut statements = Vec::new();
+
+    let (mut input, limit) = opt(tag(until))(input)?;
+
+    if limit.is_some() {
+        return Ok((input, ASTNode::BlockStatement { body: statements }));
+    }
 
     while !input.is_empty() {
         let (new_input, statement) = parse_statement(input)?;
