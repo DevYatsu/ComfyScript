@@ -12,15 +12,11 @@ use crate::parser::{
     primitive_values::parse_primitive_value, Span,
 };
 
-use super::operations::{binary::parse_binary_operator, build_binary_expression};
+use super::{operations::{binary::parse_binary_operator, build_binary_expression}, ast::identifier::parse_identifier_expression};
 
 // parsing expressions
 pub fn parse_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    let (i, expr) = alt((
-        parse_composite_value,
-        parse_primitive_value,
-        parse_parenthesized,
-    ))(i)?;
+    let (i, expr) = parse_basic_expression(i)?;
 
     let mut expr_vec = vec![expr];
     let mut operators_vec = Vec::with_capacity(3);
@@ -31,11 +27,7 @@ pub fn parse_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>
     let (i, rest) = many0(separated_pair(
         preceded(multispace0, parse_binary_operator),
         multispace0,
-        alt((
-            parse_composite_value,
-            parse_primitive_value,
-            parse_parenthesized,
-        )),
+        parse_basic_expression,
     ))(i)?;
 
     for (op, expr) in rest {
@@ -47,4 +39,14 @@ pub fn parse_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>
     let final_expr = build_binary_expression(expr_vec, operators_vec);
 
     Ok((i, final_expr))
+}
+
+
+pub fn parse_basic_expression(i: Span)-> IResult<Span, Expression, VerboseError<Span>> {
+alt((
+        parse_composite_value,
+        parse_primitive_value,
+        parse_parenthesized,
+        parse_identifier_expression
+    ))(i)
 }

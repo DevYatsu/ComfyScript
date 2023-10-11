@@ -11,7 +11,7 @@ use nom::{
 use crate::parser::ast::identifier::parse_identifier;
 
 use super::{
-    assignment::initial::VariableKeyword, ast::ASTNode, expression::parse_expression, parse_block,
+    assignment::initial::VariableKeyword, ast::{ASTNode, identifier::Identifier}, expression::parse_expression, parse_block,
     Span,
 };
 
@@ -21,22 +21,28 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
 
     let (input, opt_keyword) = opt(alt((tag("let"), tag("var"))))(input)?;
 
-    let keyword = if let Some(k) = opt_keyword {
-        match k.fragment() {
-            &"var" => VariableKeyword::Var,
-            _ => VariableKeyword::Let,
-        }
+    let (input, keyword) = if let Some(k) = opt_keyword {
+        let (input, _) = multispace1(input)?;
+
+        (
+            input,
+            match k.fragment() {
+                &"var" => VariableKeyword::Var,
+                _ => VariableKeyword::Let,
+            },
+        )
     } else {
-        VariableKeyword::Var
+        (input, VariableKeyword::Let)
     };
 
-    let (input, identifiers) = separated_list1(tag(","), parse_identifier)(input)?;
+    let (input, identifiers) = separated_list1(tag(","), parse_for_identifier)(input)?;
     let (input, _) = multispace1(input)?;
 
     let (input, _) = tag("in")(input)?;
     let (input, _) = multispace1(input)?;
 
     let (input, indexed) = parse_expression(input)?;
+
     let (input, _) = multispace0(input)?;
 
     let (input, _) = tag("{")(input)?;
@@ -51,4 +57,14 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
     };
 
     Ok((input, node))
+}
+
+pub fn parse_for_identifier(
+    input: Span,
+) -> IResult<Span, Identifier, VerboseError<Span>> {
+    let (input, _) = multispace0(input)?;
+
+    let (input, id) = parse_identifier(input)?;
+
+    Ok((input, id))
 }

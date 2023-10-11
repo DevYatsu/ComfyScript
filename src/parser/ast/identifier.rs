@@ -6,6 +6,8 @@ use nom::{
     Err, IResult,
 };
 
+use super::Expression;
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct Identifier {
     pub name: String,
@@ -40,6 +42,12 @@ pub fn parse_identifier(i: Span) -> IResult<Span, Identifier, VerboseError<Span>
     } else {
         Ok((i, Identifier { name: word }))
     }
+}
+
+pub fn parse_identifier_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+    let (i, id) = parse_identifier(i)?;
+
+    Ok((i, Expression::IdentifierExpression(id)))
 }
 
 impl fmt::Display for Identifier {
