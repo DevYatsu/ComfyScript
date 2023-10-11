@@ -27,6 +27,7 @@ pub enum ProgramSrc {
 
 #[derive(Debug, Clone)]
 pub enum ASTNode {
+    // add if/else Node
     Program {
         body: Vec<ASTNode>,
         source_type: ProgramSrc, // use this for modules or main file
