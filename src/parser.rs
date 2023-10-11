@@ -35,11 +35,11 @@ pub fn parse_input<'a>(input: Span<'a>) -> IResult<Span, Vec<ASTNode>, VerboseEr
     while !input.is_empty() {
         let (new_input, statement) = parse_statement(input)?;
         statements.push(statement);
-        if new_input.len() != 0 {
-            let (new_input, _) = parse_new_lines(new_input)?;
-            input = new_input;
-        } else {
-            input = new_input;
+
+        let (new_input, _) = opt(parse_new_lines)(new_input)?;
+        input = new_input;
+
+        if new_input.len() == 0 {
             break;
         }
     }
