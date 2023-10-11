@@ -1,0 +1,5 @@
+let x = ["one"];
+
+for hey, hihi in x {
+    
+}
