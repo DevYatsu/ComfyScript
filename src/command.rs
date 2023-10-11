@@ -3,22 +3,36 @@ use std::{env::args, path::PathBuf};
 #[derive(Debug, PartialEq, Eq)]
 pub enum Command {
     RunFile(PathBuf),
-    NotFound,
     MinifyFile(PathBuf),
+    NotFound,
+    MissingFileName,
+    TestFiles,
 }
 
 pub fn get_command() -> Command {
     let mut args = args();
-    let file_name = args.next_back();
+    args.next(); // remove the target/xxx
 
-    if let None = file_name {
-        return Command::NotFound;
-    }
+    let command_name = args.next();
 
-    if let Some(arg) = args.next_back() {
-        match arg.as_str() {
-            "run" => return Command::RunFile(file_name.unwrap().into()),
-            "minify" => return Command::MinifyFile(file_name.unwrap().into()),
+    if let Some(name) = command_name {
+        match name.as_str() {
+            "run" => {
+                if let Some(file_name) = args.next() {    
+
+                    return Command::RunFile(file_name.into());
+                } else {
+                    return Command::MissingFileName;
+                }
+            }
+            "minify" => {
+                if let Some(file_name) = args.next() {
+                    return Command::MinifyFile(file_name.into());
+                } else {
+                    return Command::MissingFileName;
+                }
+            }
+            "test" => return Command::TestFiles,
             _ => (),
         }
     }

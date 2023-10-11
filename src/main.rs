@@ -1,11 +1,13 @@
 mod comfy;
 mod command;
 mod exec;
-pub mod minify;
-pub mod parser;
+mod minify;
+mod parser;
 mod reserved_keywords;
+mod test_files;
 
 use minify::minify_input;
+use test_files::parse_all_files;
 
 use crate::{
     command::{get_command, Command},
@@ -30,8 +32,12 @@ fn main() -> Result<(), Box<dyn Error>> {
             minify_input(&path)?;
         }
         Command::NotFound => {
-            return Err("Invalid command!".into());
+            return Err("Command not found!".into());
         }
+            Command::MissingFileName => {
+                return Err("Missing a valid file name!".into());
+        },
+        Command::TestFiles => parse_all_files()?,
     }
     Ok(())
 }
