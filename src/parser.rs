@@ -1,12 +1,6 @@
 use nom::{
-    branch::alt,
-    bytes::complete::tag,
-    character::complete::multispace0,
-    combinator::opt,
-    error::VerboseError,
-    multi::many0,
-    sequence::{delimited, terminated},
-    IResult,
+    branch::alt, bytes::complete::tag, character::complete::multispace0, combinator::opt,
+    error::VerboseError, multi::many0, sequence::terminated, IResult,
 };
 use nom_locate::LocatedSpan;
 
