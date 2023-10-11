@@ -1,6 +1,5 @@
 use nom::{
-    branch::alt, bytes::complete::tag, combinator::opt, error::VerboseError, multi::many0,
-    sequence::terminated, IResult,
+    branch::alt, bytes::complete::tag, combinator::opt, error::VerboseError, IResult,
 };
 use nom_locate::LocatedSpan;
 
@@ -9,6 +8,7 @@ use crate::parser::{import::parse_import, utils::parse_new_lines};
 use self::{
     assignment::{initial::parse_var_init, reassign::parse_assignment},
     ast::ASTNode,
+    function::parse_function,
     loop_for::parse_for_statement,
     loop_while::parse_while_statement,
 };
@@ -55,10 +55,22 @@ pub fn parse_block<'a>(
     input: Span<'a>,
     until: &'static str,
 ) -> IResult<Span<'a>, Vec<ASTNode>, VerboseError<Span<'a>>> {
-    let (input, _) = opt(parse_new_lines)(input)?;
-    let (input, statements) = many0(terminated(parse_statement, parse_new_lines))(input)?;
+    let (mut input, _) = opt(parse_new_lines)(input)?;
 
-    let (input, _) = tag(until)(input)?;
+    let mut statements = Vec::new();
+
+    while !input.is_empty() {
+        let (new_input, statement) = parse_statement(input)?;
+        statements.push(statement);
+
+        let (new_input, _) = opt(parse_new_lines)(new_input)?;
+        let (new_input, limit) = opt(tag(until))(new_input)?;
+
+        input = new_input;
+        if limit.is_some() {
+            break;
+        }
+    }
 
     Ok((input, statements))
 }
@@ -71,5 +83,6 @@ fn parse_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
         parse_assignment,
         parse_for_statement,
         parse_while_statement,
+        parse_function,
     ))(input)
 }

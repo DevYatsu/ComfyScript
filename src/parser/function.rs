@@ -13,7 +13,6 @@ use crate::parser::ast::identifier::parse_identifier;
 
 use super::{
     ast::{identifier::Identifier, ASTNode},
-    expression::parse_expression,
     parse_block, Span,
 };
 
@@ -38,7 +37,8 @@ pub fn parse_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>>
     let (input, _) = parse_char('(')(input)?;
     let (input, _) = multispace0(input)?;
 
-    let (input, params) = separated_list1(tag(","), parse_fn_identifier)(input)?;
+    let (input, params) = opt(separated_list1(tag(","), parse_fn_identifier))(input)?;
+    let params = params.unwrap_or_else(|| vec![]);
     let (input, _) = multispace0(input)?;
 
     let (input, _) = parse_char(')')(input)?;
