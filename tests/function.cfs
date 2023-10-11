@@ -1,0 +1,7 @@
+fn test() {
+    let test = "efef"
+}
+
+anon fn test(hey, dude) {
+    let test = "efef"
+}
