@@ -17,6 +17,9 @@ pub enum BinaryOperator {
     GreaterOrEqual, // >=
     Smaller,        // <
     SmallerOrEqual, // <=
+
+    And, // &&
+    Or,  // ||
 }
 
 pub fn parse_binary_operator(i: Span) -> IResult<Span, BinaryOperator, VerboseError<Span>> {
@@ -33,6 +36,8 @@ pub fn parse_binary_operator(i: Span) -> IResult<Span, BinaryOperator, VerboseEr
         tag(">="),
         tag("<"),
         tag("<="),
+        tag("&&"),
+        tag("||"),
     ))(i)?;
 
     Ok((
@@ -49,6 +54,8 @@ pub fn parse_binary_operator(i: Span) -> IResult<Span, BinaryOperator, VerboseEr
             &">=" => BinaryOperator::GreaterOrEqual,
             &"<" => BinaryOperator::Smaller,
             &"<=" => BinaryOperator::SmallerOrEqual,
+            &"&&" => BinaryOperator::And,
+            &"||" => BinaryOperator::Or,
             _ => unreachable!(),
         },
     ))
@@ -68,6 +75,8 @@ impl fmt::Display for BinaryOperator {
             BinaryOperator::GreaterOrEqual => write!(f, ">="),
             BinaryOperator::Smaller => write!(f, "<"),
             BinaryOperator::SmallerOrEqual => write!(f, "<="),
+            BinaryOperator::And => write!(f, "&&"),
+            BinaryOperator::Or => write!(f, "||"),
         }
     }
 }
@@ -81,7 +90,9 @@ impl BinaryOperator {
             BinaryOperator::Greater
             | BinaryOperator::GreaterOrEqual
             | BinaryOperator::Smaller
-            | BinaryOperator::SmallerOrEqual => 4,
+            | BinaryOperator::SmallerOrEqual
+            | BinaryOperator::And
+            | BinaryOperator::Or => 4,
         }
     }
 }
