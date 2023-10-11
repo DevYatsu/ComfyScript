@@ -2,8 +2,9 @@ use nom::{character::complete::multispace0, error::VerboseError, IResult};
 
 use crate::parser::{
     ast::{identifier::parse_identifier, ASTNode, Expression},
+    expression::parse_expression,
     operations::assignment::parse_assignment_operator,
-    Span, expression::parse_expression,
+    Span,
 };
 
 pub fn parse_assignment(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {

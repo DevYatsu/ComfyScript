@@ -17,6 +17,7 @@ mod assignment;
 pub mod ast;
 mod composite_types;
 mod expression;
+mod function;
 mod import;
 mod loop_for;
 mod loop_while;

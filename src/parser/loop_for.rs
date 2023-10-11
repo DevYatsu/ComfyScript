@@ -61,7 +61,7 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
     Ok((input, node))
 }
 
-pub fn parse_for_identifier(input: Span) -> IResult<Span, Identifier, VerboseError<Span>> {
+fn parse_for_identifier(input: Span) -> IResult<Span, Identifier, VerboseError<Span>> {
     let (input, _) = multispace0(input)?;
 
     let (input, id) = parse_identifier(input)?;

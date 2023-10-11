@@ -35,7 +35,6 @@ pub enum ASTNode {
         specifiers: Vec<ImportSpecifier>,
         source: ImportSource,
     },
-
     VariableDeclaration {
         declarations: Vec<VariableDeclarator>,
         kind: VariableKeyword,
@@ -48,6 +47,7 @@ pub enum ASTNode {
         id: Identifier,
         params: Vec<Identifier>,
         body: Vec<ASTNode>,
+        is_anonymous: bool,
     },
     ForStatement {
         declarations: Vec<Identifier>,
@@ -141,7 +141,16 @@ impl fmt::Display for ASTNode {
             ASTNode::ExpressionStatement { expression } => {
                 write!(f, "{};", expression)
             }
-            ASTNode::FunctionDeclaration { id, params, body } => {
+            ASTNode::FunctionDeclaration {
+                id,
+                params,
+                body,
+                is_anonymous,
+            } => {
+                if *is_anonymous {
+                    write!(f, "anon ")?;
+                }
+
                 write!(f, "fn {}(", id)?;
                 for param in params {
                     write!(f, "{},", param)?;
