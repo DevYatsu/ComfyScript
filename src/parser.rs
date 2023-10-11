@@ -1,11 +1,6 @@
 use nom::{
-    branch::alt,
-    bytes::complete::tag,
-    combinator::{all_consuming, opt},
-    error::VerboseError,
-    multi::many0,
-    sequence::terminated,
-    IResult,
+    branch::alt, bytes::complete::tag, combinator::opt, error::VerboseError, multi::many0,
+    sequence::terminated, IResult,
 };
 use nom_locate::LocatedSpan;
 
@@ -33,15 +28,25 @@ mod utils;
 pub type Span<'a> = LocatedSpan<&'a str>;
 
 pub fn parse_input<'a>(input: Span<'a>) -> IResult<Span, Vec<ASTNode>, VerboseError<Span>> {
-    let (input, _) = opt(parse_new_lines)(input)?;
+    let (mut input, _) = opt(parse_new_lines)(input)?;
 
-    let (input, statements) =
-        all_consuming(many0(terminated(parse_statement, parse_new_lines)))(input)?;
+    let mut statements = Vec::new();
+
+    while !input.is_empty() {
+        let (new_input, statement) = parse_statement(input)?;
+        statements.push(statement);
+        if new_input.len() != 0 {
+            let (new_input, _) = parse_new_lines(new_input)?;
+            input = new_input;
+        } else {
+            input = new_input;
+            break;
+        }
+    }
 
     for statement in &statements {
         println!("{:?}", statement);
     }
-
     Ok((input, statements))
 }
 
