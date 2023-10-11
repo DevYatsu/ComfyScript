@@ -18,8 +18,7 @@ pub fn get_command() -> Command {
     if let Some(name) = command_name {
         match name.as_str() {
             "run" => {
-                if let Some(file_name) = args.next() {    
-
+                if let Some(file_name) = args.next() {
                     return Command::RunFile(file_name.into());
                 } else {
                     return Command::MissingFileName;

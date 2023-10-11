@@ -34,9 +34,9 @@ fn main() -> Result<(), Box<dyn Error>> {
         Command::NotFound => {
             return Err("Command not found!".into());
         }
-            Command::MissingFileName => {
-                return Err("Missing a valid file name!".into());
-        },
+        Command::MissingFileName => {
+            return Err("Missing a valid file name!".into());
+        }
         Command::TestFiles => parse_all_files()?,
     }
     Ok(())

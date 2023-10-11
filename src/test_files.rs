@@ -12,8 +12,12 @@ pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
 
                 // Use match to handle the Result returned by exec_script
                 match exec_script(&file_path) {
-                    Ok(_) => { /* Successfully executed script */ }
-                    Err(e) => eprintln!("Error executing script {}: {}", file_path.display(), e),
+                    Ok(_) => {}
+                    Err(e) => eprintln!(
+                        "\x1b[31mError executing script \x1b[33m{}\x1b[31m: {}\x1b[0m",
+                        file_path.display(),
+                        e
+                    ),
                 }
             } else {
                 eprintln!("Error accessing directory entry");
