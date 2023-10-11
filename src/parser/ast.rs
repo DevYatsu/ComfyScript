@@ -61,7 +61,7 @@ pub enum ASTNode {
     },
     IfStatement {
         test: Expression,
-        body: Vec<ASTNode>,
+        body: Box<ASTNode>,
         alternate: Option<Box<ASTNode>>,
     },
     BlockStatement {

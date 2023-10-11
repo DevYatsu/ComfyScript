@@ -8,7 +8,7 @@ use self::{
     ast::ASTNode,
     function::{parse_function, return_expression::parse_return_statement},
     loop_for::parse_for_statement,
-    loop_while::parse_while_statement,
+    loop_while::parse_while_statement, if_block::parse_if_statement,
 };
 
 mod assignment;
@@ -16,6 +16,7 @@ pub mod ast;
 mod composite_types;
 mod expression;
 mod function;
+mod if_block;
 mod import;
 mod loop_for;
 mod loop_while;
@@ -87,6 +88,7 @@ fn parse_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
         parse_assignment,
         parse_for_statement,
         parse_while_statement,
+        parse_if_statement,
         parse_function,
         parse_return_statement,
     ))(input)
