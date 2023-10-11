@@ -46,23 +46,23 @@ pub enum ASTNode {
     FunctionDeclaration {
         id: Identifier,
         params: Vec<Identifier>,
-        body: Vec<ASTNode>,
+        body: Box<ASTNode>,
         is_anonymous: bool,
     },
     ForStatement {
         declarations: Vec<Identifier>,
         kind: VariableKeyword,
         source: Expression,
-        body: Vec<ASTNode>,
+        body: Box<ASTNode>,
     },
     WhileStatement {
         test: Expression,
-        body: Vec<ASTNode>,
+        body: Box<ASTNode>,
     },
     IfStatement {
         test: Expression,
         body: Vec<ASTNode>,
-        alternate: Option<ASTNode>,
+        alternate: Option<Box<ASTNode>>,
     },
     BlockStatement {
         body: Vec<ASTNode>,
@@ -163,12 +163,8 @@ impl fmt::Display for ASTNode {
                 for param in params {
                     write!(f, "{},", param)?;
                 }
-                write!(f, "){{")?;
-                for node in body {
-                    write!(f, "{}", node)?;
-                }
 
-                write!(f, "}}")
+                write!(f, " {}", body)
             }
             ASTNode::ForStatement {
                 declarations,
@@ -184,24 +180,14 @@ impl fmt::Display for ASTNode {
                 write!(f, " in ")?;
                 write!(f, "{}", source)?;
 
-                write!(f, " {{")?;
-                for node in body {
-                    write!(f, "{}", node)?;
-                }
-
-                write!(f, "}}")
+                write!(f, " {}", body)
             }
             ASTNode::WhileStatement { test, body } => {
                 write!(f, "while ")?;
 
                 write!(f, "{test}")?;
 
-                write!(f, " {{")?;
-                for node in body {
-                    write!(f, "{}", node)?;
-                }
-
-                write!(f, "}}")
+                write!(f, " {}", body)
             }
             ASTNode::ReturnStatement {
                 argument,
@@ -216,6 +202,18 @@ impl fmt::Display for ASTNode {
                 write!(f, "{}", argument)?;
 
                 write!(f, ";")
+            }
+            ASTNode::IfStatement {
+                test,
+                body,
+                alternate,
+            } => todo!(),
+            ASTNode::BlockStatement { body } => {
+                write!(f, " {{")?;
+                for node in body {
+                    write!(f, "{}", node)?;
+                }
+                write!(f, "}}")
             }
         }
     }

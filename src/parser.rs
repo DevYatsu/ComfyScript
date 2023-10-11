@@ -52,7 +52,7 @@ pub fn parse_input<'a>(input: Span<'a>) -> IResult<Span, Vec<ASTNode>, VerboseEr
 pub fn parse_block<'a>(
     input: Span<'a>,
     until: &'static str,
-) -> IResult<Span<'a>, Vec<ASTNode>, VerboseError<Span<'a>>> {
+) -> IResult<Span<'a>, ASTNode, VerboseError<Span<'a>>> {
     let (mut input, _) = opt(parse_new_lines)(input)?;
 
     let mut statements = Vec::new();
@@ -70,7 +70,7 @@ pub fn parse_block<'a>(
         }
     }
 
-    Ok((input, statements))
+    Ok((input, ASTNode::BlockStatement { body: statements }))
 }
 
 fn parse_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
@@ -82,6 +82,6 @@ fn parse_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
         parse_for_statement,
         parse_while_statement,
         parse_function,
-        parse_return_statement
+        parse_return_statement,
     ))(input)
 }

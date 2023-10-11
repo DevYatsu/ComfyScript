@@ -50,7 +50,7 @@ pub fn parse_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>>
     let node = ASTNode::FunctionDeclaration {
         id,
         params,
-        body,
+        body: Box::new(body),
         is_anonymous,
     };
 

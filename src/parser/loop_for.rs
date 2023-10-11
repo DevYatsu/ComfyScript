@@ -55,7 +55,7 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
         kind: keyword,
         declarations: identifiers,
         source: indexed,
-        body,
+        body: Box::new(body),
     };
 
     Ok((input, node))
