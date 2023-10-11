@@ -25,29 +25,30 @@ pub enum BinaryOperator {
 }
 
 pub fn parse_binary_operator(i: Span) -> IResult<Span, BinaryOperator, VerboseError<Span>> {
-    // one_of matches one of the characters we give it
-    let (i, t) = alt((
+    let (i, operator) = alt((
         tag("+"),
         tag("-"),
-        tag("*"),tag("**"),
+        tag("**"),
+        tag("*"),
         tag("/"),
         tag("%"),
         tag("=="),
         tag("!="),
-        tag(">"),
         tag(">="),
-        tag("<"),
+        tag(">"),
         tag("<="),
+        tag("<"),
         tag("&&"),
         tag("||"),
     ))(i)?;
 
     Ok((
         i,
-        match t.fragment() {
+        match operator.fragment() {
             &"+" => BinaryOperator::Plus,
             &"-" => BinaryOperator::Minus,
-            &"*" => BinaryOperator::Times,&"**" => BinaryOperator::Exponential,
+            &"*" => BinaryOperator::Times,
+            &"**" => BinaryOperator::Exponential,
             &"/" => BinaryOperator::Divide,
             &"%" => BinaryOperator::Modulo,
             &"==" => BinaryOperator::Equal,
