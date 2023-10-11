@@ -88,15 +88,16 @@ impl fmt::Display for BinaryOperator {
 impl BinaryOperator {
     pub fn get_precedence(&self) -> u8 {
         match self {
+            BinaryOperator::And | BinaryOperator::Or => 0,
             BinaryOperator::Plus | BinaryOperator::Minus => 1,
             BinaryOperator::Times | BinaryOperator::Divide | BinaryOperator::Modulo => 2,
-            BinaryOperator::Equal | BinaryOperator::NotEqual | BinaryOperator::Exponential => 3,
-            BinaryOperator::Greater
+            BinaryOperator::Exponential => 3,
+            BinaryOperator::Equal
+            | BinaryOperator::NotEqual
+            | BinaryOperator::Greater
             | BinaryOperator::GreaterOrEqual
             | BinaryOperator::Smaller
-            | BinaryOperator::SmallerOrEqual
-            | BinaryOperator::And
-            | BinaryOperator::Or => 4,
+            | BinaryOperator::SmallerOrEqual => 4,
         }
     }
 }
