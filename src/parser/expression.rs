@@ -12,7 +12,10 @@ use crate::parser::{
     primitive_values::parse_primitive_value, Span,
 };
 
-use super::{operations::{binary::parse_binary_operator, build_binary_expression}, ast::identifier::parse_identifier_expression};
+use super::{
+    ast::identifier::parse_identifier_expression,
+    operations::{binary::parse_binary_operator, build_binary_expression},
+};
 
 // parsing expressions
 pub fn parse_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
@@ -41,12 +44,11 @@ pub fn parse_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>
     Ok((i, final_expr))
 }
 
-
-pub fn parse_basic_expression(i: Span)-> IResult<Span, Expression, VerboseError<Span>> {
-alt((
+pub fn parse_basic_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+    alt((
         parse_composite_value,
         parse_primitive_value,
         parse_parenthesized,
-        parse_identifier_expression
+        parse_identifier_expression,
     ))(i)
 }

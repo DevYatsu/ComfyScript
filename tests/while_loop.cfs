@@ -1,0 +1,5 @@
+while test == 2 {
+    let x = 0 ;
+    
+    let y = x + 2;
+}

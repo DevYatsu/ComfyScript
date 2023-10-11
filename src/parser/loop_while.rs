@@ -16,7 +16,7 @@ pub fn parse_while_statement(input: Span) -> IResult<Span, ASTNode, VerboseError
 
     let (input, _) = tag("{")(input)?;
 
-    let (input, body) = parse_block(input, Some("}"))?;
+    let (input, body) = parse_block(input, "}")?;
 
     let node = ASTNode::WhileStatement { test, body };
 

@@ -11,8 +11,10 @@ use nom::{
 use crate::parser::ast::identifier::parse_identifier;
 
 use super::{
-    assignment::initial::VariableKeyword, ast::{ASTNode, identifier::Identifier}, expression::parse_expression, parse_block,
-    Span,
+    assignment::initial::VariableKeyword,
+    ast::{identifier::Identifier, ASTNode},
+    expression::parse_expression,
+    parse_block, Span,
 };
 
 pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
@@ -47,7 +49,7 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
 
     let (input, _) = tag("{")(input)?;
 
-    let (input, body) = parse_block(input, Some("}"))?;
+    let (input, body) = parse_block(input, "}")?;
 
     let node = ASTNode::ForStatement {
         kind: keyword,
@@ -59,9 +61,7 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
     Ok((input, node))
 }
 
-pub fn parse_for_identifier(
-    input: Span,
-) -> IResult<Span, Identifier, VerboseError<Span>> {
+pub fn parse_for_identifier(input: Span) -> IResult<Span, Identifier, VerboseError<Span>> {
     let (input, _) = multispace0(input)?;
 
     let (input, id) = parse_identifier(input)?;
