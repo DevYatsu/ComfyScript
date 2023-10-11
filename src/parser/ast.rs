@@ -61,7 +61,7 @@ pub enum ASTNode {
     },
     ReturnStatement {
         argument: Expression,
-        shortcut: bool,
+        is_shortcut: bool,
     },
 }
 
@@ -195,8 +195,11 @@ impl fmt::Display for ASTNode {
 
                 write!(f, "}}")
             }
-            ASTNode::ReturnStatement { argument, shortcut } => {
-                if *shortcut {
+            ASTNode::ReturnStatement {
+                argument,
+                is_shortcut,
+            } => {
+                if *is_shortcut {
                     write!(f, ">> ")?;
                 } else {
                     write!(f, "return ")?;

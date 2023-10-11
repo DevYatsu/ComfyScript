@@ -1,6 +1,4 @@
-use nom::{
-    branch::alt, bytes::complete::tag, combinator::opt, error::VerboseError, IResult,
-};
+use nom::{branch::alt, bytes::complete::tag, combinator::opt, error::VerboseError, IResult};
 use nom_locate::LocatedSpan;
 
 use crate::parser::{import::parse_import, utils::parse_new_lines};
@@ -8,7 +6,7 @@ use crate::parser::{import::parse_import, utils::parse_new_lines};
 use self::{
     assignment::{initial::parse_var_init, reassign::parse_assignment},
     ast::ASTNode,
-    function::parse_function,
+    function::{parse_function, return_expression::parse_return_statement},
     loop_for::parse_for_statement,
     loop_while::parse_while_statement,
 };
@@ -84,5 +82,6 @@ fn parse_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
         parse_for_statement,
         parse_while_statement,
         parse_function,
+        parse_return_statement
     ))(input)
 }

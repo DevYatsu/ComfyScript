@@ -1,7 +1,11 @@
 fn test() {
     let test = "efef"
+
+    return test
 }
 
 anon fn test(hey, dude) {
     let test = "efef"
+
+    >> test + "str"
 }
