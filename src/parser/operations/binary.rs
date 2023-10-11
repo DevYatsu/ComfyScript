@@ -10,6 +10,8 @@ pub enum BinaryOperator {
     Minus,
     Times,
     Divide,
+    Exponential,
+
     Equal,    // ==
     NotEqual, // !=
     Modulo,
@@ -27,7 +29,7 @@ pub fn parse_binary_operator(i: Span) -> IResult<Span, BinaryOperator, VerboseEr
     let (i, t) = alt((
         tag("+"),
         tag("-"),
-        tag("*"),
+        tag("*"),tag("**"),
         tag("/"),
         tag("%"),
         tag("=="),
@@ -45,7 +47,7 @@ pub fn parse_binary_operator(i: Span) -> IResult<Span, BinaryOperator, VerboseEr
         match t.fragment() {
             &"+" => BinaryOperator::Plus,
             &"-" => BinaryOperator::Minus,
-            &"*" => BinaryOperator::Times,
+            &"*" => BinaryOperator::Times,&"**" => BinaryOperator::Exponential,
             &"/" => BinaryOperator::Divide,
             &"%" => BinaryOperator::Modulo,
             &"==" => BinaryOperator::Equal,
@@ -67,6 +69,7 @@ impl fmt::Display for BinaryOperator {
             BinaryOperator::Plus => write!(f, "+"),
             BinaryOperator::Minus => write!(f, "-"),
             BinaryOperator::Times => write!(f, "*"),
+            BinaryOperator::Exponential => write!(f, "**"),
             BinaryOperator::Divide => write!(f, "/"),
             BinaryOperator::Equal => write!(f, "=="),
             BinaryOperator::NotEqual => write!(f, "!="),
@@ -86,7 +89,7 @@ impl BinaryOperator {
         match self {
             BinaryOperator::Plus | BinaryOperator::Minus => 1,
             BinaryOperator::Times | BinaryOperator::Divide | BinaryOperator::Modulo => 2,
-            BinaryOperator::Equal | BinaryOperator::NotEqual => 3,
+            BinaryOperator::Equal | BinaryOperator::NotEqual | BinaryOperator::Exponential => 3,
             BinaryOperator::Greater
             | BinaryOperator::GreaterOrEqual
             | BinaryOperator::Smaller
