@@ -46,6 +46,7 @@ pub enum ASTNode {
         params: Vec<Identifier>,
         body: Box<ASTNode>,
         is_anonymous: bool,
+        is_shortcut: bool,
     },
     ForStatement {
         declarations: Vec<Identifier>,
@@ -152,6 +153,7 @@ impl fmt::Display for ASTNode {
                 params,
                 body,
                 is_anonymous,
+                is_shortcut,
             } => {
                 if *is_anonymous {
                     write!(f, "anon ")?;
@@ -160,6 +162,12 @@ impl fmt::Display for ASTNode {
                 write!(f, "fn {}(", id)?;
                 for param in params {
                     write!(f, "{},", param)?;
+                }
+
+                write!(f, ")")?;
+
+                if *is_shortcut {
+                    write!(f, " >>")?;
                 }
 
                 write!(f, " {}", body)

@@ -51,6 +51,7 @@ pub fn parse_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>>
         params,
         body: Box::new(body),
         is_anonymous,
+        is_shortcut: false,
     };
 
     Ok((input, node))
