@@ -39,6 +39,7 @@ fn main() -> Result<(), Box<dyn Error>> {
         }
         Command::TestFiles => parse_all_files()?,
     }
+
     Ok(())
 }
 

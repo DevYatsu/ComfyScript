@@ -45,10 +45,6 @@ pub fn parse_input<'a>(input: Span<'a>) -> IResult<Span, Vec<ASTNode>, VerboseEr
         }
     }
 
-    for statement in &statements {
-        println!("{:?}", statement);
-    }
-
     Ok((input, statements))
 }
 

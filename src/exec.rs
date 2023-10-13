@@ -9,7 +9,7 @@ pub fn exec_script(path: &Path) -> Result<(), Box<dyn Error>> {
     let content = get_file_content(&path)?;
 
     let span = Span::new(content.as_str());
-    let (rest, _ast_node) = match parse_input(span) {
+    let (rest, ast_node) = match parse_input(span) {
         Ok(r) => r,
         Err(e) => {
             println!("{}", e);
@@ -19,6 +19,10 @@ pub fn exec_script(path: &Path) -> Result<(), Box<dyn Error>> {
 
     if rest.fragment().len() != 0 {
         return Err("Something went wrong! Input is not empty after parsing!".into());
+    }
+
+    for statement in &ast_node {
+        println!("{:?}", statement);
     }
 
     Ok(())
