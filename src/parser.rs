@@ -7,8 +7,9 @@ use self::{
     assignment::{initial::parse_var_init, reassign::parse_assignment},
     ast::ASTNode,
     function::{parse_function, return_expression::parse_return_statement},
+    if_block::parse_if_statement,
     loop_for::parse_for_statement,
-    loop_while::parse_while_statement, if_block::parse_if_statement,
+    loop_while::parse_while_statement,
 };
 
 mod assignment;
@@ -47,6 +48,7 @@ pub fn parse_input<'a>(input: Span<'a>) -> IResult<Span, Vec<ASTNode>, VerboseEr
     for statement in &statements {
         println!("{:?}", statement);
     }
+
     Ok((input, statements))
 }
 
