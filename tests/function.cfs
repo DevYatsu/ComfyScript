@@ -4,8 +4,10 @@ fn test() {
     return test
 }
 
-anon fn test(hey, dude) {
+anon fn test(test) {
     let test = "efef"
 
     >> test + "str"
 }
+
+fn test(value) >> value
