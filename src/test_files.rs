@@ -1,5 +1,7 @@
 use std::{error::Error, fs, time::Instant};
 
+use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
+
 pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
     use crate::exec::exec_script;
 
@@ -7,26 +9,22 @@ pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
     let start_time = Instant::now();
 
     if let Ok(entries) = fs::read_dir(folder_path) {
-        for entry in entries {
-            if let Ok(entry) = entry {
-                let file_path = entry.path();
+        let files: Vec<_> = entries
+            .filter_map(|entry| entry.ok().map(|e| e.path()))
+            .collect();
 
-                // Use match to handle the Result returned by exec_script
-                match exec_script(&file_path) {
-                    Ok(_) => {}
-                    Err(e) => {
-                        return Err(format!(
-                            "\x1b[31mError executing script \x1b[33m{}\x1b[31m: {}\x1b[0m",
-                            file_path.display(),
-                            e
-                        )
-                        .into())
-                    }
+        files
+            .par_iter()
+            .for_each(|file_path| match exec_script(file_path) {
+                Ok(_) => {}
+                Err(e) => {
+                    eprintln!(
+                        "\x1b[31mError executing script \x1b[33m{}\x1b[31m: {}\x1b[0m",
+                        file_path.display(),
+                        e
+                    );
                 }
-            } else {
-                return Err("Error accessing directory entry".into());
-            }
-        }
+            });
     } else {
         return Err(format!("Error reading directory: {}", folder_path).into());
     }
@@ -35,7 +33,7 @@ pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
 
     println!(
         "\x1b[32mFiles successfully executed in \x1b[33m{}\x1b[32m ms!\x1b[0m",
-        elapsed_time.as_millis()
+        elapsed_time.subsec_nanos()
     );
 
     Ok(())

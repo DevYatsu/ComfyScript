@@ -19,9 +19,11 @@ use std::{
     fs::{self, File},
     io::{BufReader, Read},
     path::Path,
+    time::Instant,
 };
 
 fn main() -> Result<(), Box<dyn Error>> {
+    let start_time = Instant::now();
     let command = get_command();
 
     match command {
@@ -40,6 +42,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         Command::TestFiles => parse_all_files()?,
     }
 
+    let elapsed_time = start_time.elapsed();
+    println!(
+        "Execution time: {} seconds and {} milliseconds",
+        elapsed_time.as_secs(),
+        elapsed_time.subsec_millis()
+    );
     Ok(())
 }
 
