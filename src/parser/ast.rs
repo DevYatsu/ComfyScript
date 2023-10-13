@@ -46,7 +46,9 @@ pub enum ASTNode {
         params: Vec<Identifier>,
         body: Box<ASTNode>,
         is_anonymous: bool,
+
         is_shortcut: bool,
+        // if is_shortcut then body = ASTNode::ReturnStatement
     },
     ForStatement {
         declarations: Vec<Identifier>,
@@ -153,7 +155,7 @@ impl fmt::Display for ASTNode {
                 params,
                 body,
                 is_anonymous,
-                is_shortcut,
+                ..
             } => {
                 if *is_anonymous {
                     write!(f, "anon ")?;
@@ -166,11 +168,8 @@ impl fmt::Display for ASTNode {
 
                 write!(f, ")")?;
 
-                if *is_shortcut {
-                    write!(f, " >>")?;
-                }
-
                 write!(f, " {}", body)
+                // either put a block statement or a return statement (with shortcut)
             }
             ASTNode::ForStatement {
                 declarations,
@@ -213,7 +212,16 @@ impl fmt::Display for ASTNode {
                 test,
                 body,
                 alternate,
-            } => todo!(),
+            } => {
+                write!(f, "if {test} {body}")?;
+
+                if let Some(alternate) = alternate {
+                    write!(f, " else ")?;
+                    write!(f, "{alternate}")
+                } else {
+                    write!(f, "")
+                }
+            }
             ASTNode::BlockStatement { body } => {
                 write!(f, " {{")?;
                 for node in body {
