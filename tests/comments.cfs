@@ -1,0 +1,4 @@
+let test = // it's a comment // efef // efef ef ef 
+2 // efef
+
+let five = 2 + /* comment */ 3
