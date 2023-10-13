@@ -1,4 +1,9 @@
-use std::{error::Error, fs, time::Instant};
+use std::{
+    error::Error,
+    fs,
+    sync::{Arc, Mutex},
+    time::Instant,
+};
 
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
@@ -16,15 +21,27 @@ pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
         .filter_map(|entry| entry.ok().map(|e| e.path()))
         .collect::<Vec<_>>();
 
+    let errors_list = Arc::new(Mutex::new(vec![]));
+
     files.par_iter().for_each(|file_path| {
         if let Err(e) = exec_script(file_path) {
-            eprintln!(
+            let mut list = errors_list.lock().unwrap();
+            list.push(format!(
                 "\x1b[31mError executing script \x1b[33m{}\x1b[31m: {}\x1b[0m",
                 file_path.display(),
                 e
-            );
+            ));
         }
     });
+    
+    let errors_list = Arc::try_unwrap(errors_list)
+        .expect("Failed to unwrap Arc")
+        .into_inner()
+        .unwrap();
+
+    for error in errors_list {
+        eprintln!("{}", error);
+    }
 
     let elapsed_time = start_time.elapsed();
 
