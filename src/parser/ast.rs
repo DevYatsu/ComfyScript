@@ -18,16 +18,9 @@ use super::{
 use std::fmt;
 
 #[derive(Debug, Clone)]
-pub enum ProgramSrc {
-    Module,
-    Main,
-}
-
-#[derive(Debug, Clone)]
 pub enum ASTNode {
     Program {
         body: Vec<ASTNode>,
-        source_type: ProgramSrc, // use this for modules or main file
     },
     ImportDeclaration {
         specifiers: Vec<ImportSpecifier>,
