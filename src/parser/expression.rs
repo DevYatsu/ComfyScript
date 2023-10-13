@@ -1,5 +1,6 @@
 use super::{
     ast::identifier::parse_identifier_expression,
+    comment::jump_comments,
     operations::{binary::parse_binary_operator, build_binary_expression},
 };
 use crate::parser::{
@@ -26,7 +27,7 @@ pub fn parse_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>
 
     // check for binary expr
     let (i, rest) = many0(separated_pair(
-        preceded(multispace0, parse_binary_operator),
+        preceded(jump_comments, parse_binary_operator),
         multispace0,
         parse_basic_expression,
     ))(i)?;
@@ -43,10 +44,14 @@ pub fn parse_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>
 }
 
 pub fn parse_basic_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    alt((
+    let (i, _) = jump_comments(i)?;
+
+    let (i, expr) = alt((
         parse_composite_value,
         parse_primitive_value,
         parse_parenthesized,
         parse_identifier_expression,
-    ))(i)
+    ))(i)?;
+
+    Ok((i, expr))
 }

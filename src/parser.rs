@@ -1,5 +1,6 @@
 mod assignment;
 pub mod ast;
+mod comment;
 mod composite_types;
 mod expression;
 mod function;
@@ -15,6 +16,7 @@ mod utils;
 use self::{
     assignment::{initial::parse_var_init, reassign::parse_assignment},
     ast::ASTNode,
+    comment::parse_comment_statement,
     function::{parse_function, return_expression::parse_return_statement},
     if_block::parse_if_statement,
     loop_for::parse_for_statement,
@@ -91,5 +93,6 @@ fn parse_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
         parse_if_statement,
         parse_function,
         parse_return_statement,
+        parse_comment_statement,
     ))(input)
 }

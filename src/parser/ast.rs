@@ -114,6 +114,10 @@ pub enum Expression {
     },
     IdentifierExpression(Identifier),
     Parenthesized(Box<Expression>),
+    Comment {
+        is_line: bool,
+        raw_value: String,
+    },
 }
 
 impl fmt::Display for ASTNode {
@@ -297,6 +301,9 @@ impl fmt::Display for Expression {
             }
             Expression::Parenthesized(expr) => {
                 write!(f, "({})", expr)
+            }
+            Expression::Comment { raw_value, .. } => {
+                write!(f, "{}", raw_value)
             }
         }
     }

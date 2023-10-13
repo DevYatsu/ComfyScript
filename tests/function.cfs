@@ -5,7 +5,8 @@ fn test() {
 }
 
 anon fn test(test) {
-    let test = "efef"
+    let test = test + /* hey dude how r u ? */ "efef" + // comment
+     3
 
     >> test + "str"
 }
