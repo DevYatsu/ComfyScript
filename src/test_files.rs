@@ -12,8 +12,7 @@ pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
         .map_err(|e| {
             eprintln!("Error reading directory: {}", e);
             Box::new(e) as Box<dyn Error>
-        })
-        .unwrap_or_else(|_| fs::read_dir(".").expect("Fallback read_dir failed")) // Fallback to a default directory or handle it based on your requirements
+        })?
         .filter_map(|entry| entry.ok().map(|e| e.path()))
         .collect::<Vec<_>>();
 
