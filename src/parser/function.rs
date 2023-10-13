@@ -1,5 +1,7 @@
 pub mod return_expression;
 
+use self::return_expression::parse_return_statement;
+
 use super::{
     ast::{identifier::Identifier, ASTNode},
     parse_block, Span,
@@ -41,6 +43,22 @@ pub fn parse_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>>
 
     let (input, _) = parse_char(')')(input)?;
     let (input, _) = multispace0(input)?;
+
+    let (_, instant_return) = opt(tag(">>"))(input)?;
+
+    if instant_return.is_some() {
+        let (input, return_statement) = parse_return_statement(input)?;
+
+        let node = ASTNode::FunctionDeclaration {
+            id,
+            params,
+            body: Box::new(return_statement),
+            is_anonymous,
+            is_shortcut: false,
+        };
+
+        return Ok((input, node));
+    }
 
     let (input, _) = tag("{")(input)?;
 

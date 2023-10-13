@@ -48,7 +48,7 @@ pub enum ASTNode {
         is_anonymous: bool,
 
         is_shortcut: bool,
-        // if is_shortcut then body = ASTNode::ReturnStatement
+        // if is_shortcut == true then body = ASTNode::ReturnStatement
     },
     ForStatement {
         declarations: Vec<Identifier>,
@@ -64,6 +64,7 @@ pub enum ASTNode {
         test: Expression,
         body: Box<ASTNode>,
         alternate: Option<Box<ASTNode>>,
+        // alternate may either be None, a BlockStatement or an IfStatement
     },
     BlockStatement {
         body: Vec<ASTNode>,
