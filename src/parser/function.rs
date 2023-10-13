@@ -1,3 +1,10 @@
+pub mod return_expression;
+
+use super::{
+    ast::{identifier::Identifier, ASTNode},
+    parse_block, Span,
+};
+use crate::parser::ast::identifier::parse_identifier;
 use nom::{
     bytes::complete::tag,
     character::complete::{char as parse_char, multispace0, multispace1},
@@ -5,14 +12,6 @@ use nom::{
     error::VerboseError,
     multi::separated_list1,
     IResult,
-};
-pub mod return_expression;
-
-use crate::parser::ast::identifier::parse_identifier;
-
-use super::{
-    ast::{identifier::Identifier, ASTNode},
-    parse_block, Span,
 };
 
 pub fn parse_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {

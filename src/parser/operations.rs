@@ -2,7 +2,6 @@ pub mod assignment;
 pub mod binary;
 
 use self::binary::BinaryOperator;
-
 use super::ast::Expression;
 
 pub fn build_binary_expression(

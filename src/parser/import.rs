@@ -1,12 +1,3 @@
-use nom::{
-    bytes::complete::tag,
-    character::complete::{multispace0, multispace1},
-    combinator::opt,
-    error::VerboseError,
-    multi::separated_list1,
-    IResult,
-};
-
 use super::{
     ast::{
         identifier::{parse_identifier, Identifier},
@@ -16,6 +7,14 @@ use super::{
     },
     primitive_values::strings::parse_string,
     Span,
+};
+use nom::{
+    bytes::complete::tag,
+    character::complete::{multispace0, multispace1},
+    combinator::opt,
+    error::VerboseError,
+    multi::separated_list1,
+    IResult,
 };
 
 pub fn parse_import(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {

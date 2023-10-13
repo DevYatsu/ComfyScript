@@ -12,9 +12,6 @@ mod parenthesized;
 mod primitive_values;
 mod utils;
 
-use nom::{branch::alt, bytes::complete::tag, combinator::opt, error::VerboseError, IResult};
-use nom_locate::LocatedSpan;
-use crate::parser::{import::parse_import, utils::parse_new_lines};
 use self::{
     assignment::{initial::parse_var_init, reassign::parse_assignment},
     ast::ASTNode,
@@ -23,6 +20,9 @@ use self::{
     loop_for::parse_for_statement,
     loop_while::parse_while_statement,
 };
+use crate::parser::{import::parse_import, utils::parse_new_lines};
+use nom::{branch::alt, bytes::complete::tag, combinator::opt, error::VerboseError, IResult};
+use nom_locate::LocatedSpan;
 
 pub type Span<'a> = LocatedSpan<&'a str>;
 

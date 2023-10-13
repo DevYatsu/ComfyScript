@@ -1,3 +1,10 @@
+use super::{
+    assignment::initial::VariableKeyword,
+    ast::{identifier::Identifier, ASTNode},
+    expression::parse_expression,
+    parse_block, Span,
+};
+use crate::parser::ast::identifier::parse_identifier;
 use nom::{
     branch::alt,
     bytes::complete::tag,
@@ -6,15 +13,6 @@ use nom::{
     error::VerboseError,
     multi::separated_list1,
     IResult,
-};
-
-use crate::parser::ast::identifier::parse_identifier;
-
-use super::{
-    assignment::initial::VariableKeyword,
-    ast::{identifier::Identifier, ASTNode},
-    expression::parse_expression,
-    parse_block, Span,
 };
 
 pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {

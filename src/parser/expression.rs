@@ -1,3 +1,11 @@
+use super::{
+    ast::identifier::parse_identifier_expression,
+    operations::{binary::parse_binary_operator, build_binary_expression},
+};
+use crate::parser::{
+    ast::Expression, composite_types::parse_composite_value, parenthesized::parse_parenthesized,
+    primitive_values::parse_primitive_value, Span,
+};
 use nom::{
     branch::alt,
     character::complete::multispace0,
@@ -5,16 +13,6 @@ use nom::{
     multi::many0,
     sequence::{preceded, separated_pair},
     IResult,
-};
-
-use crate::parser::{
-    ast::Expression, composite_types::parse_composite_value, parenthesized::parse_parenthesized,
-    primitive_values::parse_primitive_value, Span,
-};
-
-use super::{
-    ast::identifier::parse_identifier_expression,
-    operations::{binary::parse_binary_operator, build_binary_expression},
 };
 
 // parsing expressions

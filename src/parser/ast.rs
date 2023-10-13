@@ -4,8 +4,6 @@ pub mod literal_value;
 pub mod object;
 pub mod vars;
 
-use std::fmt;
-
 use self::{
     identifier::Identifier,
     import::{ImportSource, ImportSpecifier},
@@ -13,11 +11,11 @@ use self::{
     object::Property,
     vars::VariableDeclarator,
 };
-
 use super::{
     assignment::initial::VariableKeyword,
     operations::{assignment::AssignmentOperator, binary::BinaryOperator},
 };
+use std::fmt;
 
 #[derive(Debug, Clone)]
 pub enum ProgramSrc {

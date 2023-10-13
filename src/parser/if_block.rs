@@ -1,3 +1,4 @@
+use super::{ast::ASTNode, expression::parse_expression, parse_block, Span};
 use nom::{
     bytes::complete::tag,
     character::complete::{multispace0, multispace1},
@@ -5,8 +6,6 @@ use nom::{
     error::VerboseError,
     IResult,
 };
-
-use super::{ast::ASTNode, expression::parse_expression, parse_block, Span};
 
 pub fn parse_if_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let (input, _) = tag("if")(input)?;
