@@ -1,13 +1,21 @@
+mod array;
+mod bool;
+mod nil;
+mod numbers;
+mod object;
+pub mod strings;
+
+use self::{
+    array::parse_array, bool::parse_bool, nil::parse_nil, numbers::parse_number,
+    object::parse_object, strings::parse_string,
+};
 use super::{
     ast::{identifier::parse_identifier_expression, ASTNode},
     comment::jump_comments,
     function::function_call::parse_fn_call,
     operations::{binary::parse_binary_operator, build_binary_expression},
 };
-use crate::parser::{
-    ast::Expression, composite_types::parse_composite_value, parenthesized::parse_parenthesized,
-    primitive_values::parse_primitive_value, Span,
-};
+use crate::parser::{ast::Expression, parenthesized::parse_parenthesized, Span};
 use nom::{
     branch::alt,
     character::complete::multispace0,
@@ -64,4 +72,11 @@ pub fn parse_basic_expression(i: Span) -> IResult<Span, Expression, VerboseError
     ))(i)?;
 
     Ok((i, expr))
+}
+
+fn parse_primitive_value(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+    alt((parse_string, parse_bool, parse_number, parse_nil))(i)
+}
+fn parse_composite_value(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+    alt((parse_array, parse_object))(i)
 }

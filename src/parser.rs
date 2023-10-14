@@ -1,7 +1,6 @@
 mod assignment;
 pub mod ast;
 mod comment;
-mod composite_types;
 mod expression;
 mod function;
 mod if_block;
@@ -10,7 +9,6 @@ mod loop_for;
 mod loop_while;
 mod operations;
 mod parenthesized;
-mod primitive_values;
 mod utils;
 
 use self::{

@@ -3,7 +3,9 @@ use nom::{
     multi::separated_list0, IResult,
 };
 
-use crate::parser::{ast::Expression, primitive_values::parse_primitive_value, Span};
+use crate::parser::{ast::Expression, Span};
+
+use super::parse_primitive_value;
 
 pub fn parse_array(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (i, _) = tag("[")(i)?;

@@ -5,7 +5,7 @@ use super::{
         literal_value::LiteralValue,
         ASTNode, Expression,
     },
-    primitive_values::strings::parse_string,
+    expression::strings::parse_string,
     Span,
 };
 use nom::{

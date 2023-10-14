@@ -9,9 +9,10 @@ use crate::parser::{
         object::{Property, PropertyKind},
         Expression,
     },
-    primitive_values::parse_primitive_value,
     Span,
 };
+
+use super::parse_primitive_value;
 
 pub fn parse_object(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (i, _) = tag("{")(i)?;
