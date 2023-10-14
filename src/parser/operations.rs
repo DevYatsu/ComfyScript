@@ -1,8 +1,12 @@
+// contains everything related to operations
+// for instance assignement operators and binary operators
+// as well as ways to build binary expressions
+
 pub mod assignment;
 pub mod binary;
 
 use self::binary::BinaryOperator;
-use super::ast::Expression;
+use crate::parser::ast::Expression;
 
 pub fn build_binary_expression(
     mut expressions: Vec<Expression>,

@@ -3,11 +3,12 @@ mod bool;
 mod nil;
 mod numbers;
 mod object;
+mod parenthesized;
 pub mod strings;
 
 use self::{
     array::parse_array, bool::parse_bool, nil::parse_nil, numbers::parse_number,
-    object::parse_object, strings::parse_string,
+    object::parse_object, parenthesized::parse_parenthesized, strings::parse_string,
 };
 use super::{
     ast::{identifier::parse_identifier_expression, ASTNode},
@@ -15,7 +16,7 @@ use super::{
     function::function_call::parse_fn_call,
     operations::{binary::parse_binary_operator, build_binary_expression},
 };
-use crate::parser::{ast::Expression, parenthesized::parse_parenthesized, Span};
+use crate::parser::{ast::Expression, Span};
 use nom::{
     branch::alt,
     character::complete::multispace0,
