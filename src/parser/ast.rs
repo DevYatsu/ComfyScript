@@ -35,9 +35,8 @@ pub enum ASTNode {
     }, // everything that is not a real statement, that is for example strings and numbers or var reassigment
 
     FunctionDeclaration {
-        id: Option<Identifier>, 
+        id: Option<Identifier>,
         // if None then anon func
-
         params: Vec<Identifier>,
         body: Box<ASTNode>,
 
@@ -116,7 +115,7 @@ pub enum Expression {
         params: Vec<Identifier>,
         body: Box<ASTNode>,
         is_shortcut: bool,
-    }
+    },
 }
 
 impl fmt::Display for ASTNode {
@@ -155,19 +154,16 @@ impl fmt::Display for ASTNode {
                 write!(f, "{};", expression)
             }
             ASTNode::FunctionDeclaration {
-                id,
-                params,
-                body,
-                ..
+                id, params, body, ..
             } => {
                 let is_anonymous = id.is_some();
 
                 if is_anonymous {
                     write!(f, "anon fn(")?;
-                }else {
+                } else {
                     write!(f, "fn {}(", id.clone().unwrap())?;
                 }
-            
+
                 for param in params {
                     write!(f, "{},", param)?;
                 }
@@ -308,7 +304,7 @@ impl fmt::Display for Expression {
             }
             Expression::Method { params, body, .. } => {
                 write!(f, "anon fn(")?;
-            
+
                 for param in params {
                     write!(f, "{},", param)?;
                 }
@@ -316,7 +312,7 @@ impl fmt::Display for Expression {
                 write!(f, ")")?;
 
                 write!(f, " {}", body)
-            },
+            }
         }
     }
 }
