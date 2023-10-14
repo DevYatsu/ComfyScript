@@ -2,12 +2,8 @@ let test = {
     xy: {z: "z"},
     t: {ef:{z: "z"}},
     e: 1,
-    init: 
+    init: anon fn() {}
 }
 
-let x = test.t.ef.z
 
-test.xy.z
-
-let one = test.e
 

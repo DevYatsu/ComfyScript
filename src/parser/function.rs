@@ -22,7 +22,7 @@ pub fn parse_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>>
     alt((parse_anon_fn, parse_classic_fn))(input)
 }
 
-fn parse_anon_fn(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+pub fn parse_anon_fn(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let (input, _) = tag("anon")(input)?;
     let (input, _) = multispace1(input)?;
 
