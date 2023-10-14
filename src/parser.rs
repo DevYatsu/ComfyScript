@@ -8,7 +8,6 @@ mod import;
 mod loop_for;
 mod loop_while;
 mod operations;
-mod utils;
 
 use self::{
     assignment::{initial::parse_var_init, reassign::parse_assignment},
@@ -20,8 +19,14 @@ use self::{
     loop_for::parse_for_statement,
     loop_while::parse_while_statement,
 };
-use crate::parser::{import::parse_import, utils::parse_new_lines};
-use nom::{branch::alt, bytes::complete::tag, combinator::opt, error::VerboseError, IResult};
+use crate::parser::import::parse_import;
+use nom::{
+    branch::alt,
+    bytes::complete::{tag, take_while1},
+    combinator::opt,
+    error::VerboseError,
+    IResult,
+};
 use nom_locate::LocatedSpan;
 
 pub type Span<'a> = LocatedSpan<&'a str>;
@@ -89,4 +94,10 @@ fn parse_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
         parse_comment_statement,
         parse_expression_statement,
     ))(input)
+}
+
+fn parse_new_lines(i: Span) -> IResult<Span, Span, VerboseError<Span>> {
+    let (i, removed) = take_while1(|c: char| c == ';' || c.is_ascii_whitespace())(i)?;
+
+    Ok((i, removed))
 }
