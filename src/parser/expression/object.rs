@@ -12,7 +12,7 @@ use crate::parser::{
     Span,
 };
 
-use super::parse_primitive_value;
+use super::parse_expression;
 
 pub fn parse_object(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (i, _) = tag("{")(i)?;
@@ -41,7 +41,7 @@ fn parse_property(i: Span) -> IResult<Span, Property, VerboseError<Span>> {
     let (i, _) = tag(":")(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, expr) = parse_primitive_value(i)?; //todo! parse expression
+    let (i, expr) = parse_expression(i)?; //todo! parse expression
 
     Ok((
         i,

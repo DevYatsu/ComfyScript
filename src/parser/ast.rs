@@ -91,7 +91,7 @@ pub enum Expression {
         right: Box<Expression>,
     },
     MemberExpression {
-        object: Identifier,
+        object: Box<Expression>,
         property: Identifier,
         computed: bool,
     },

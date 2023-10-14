@@ -5,7 +5,7 @@ use nom::{
 
 use crate::parser::{ast::Expression, Span};
 
-use super::parse_primitive_value;
+use super::parse_expression;
 
 pub fn parse_array(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (i, _) = tag("[")(i)?;
@@ -23,5 +23,5 @@ pub fn parse_array(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
 
 fn parse_values(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (i, _) = multispace0(i)?;
-    parse_primitive_value(i)
+    parse_expression(i)
 }

@@ -1,0 +1,8 @@
+let test = {
+    xy: {z: "z"},
+    t: {ef:{z: "z"}}
+}
+
+let x = test.t.ef.z
+
+test.xy.z
