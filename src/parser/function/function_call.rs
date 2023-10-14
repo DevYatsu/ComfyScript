@@ -1,19 +1,12 @@
 use crate::parser::{
-    ast::{
-        identifier::{parse_identifier, parse_identifier_expression},
-        Expression,
-    },
+    ast::{identifier::parse_identifier_expression, Expression},
     expression::parse_expression,
     Span,
 };
 
 use nom::{
-    bytes::complete::tag,
-    character::complete::{multispace0, multispace1},
-    combinator::opt,
-    error::VerboseError,
-    multi::separated_list1,
-    IResult,
+    bytes::complete::tag, character::complete::multispace0, combinator::opt, error::VerboseError,
+    multi::separated_list1, IResult,
 };
 
 pub fn parse_fn_call(input: Span) -> IResult<Span, Expression, VerboseError<Span>> {

@@ -1,6 +1,7 @@
 use super::{
     ast::identifier::parse_identifier_expression,
     comment::jump_comments,
+    function::function_call::parse_fn_call,
     operations::{binary::parse_binary_operator, build_binary_expression},
 };
 use crate::parser::{
@@ -51,6 +52,7 @@ pub fn parse_basic_expression(i: Span) -> IResult<Span, Expression, VerboseError
         parse_primitive_value,
         parse_parenthesized,
         parse_identifier_expression,
+        parse_fn_call,
     ))(i)?;
 
     Ok((i, expr))
