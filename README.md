@@ -11,3 +11,9 @@ Create:
 - a standard library providing any useful feature
 - a minifier
 - a package manager
+
+## Todo in parsing
+
+- arrays and objects indexing
+- strings and strings litteral indexing
+- regexp support
