@@ -42,11 +42,11 @@ fn parse_property(i: Span) -> IResult<Span, Property, VerboseError<Span>> {
     let (i, _) = tag(":")(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, expr) = alt((parse_expression, parse_method))(i)?; 
+    let (i, expr) = alt((parse_expression, parse_method))(i)?;
 
     let is_method = match expr {
         Expression::Method { .. } => true,
-        _ => false
+        _ => false,
     };
 
     Ok((

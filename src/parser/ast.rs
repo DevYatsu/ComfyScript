@@ -321,10 +321,10 @@ impl Into<Expression> for ASTNode {
     fn into(self) -> Expression {
         match self {
             ASTNode::FunctionDeclaration {
-                id,
                 params,
                 body,
                 is_shortcut,
+                ..
             } => Expression::Method {
                 params,
                 body,
