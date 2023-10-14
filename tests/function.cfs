@@ -12,3 +12,6 @@ anon fn test(test) {
 }
 
 fn test(value) >> value
+
+
+test()

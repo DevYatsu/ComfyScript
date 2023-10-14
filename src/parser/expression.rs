@@ -1,5 +1,5 @@
 use super::{
-    ast::identifier::parse_identifier_expression,
+    ast::{identifier::parse_identifier_expression, ASTNode},
     comment::jump_comments,
     function::function_call::parse_fn_call,
     operations::{binary::parse_binary_operator, build_binary_expression},
@@ -16,6 +16,14 @@ use nom::{
     sequence::{preceded, separated_pair},
     IResult,
 };
+
+pub fn parse_expression_statement(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+    let (input, expr) = parse_expression(i)?;
+
+    let expr_statement = ASTNode::ExpressionStatement { expression: expr };
+
+    Ok((input, expr_statement))
+}
 
 // parsing expressions
 pub fn parse_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {

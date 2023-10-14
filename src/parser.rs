@@ -17,6 +17,7 @@ use self::{
     assignment::{initial::parse_var_init, reassign::parse_assignment},
     ast::ASTNode,
     comment::parse_comment_statement,
+    expression::parse_expression_statement,
     function::{parse_function, return_expression::parse_return_statement},
     if_block::parse_if_statement,
     loop_for::parse_for_statement,
@@ -83,12 +84,12 @@ fn parse_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
         parse_var_init,
         parse_assignment,
         parse_import,
-        parse_assignment,
         parse_for_statement,
         parse_while_statement,
         parse_if_statement,
         parse_function,
         parse_return_statement,
         parse_comment_statement,
+        parse_expression_statement,
     ))(input)
 }
