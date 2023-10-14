@@ -59,8 +59,8 @@ pub fn parse_basic_expression(i: Span) -> IResult<Span, Expression, VerboseError
         parse_composite_value,
         parse_primitive_value,
         parse_parenthesized,
-        parse_identifier_expression,
         parse_fn_call,
+        parse_identifier_expression,
     ))(i)?;
 
     Ok((i, expr))

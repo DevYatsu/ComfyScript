@@ -4,14 +4,19 @@ fn test() {
     return test
 }
 
-anon fn test(test) {
+anon fn test (test) {
     let test = test + /* hey dude how r u ? */ "efef" + // comment
      3
 
     >> test + "str"
 }
 
-fn test(value) >> value
+fn test (value) >> value
 
+let test = test("str")
 
-test()
+test(
+1
++
+2
+)

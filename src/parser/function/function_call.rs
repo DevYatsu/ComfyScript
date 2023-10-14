@@ -15,14 +15,10 @@ pub fn parse_fn_call(input: Span) -> IResult<Span, Expression, VerboseError<Span
     let (input, _) = tag("(")(input)?;
     let (input, args) = opt(separated_list1(tag(","), parse_expression))(input)?;
 
-    let args = if args.is_none() {
-        vec![]
-    } else {
-        args.unwrap()
-    };
+    let args = args.unwrap_or_else(|| vec![]);
 
-    let (input, _) = tag(")")(input)?;
     let (input, _) = multispace0(input)?;
+    let (input, _) = tag(")")(input)?;
 
     let expr = Expression::CallExpression {
         callee: Box::new(id),
