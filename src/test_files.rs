@@ -33,7 +33,7 @@ pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
             ));
         }
     });
-    
+
     let errors_list = Arc::try_unwrap(errors_list)
         .expect("Failed to unwrap Arc")
         .into_inner()

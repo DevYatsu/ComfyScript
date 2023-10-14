@@ -2,14 +2,14 @@ use std::{error::Error, fs, path::Path};
 
 use crate::{
     get_file_content,
-    parser::{parse_input, Span},
+    parser::{ast, parse_input, Span},
 };
 
 pub fn minify_input(path: &Path) -> Result<(), Box<dyn Error>> {
     let content = get_file_content(&path)?;
 
     let span = Span::new(content.as_str());
-    let (rest, ast_nodes) = match parse_input(span) {
+    let (rest, program) = match parse_input(span) {
         Ok(r) => r,
         Err(_) => return Err("An error occurred!".into()),
     };
@@ -20,7 +20,12 @@ pub fn minify_input(path: &Path) -> Result<(), Box<dyn Error>> {
 
     let mut buffer = String::new();
 
-    for node in ast_nodes {
+    let program = match program {
+        ast::ASTNode::Program { body } => body,
+        _ => unreachable!(),
+    };
+
+    for node in program {
         buffer.push_str(&node.to_string())
     }
 

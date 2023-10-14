@@ -28,7 +28,7 @@ use nom_locate::LocatedSpan;
 
 pub type Span<'a> = LocatedSpan<&'a str>;
 
-pub fn parse_input<'a>(input: Span<'a>) -> IResult<Span, Vec<ASTNode>, VerboseError<Span>> {
+pub fn parse_input<'a>(input: Span<'a>) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let (mut input, _) = opt(parse_new_lines)(input)?;
 
     let mut statements = Vec::new();
@@ -45,7 +45,7 @@ pub fn parse_input<'a>(input: Span<'a>) -> IResult<Span, Vec<ASTNode>, VerboseEr
         }
     }
 
-    Ok((input, statements))
+    Ok((input, ASTNode::Program { body: statements }))
 }
 
 pub fn parse_block<'a>(
