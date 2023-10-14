@@ -13,8 +13,7 @@ pub fn parse_member_expr(i: Span) -> IResult<Span, Expression, VerboseError<Span
     let property = ids.pop().unwrap();
 
     if ids.len() == 0 {
-        todo!()
-        // todo return an error here
+        return Ok((i, Expression::IdentifierExpression(property)))
     }
 
     let object = if ids.len() == 1 {

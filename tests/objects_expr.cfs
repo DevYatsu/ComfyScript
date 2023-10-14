@@ -1,8 +1,11 @@
 let test = {
     xy: {z: "z"},
-    t: {ef:{z: "z"}}
+    t: {ef:{z: "z"}},
+    e: 1
 }
 
 let x = test.t.ef.z
 
 test.xy.z
+
+let one = test.e
