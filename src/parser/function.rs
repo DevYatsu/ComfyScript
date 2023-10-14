@@ -14,27 +14,22 @@ use nom::{
     combinator::opt,
     error::VerboseError,
     multi::separated_list1,
-    IResult,
+    IResult, branch::alt,
 };
 
 pub fn parse_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
-    let (input, is_anonymous) = opt(tag("anon"))(input)?;
+    alt((parse_anon_function, parse_classic_function))(input)
+}
 
-    let (input, is_anonymous) = match is_anonymous {
-        Some(_) => {
-            let (input, _) = multispace1(input)?;
-
-            (input, true)
-        }
-        None => (input, false),
-    };
-
-    let (input, _) = tag("fn")(input)?;
+fn parse_anon_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+    let (input, _) = tag("anon")(input)?;
     let (input, _) = multispace1(input)?;
-
-    let (input, id) = parse_identifier(input)?;
+    
+    let (input, _) = tag("fn")(input)?;
+    
+    let id = None;
+    
     let (input, _) = multispace0(input)?;
-
     let (input, _) = parse_char('(')(input)?;
     let (input, _) = multispace0(input)?;
 
@@ -45,16 +40,13 @@ pub fn parse_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>>
     let (input, _) = parse_char(')')(input)?;
     let (input, _) = multispace0(input)?;
 
-    let (_, instant_return) = opt(tag(">>"))(input)?;
+    let (input, return_statement) = opt(parse_return_statement)(input)?;
 
-    if instant_return.is_some() {
-        let (input, return_statement) = parse_return_statement(input)?;
-
+    if let Some(return_statement) = return_statement {
         let node = ASTNode::FunctionDeclaration {
             id,
             params,
             body: Box::new(return_statement),
-            is_anonymous,
             is_shortcut: false,
         };
 
@@ -69,7 +61,52 @@ pub fn parse_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>>
         id,
         params,
         body: Box::new(body),
-        is_anonymous,
+        is_shortcut: false,
+    };
+
+    Ok((input, node))
+}
+
+fn parse_classic_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {    
+    let (input, _) = tag("fn")(input)?;
+    let (input, _) = multispace1(input)?;
+
+    let (input, id) = parse_identifier(input)?;
+    let id = Some(id);
+
+    let (input, _) = multispace0(input)?;
+
+    let (input, _) = parse_char('(')(input)?;
+    let (input, _) = multispace0(input)?;
+
+    let (input, params) = opt(separated_list1(tag(","), parse_fn_identifier))(input)?;
+    let params = params.unwrap_or_else(|| vec![]);
+    let (input, _) = multispace0(input)?;
+
+    let (input, _) = parse_char(')')(input)?;
+    let (input, _) = multispace0(input)?;
+
+    let (input, return_statement) = opt(parse_return_statement)(input)?;
+
+    if let Some(return_statement) = return_statement {
+        let node = ASTNode::FunctionDeclaration {
+            id,
+            params,
+            body: Box::new(return_statement),
+            is_shortcut: false,
+        };
+
+        return Ok((input, node));
+    }
+
+    let (input, _) = tag("{")(input)?;
+
+    let (input, body) = parse_block(input, "}")?;
+
+    let node = ASTNode::FunctionDeclaration {
+        id,
+        params,
+        body: Box::new(body),
         is_shortcut: false,
     };
 

@@ -4,7 +4,7 @@ fn test() {
     return test
 }
 
-anon fn test (test) {
+anon fn (test) {
     let test = test + /* hey dude how r u ? */ "efef" + // comment
      3
 

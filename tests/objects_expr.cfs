@@ -1,7 +1,8 @@
 let test = {
     xy: {z: "z"},
     t: {ef:{z: "z"}},
-    e: 1
+    e: 1,
+    init: 
 }
 
 let x = test.t.ef.z
@@ -9,3 +10,4 @@ let x = test.t.ef.z
 test.xy.z
 
 let one = test.e
+
