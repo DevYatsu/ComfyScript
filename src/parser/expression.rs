@@ -6,12 +6,13 @@ mod nil;
 mod numbers;
 mod object;
 mod parenthesized;
+pub mod range;
 pub mod strings;
 
 use self::{
     array::parse_array, bool::parse_bool, indexing::parse_indexing, member_expr::parse_member_expr,
     nil::parse_nil, numbers::parse_number, object::parse_object,
-    parenthesized::parse_parenthesized, strings::parse_string,
+    parenthesized::parse_parenthesized, range::parse_range, strings::parse_string,
 };
 use super::{
     ast::{identifier::parse_identifier_expression, ASTNode},
@@ -70,13 +71,12 @@ fn parse_basic_expression(i: Span) -> IResult<Span, Expression, VerboseError<Spa
     let (i, expr) = alt((
         parse_indexing,
         parse_fn_call,
-
         parse_composite_value,
         parse_primitive_value,
         parse_parenthesized,
-        
         parse_member_expr,
         parse_identifier_expression,
+        parse_range,
     ))(i)?;
 
     Ok((i, expr))

@@ -2,6 +2,7 @@ pub mod identifier;
 pub mod import;
 pub mod literal_value;
 pub mod object;
+pub mod range;
 pub mod vars;
 
 use self::{
@@ -9,6 +10,7 @@ use self::{
     import::{ImportSource, ImportSpecifier},
     literal_value::LiteralValue,
     object::Property,
+    range::RangeType,
     vars::VariableDeclarator,
 };
 use super::{
@@ -78,6 +80,12 @@ pub enum Expression {
         value: String,
         expressions: Vec<Expression>,
         // syntax like this: #"hey {name}, I am {age} years old"
+    },
+    Range {
+        // similar to rust for instance 0..10
+        from: Box<Expression>,
+        limits: RangeType,
+        to: Box<Expression>,
     },
     Array {
         elements: Vec<Expression>,
@@ -313,6 +321,9 @@ impl fmt::Display for Expression {
                 write!(f, ")")?;
 
                 write!(f, " {}", body)
+            }
+            Expression::Range { from, limits, to } => {
+                write!(f, "{from}{limits}{to}")
             }
         }
     }
