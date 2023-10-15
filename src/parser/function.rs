@@ -30,14 +30,12 @@ pub fn parse_anon_fn(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> 
     let (input, _) = multispace0(input)?;
     let (input, _) = tag("|")(input)?;
 
-    let id = None;
-
     let (input, _) = multispace0(input)?;
 
     let (input, (body, is_shortcut)) = map(parse_fn_body, |(b, s)| (Box::new(b), s))(input)?;
 
     let node = ASTNode::FunctionDeclaration {
-        id,
+        id: None,
         params,
         body,
         is_shortcut,
@@ -56,11 +54,16 @@ fn parse_classic_fn(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let (input, _) = tag("fn")(input)?;
     let (input, _) = multispace1(input)?;
 
-    let (input, id) = parse_identifier(input)?;
-    let id = Some(id);
+    let (input, id) = map(parse_identifier, |id| Some(id))(input)?;
 
     let (input, _) = multispace0(input)?;
+    let (input, _) = parse_char('(')(input)?;
+    let (input, _) = multispace0(input)?;
+
     let (input, params) = parse_fn_params(input)?;
+
+    let (input, _) = multispace0(input)?;
+    let (input, _) = parse_char(')')(input)?;
     let (input, _) = multispace0(input)?;
 
     let (input, (body, is_shortcut)) = map(parse_fn_body, |(b, s)| (Box::new(b), s))(input)?;
@@ -76,14 +79,8 @@ fn parse_classic_fn(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
 }
 
 fn parse_fn_params(input: Span) -> IResult<Span, Vec<Identifier>, VerboseError<Span>> {
-    let (input, _) = parse_char('(')(input)?;
-    let (input, _) = multispace0(input)?;
-
     let (input, params) = opt(separated_list1(tag(","), parse_fn_identifier))(input)?;
     let params = params.unwrap_or_else(|| vec![]);
-    let (input, _) = multispace0(input)?;
-
-    let (input, _) = parse_char(')')(input)?;
 
     Ok((input, params))
 }
