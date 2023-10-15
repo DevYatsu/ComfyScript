@@ -1,4 +1,4 @@
-use nom::bytes::complete::take;
+use nom::bytes::complete::{take, tag, take_until};
 use nom::error::VerboseError;
 use nom::number::complete::float;
 use nom::{branch::alt, character::complete::char, combinator::opt, IResult};
@@ -8,9 +8,17 @@ use crate::parser::ast::Expression;
 use crate::parser::Span;
 
 pub fn parse_number(initial_i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    let (i, sign) = opt(alt((char('+'), char('-'))))(initial_i)?;
+    let (base_input, sign) = opt(alt((char('+'), char('-'))))(initial_i)?;
 
-    let (i, num) = float(i)?;
+    let (i, num) = float(base_input)?;
+    let (_, other_dot) = opt(tag("."))(i)?;
+
+    let (i, num) = if other_dot.is_some() {
+        let (i, num_string) = take_until(".")(base_input)?;
+        (i, num_string.parse::<f32>().unwrap())
+    }else {
+        (i, num)
+    };
 
     let (_, raw) = take((initial_i.len() - i.len()) as usize)(initial_i)?;
 

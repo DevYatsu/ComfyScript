@@ -39,29 +39,42 @@ pub fn parse_expression_statement(i: Span) -> IResult<Span, ASTNode, VerboseErro
 }
 
 pub fn parse_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    let (i, expr) = parse_basic_expression(i)?;
+    parse_expression_with(parse_basic_expression)(i)
+}
 
-    let mut expr_vec = vec![expr];
-    let mut operators_vec = Vec::with_capacity(3);
+fn parse_expression_with<'a, F>(
+    parser: F,
+) -> impl Fn(Span<'a>) -> IResult<Span<'a>, Expression, VerboseError<Span>>
+where
+    F: Fn(Span<'a>) -> IResult<Span<'a>, Expression, VerboseError<Span>>,
+{
+    move |input| {
+        let parser_closure = |i| parser(i);
 
-    let (i, _) = multispace0(i)?;
+        let (i, expr) = parser_closure(input)?;
 
-    // check for binary expr
-    let (i, rest) = many0(separated_pair(
-        preceded(jump_comments, parse_binary_operator),
-        multispace0,
-        parse_basic_expression,
-    ))(i)?;
+        let mut expr_vec = vec![expr];
+        let mut operators_vec = Vec::with_capacity(3);
 
-    for (op, expr) in rest {
-        operators_vec.push(op);
-        expr_vec.push(expr);
+        let (i, _) = multispace0(i)?;
+
+        // Check for binary expr
+        let (i, rest) = many0(separated_pair(
+            preceded(multispace0, parse_binary_operator),
+            multispace0,
+            &parser_closure,
+        ))(i)?;
+
+        for (op, expr) in rest {
+            operators_vec.push(op);
+            expr_vec.push(expr);
+        }
+
+        // Build binary expr with operators precedence
+        let final_expr = build_binary_expression(expr_vec, operators_vec);
+
+        Ok((i, final_expr))
     }
-
-    // build binary expr with operators precedence
-    let final_expr = build_binary_expression(expr_vec, operators_vec);
-
-    Ok((i, final_expr))
 }
 
 fn parse_basic_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {

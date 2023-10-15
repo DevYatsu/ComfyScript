@@ -9,14 +9,21 @@ use nom::combinator::map;
 use nom::error::VerboseError;
 use nom::IResult;
 
+use super::indexing::parse_indexing;
 use super::member_expr::parse_member_expr;
 use super::parenthesized::parse_parenthesized;
-use super::{parse_composite_value, parse_primitive_value};
+use super::{parse_composite_value, parse_expression_with, parse_primitive_value};
 
 pub fn parse_range(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    let (i, from) = map(parse_expression_except_range, |expr| Box::new(expr))(i)?;
+    let (i, from) = map(
+        parse_expression_with(parse_expression_except_range),
+        |expr| Box::new(expr),
+    )(i)?;
     let (i, limits) = parse_range_type(i)?;
-    let (i, to) = map(parse_expression_except_range, |expr| Box::new(expr))(i)?;
+    let (i, to) = map(
+        parse_expression_with(parse_expression_except_range),
+        |expr| Box::new(expr),
+    )(i)?;
 
     Ok((i, Expression::Range { from, limits, to }))
 }
@@ -24,10 +31,11 @@ pub fn parse_range(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
 fn parse_expression_except_range(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     // to avoid recursive calls to range parser
     alt((
+        parse_indexing,
+        parse_fn_call,
         parse_composite_value,
         parse_primitive_value,
         parse_parenthesized,
-        parse_fn_call,
         parse_member_expr,
         parse_identifier_expression,
     ))(i)

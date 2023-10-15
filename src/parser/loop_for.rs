@@ -19,21 +19,7 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
     let (input, _) = tag("for")(input)?;
     let (input, _) = multispace1(input)?;
 
-    let (input, opt_keyword) = opt(alt((tag("let"), tag("var"))))(input)?;
-
-    let (input, keyword) = if let Some(k) = opt_keyword {
-        let (input, _) = multispace1(input)?;
-
-        (
-            input,
-            match k.fragment() {
-                &"var" => VariableKeyword::Var,
-                _ => VariableKeyword::Let,
-            },
-        )
-    } else {
-        (input, VariableKeyword::Let)
-    };
+    let (input, kind) = parse_for_var_keyword(input)?;
 
     let (input, identifiers) = separated_list1(tag(","), parse_for_identifier)(input)?;
     let (input, _) = multispace1(input)?;
@@ -42,13 +28,13 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
     let (input, _) = multispace1(input)?;
 
     let (input, indexed) = parse_expression(input)?;
-
+    println!("{indexed}");
     let (input, _) = multispace0(input)?;
 
     let (input, body) = map(parse_block, |b| Box::new(b))(input)?;
 
     let node = ASTNode::ForStatement {
-        kind: keyword,
+        kind,
         declarations: identifiers,
         source: indexed,
         body,
@@ -63,4 +49,22 @@ fn parse_for_identifier(input: Span) -> IResult<Span, Identifier, VerboseError<S
     let (input, id) = parse_identifier(input)?;
 
     Ok((input, id))
+}
+
+fn parse_for_var_keyword(input: Span) -> IResult<Span, VariableKeyword, VerboseError<Span>> {
+    let (input, opt_keyword) = opt(alt((tag("let"), tag("var"))))(input)?;
+
+    Ok(if let Some(k) = opt_keyword {
+        let (input, _) = multispace1(input)?;
+
+        (
+            input,
+            match k.fragment() {
+                &"var" => VariableKeyword::Var,
+                _ => VariableKeyword::Let,
+            },
+        )
+    } else {
+        (input, VariableKeyword::Let)
+    })
 }

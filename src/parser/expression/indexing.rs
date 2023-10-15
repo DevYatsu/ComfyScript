@@ -11,11 +11,11 @@ use crate::parser::{
 
 use super::{
     member_expr::parse_member_expr, parenthesized::parse_parenthesized, parse_composite_value,
-    parse_expression, parse_primitive_value,
+    parse_expression, parse_expression_with, parse_primitive_value,
 };
 
 pub fn parse_indexing(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    let (i, indexed) = parse_expression_except_indexing(i)?;
+    let (i, indexed) = parse_expression_with(parse_expression_except_indexing)(i)?;
     // to avoid infinite recursive call
 
     let (i, _) = tag("[")(i)?;
@@ -39,10 +39,10 @@ pub fn parse_indexing(i: Span) -> IResult<Span, Expression, VerboseError<Span>> 
 fn parse_expression_except_indexing(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     // to avoid recursive calls to indexing parser
     alt((
+        parse_fn_call,
         parse_composite_value,
         parse_primitive_value,
         parse_parenthesized,
-        parse_fn_call,
         parse_member_expr,
         parse_identifier_expression,
     ))(i)
