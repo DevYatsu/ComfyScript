@@ -106,7 +106,7 @@ pub enum Expression {
     },
     CallExpression {
         callee: Box<Expression>,
-        // can be an IdentifierExpression or a MemberExpression  depending if it's a function call or a method call
+        // can be an IdentifierExpression or a MemberExpression  depending if it's a function call or a FnExpression call
         args: Vec<Expression>,
     },
     AssignmentExpression {
@@ -120,7 +120,7 @@ pub enum Expression {
         is_line: bool,
         raw_value: String,
     },
-    Method {
+    FnExpression {
         params: Vec<Identifier>,
         body: Box<ASTNode>,
         is_shortcut: bool,
@@ -311,7 +311,7 @@ impl fmt::Display for Expression {
             Expression::Comment { raw_value, .. } => {
                 write!(f, "{}", raw_value)
             }
-            Expression::Method { params, body, .. } => {
+            Expression::FnExpression { params, body, .. } => {
                 write!(f, "anon fn(")?;
 
                 for param in params {
@@ -337,7 +337,7 @@ impl Into<Expression> for ASTNode {
                 body,
                 is_shortcut,
                 ..
-            } => Expression::Method {
+            } => Expression::FnExpression {
                 params,
                 body,
                 is_shortcut,

@@ -4,7 +4,7 @@ pub mod return_expression;
 use self::return_expression::parse_return_statement;
 
 use super::{
-    ast::{identifier::Identifier, ASTNode},
+    ast::{identifier::Identifier, ASTNode, Expression},
     parse_block, Span,
 };
 use crate::parser::ast::identifier::parse_identifier;
@@ -44,6 +44,12 @@ pub fn parse_anon_fn(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> 
     };
 
     Ok((input, node))
+}
+
+pub fn parse_fn_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+    let (i, f) = parse_anon_fn(i)?;
+
+    Ok((i, f.into()))
 }
 
 fn parse_classic_fn(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {

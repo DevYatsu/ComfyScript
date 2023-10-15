@@ -1,4 +1,4 @@
-use nom::bytes::complete::{take, tag, take_until};
+use nom::bytes::complete::{tag, take, take_until};
 use nom::error::VerboseError;
 use nom::number::complete::float;
 use nom::{branch::alt, character::complete::char, combinator::opt, IResult};
@@ -16,7 +16,7 @@ pub fn parse_number(initial_i: Span) -> IResult<Span, Expression, VerboseError<S
     let (i, num) = if other_dot.is_some() {
         let (i, num_string) = take_until(".")(base_input)?;
         (i, num_string.parse::<f32>().unwrap())
-    }else {
+    } else {
         (i, num)
     };
 

@@ -17,7 +17,7 @@ use self::{
 use super::{
     ast::{identifier::parse_identifier_expression, ASTNode},
     comment::jump_comments,
-    function::function_call::parse_fn_call,
+    function::{function_call::parse_fn_call, parse_fn_expression},
     operations::{binary::parse_binary_operator, build_binary_expression},
 };
 use crate::parser::{ast::Expression, Span};
@@ -89,6 +89,7 @@ fn parse_basic_expression(i: Span) -> IResult<Span, Expression, VerboseError<Spa
         parse_parenthesized,
         parse_member_expr,
         parse_identifier_expression,
+        parse_fn_expression,
     ))(i)?;
 
     Ok((i, expr))

@@ -1,6 +1,6 @@
 use nom::{
-    branch::alt, bytes::complete::tag, character::complete::multispace0, combinator::opt,
-    error::VerboseError, multi::separated_list0, IResult,
+    bytes::complete::tag, character::complete::multispace0, combinator::opt, error::VerboseError,
+    multi::separated_list0, IResult,
 };
 
 use crate::parser::{
@@ -9,7 +9,6 @@ use crate::parser::{
         object::{Property, PropertyKind},
         Expression,
     },
-    function::parse_anon_fn,
     Span,
 };
 
@@ -42,10 +41,10 @@ fn parse_property(i: Span) -> IResult<Span, Property, VerboseError<Span>> {
     let (i, _) = tag(":")(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, expr) = alt((parse_expression, parse_method))(i)?;
+    let (i, expr) = parse_expression(i)?;
 
     let is_method = match expr {
-        Expression::Method { .. } => true,
+        Expression::FnExpression { .. } => true,
         _ => false,
     };
 
@@ -60,10 +59,4 @@ fn parse_property(i: Span) -> IResult<Span, Property, VerboseError<Span>> {
         },
     ))
     // for now is simplified
-}
-
-fn parse_method(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    let (i, f) = parse_anon_fn(i)?;
-
-    Ok((i, f.into()))
 }

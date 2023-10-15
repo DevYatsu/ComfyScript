@@ -20,3 +20,9 @@ test(
 +
 2
 )
+
+fn closure () {
+    >> anon fn (str) {
+        return str
+    }
+}
