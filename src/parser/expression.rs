@@ -1,5 +1,6 @@
 mod array;
 mod bool;
+mod function_call;
 mod indexing;
 pub mod member_expr;
 mod nil;
@@ -10,14 +11,14 @@ pub mod range;
 pub mod strings;
 
 use self::{
-    array::parse_array, bool::parse_bool, indexing::parse_indexing, member_expr::parse_member_expr,
-    nil::parse_nil, numbers::parse_number, object::parse_object,
+    array::parse_array, bool::parse_bool, function_call::parse_fn_call, indexing::parse_indexing,
+    member_expr::parse_member_expr, nil::parse_nil, numbers::parse_number, object::parse_object,
     parenthesized::parse_parenthesized, range::parse_range, strings::parse_string,
 };
 use super::{
     ast::{identifier::parse_identifier_expression, ASTNode},
     comment::jump_comments,
-    function::{function_call::parse_fn_call, parse_fn_expression},
+    function::parse_fn_expression,
     operations::{binary::parse_binary_operator, build_binary_expression},
 };
 use crate::parser::{ast::Expression, Span};
@@ -42,7 +43,7 @@ pub fn parse_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>
     parse_expression_with(parse_basic_expression)(i)
 }
 
-fn parse_expression_with<'a, F>(
+pub fn parse_expression_with<'a, F>(
     parser: F,
 ) -> impl Fn(Span<'a>) -> IResult<Span<'a>, Expression, VerboseError<Span>>
 where

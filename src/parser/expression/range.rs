@@ -1,7 +1,6 @@
 use crate::parser::ast::identifier::parse_identifier_expression;
 use crate::parser::ast::range::RangeType;
 use crate::parser::ast::Expression;
-use crate::parser::function::function_call::parse_fn_call;
 use crate::parser::Span;
 use nom::branch::alt;
 use nom::bytes::complete::tag;
@@ -9,6 +8,7 @@ use nom::combinator::map;
 use nom::error::VerboseError;
 use nom::IResult;
 
+use super::function_call::parse_fn_call;
 use super::indexing::parse_indexing;
 use super::member_expr::parse_member_expr;
 use super::parenthesized::parse_parenthesized;

@@ -5,13 +5,13 @@ use nom::{
 
 use crate::parser::{
     ast::{identifier::parse_identifier_expression, Expression},
-    function::function_call::parse_fn_call,
     Span,
 };
 
 use super::{
-    member_expr::parse_member_expr, parenthesized::parse_parenthesized, parse_composite_value,
-    parse_expression, parse_expression_with, parse_primitive_value,
+    function_call::parse_fn_call, member_expr::parse_member_expr,
+    parenthesized::parse_parenthesized, parse_composite_value, parse_expression,
+    parse_expression_with, parse_primitive_value,
 };
 
 pub fn parse_indexing(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {

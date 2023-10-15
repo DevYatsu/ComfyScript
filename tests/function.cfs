@@ -21,8 +21,12 @@ test(
 2
 )
 
+(anon fn () {})
+
 fn closure () {
-    >> anon fn (str) {
-        return str
-    }
+    >> anon fn () {}
 }
+
+closure_value = closure()
+
+closure_value()
