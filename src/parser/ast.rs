@@ -111,7 +111,7 @@ pub enum Expression {
     },
     AssignmentExpression {
         operator: AssignmentOperator,
-        id: Identifier,
+        id: Box<Expression>,
         assigned: Box<Expression>,
     },
     IdentifierExpression(Identifier),

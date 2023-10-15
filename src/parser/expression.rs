@@ -1,7 +1,7 @@
 mod array;
 mod bool;
 mod function_call;
-mod indexing;
+pub mod indexing;
 pub mod member_expr;
 mod nil;
 mod numbers;

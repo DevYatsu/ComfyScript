@@ -1,3 +1,10 @@
-let hey = 2  , 
+var hey = 2  , 
     dude = 4  ,  
     op = 5
+
+hey = 5
+dude = 10
+
+let x = {two: {1:1}}
+
+x.two.1 = "one" 
