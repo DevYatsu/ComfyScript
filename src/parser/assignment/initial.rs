@@ -34,6 +34,7 @@ pub fn parse_var_init(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>>
     let (input, keyword) = parse_variable_keyword(input)?;
 
     let (input, _) = multispace1(input)?;
+
     let (input, declarations) = separated_list1(tag(","), parse_single_declaration)(input)?;
 
     let result = (
