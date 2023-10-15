@@ -2,7 +2,6 @@ use crate::parser::{
     ast::{identifier::parse_identifier_expression, Expression},
     comment::jump_comments,
     expression::parse_expression_with,
-    function::parse_fn_expression,
     Span,
 };
 
@@ -11,10 +10,7 @@ use nom::{
     error::VerboseError, multi::separated_list1, IResult,
 };
 
-use super::{
-    member_expr::parse_member_expr, parenthesized::parse_parenthesized,
-    parse_composite_value, parse_primitive_value,
-};
+use super::{member_expr::parse_member_expr, parenthesized::parse_parenthesized};
 
 pub fn parse_fn_call(input: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (input, id) = parse_expression_with(parse_expression_except_fn_call)(input)?;
@@ -42,12 +38,10 @@ fn parse_expression_except_fn_call(i: Span) -> IResult<Span, Expression, Verbose
     let (i, _) = jump_comments(i)?;
 
     let (i, expr) = alt((
-        parse_composite_value,
-        parse_primitive_value,
         parse_parenthesized,
         parse_member_expr,
         parse_identifier_expression,
-        parse_fn_expression,
+        // avoid adding to many parser here
     ))(i)?;
 
     Ok((i, expr))

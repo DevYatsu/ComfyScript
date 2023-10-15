@@ -9,9 +9,8 @@ use crate::parser::{
 };
 
 use super::{
-    function_call::parse_fn_call, member_expr::parse_member_expr,
-    parenthesized::parse_parenthesized, parse_composite_value, parse_expression,
-    parse_expression_with, parse_primitive_value,
+    member_expr::parse_member_expr, parenthesized::parse_parenthesized, parse_expression,
+    parse_expression_with,
 };
 
 pub fn parse_indexing(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
@@ -37,13 +36,10 @@ pub fn parse_indexing(i: Span) -> IResult<Span, Expression, VerboseError<Span>> 
 }
 
 fn parse_expression_except_indexing(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    // to avoid recursive calls to indexing parser
     alt((
-        parse_fn_call,
-        parse_composite_value,
-        parse_primitive_value,
         parse_parenthesized,
         parse_member_expr,
         parse_identifier_expression,
+        // avoid adding to many parser here
     ))(i)
 }

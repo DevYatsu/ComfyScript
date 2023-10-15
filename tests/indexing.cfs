@@ -5,3 +5,6 @@ let y = {one: {two: 2}}
 (x[0])[0]
 y["one"]
 y.one.two
+
+
+([0,1,2])[0]
