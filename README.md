@@ -14,6 +14,6 @@ Create:
 
 ## Todo in parsing
 
-- arrays and objects indexing
+- arrays and objects complex indexing (as well indexing and indexed one)
 - strings and strings litteral indexing
 - regexp support

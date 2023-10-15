@@ -5,7 +5,7 @@ use nom::{
 
 use crate::parser::{
     ast::{
-        identifier::parse_identifier,
+        identifier::{parse_identifier, parse_identifier_expression},
         object::{Property, PropertyKind},
         Expression,
     },
@@ -13,7 +13,7 @@ use crate::parser::{
     Span,
 };
 
-use super::parse_expression;
+use super::{member_expr::parse_member_expr, parse_expression};
 
 pub fn parse_object(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (i, _) = tag("{")(i)?;
@@ -30,6 +30,27 @@ pub fn parse_object(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
         i,
         Expression::Object {
             properties: elements,
+        },
+    ))
+}
+
+pub fn parse_object_indexing(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+    let (i, indexed) = alt((parse_member_expr, parse_identifier_expression))(i)?;
+
+    let (i, _) = tag("[")(i)?;
+    let (i, _) = multispace0(i)?;
+
+    let (i, elements) = parse_expression(i)?;
+    let (i, _) = multispace0(i)?;
+
+    let (i, _) = tag("]")(i)?;
+
+    Ok((
+        i,
+        Expression::MemberExpression {
+            indexed: Box::new(indexed),
+            property: Box::new(elements),
+            computed: true,
         },
     ))
 }

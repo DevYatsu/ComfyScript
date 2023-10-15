@@ -10,20 +10,20 @@ pub fn parse_member_expr(i: Span) -> IResult<Span, Expression, VerboseError<Span
     let (i, mut ids) = separated_list1(tag("."), parse_identifier)(i)?;
     // we are sure that ids length is >= 2 here
 
-    let property = ids.pop().unwrap();
+    let property = Box::new(Expression::IdentifierExpression(ids.pop().unwrap()));
 
     if ids.len() == 0 {
         return Err(nom::Err::Error(VerboseError { errors: vec![] }));
     }
 
-    let object = if ids.len() == 1 {
+    let indexed = if ids.len() == 1 {
         Box::new(Expression::IdentifierExpression(ids.remove(0)))
     } else {
         Box::new(build_member_expr(ids))
     };
 
     let expr = Expression::MemberExpression {
-        object,
+        indexed,
         property,
         computed: false,
     };
@@ -35,10 +35,10 @@ fn build_member_expr(mut ids: Vec<Identifier>) -> Expression {
         return Expression::IdentifierExpression(ids.remove(0));
     }
 
-    let property = ids.pop().unwrap();
+    let property = Box::new(Expression::IdentifierExpression(ids.pop().unwrap()));
 
     let expr = Expression::MemberExpression {
-        object: Box::new(build_member_expr(ids)),
+        indexed: Box::new(build_member_expr(ids)),
         property,
         computed: false,
     };

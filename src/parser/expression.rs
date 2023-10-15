@@ -8,8 +8,13 @@ mod parenthesized;
 pub mod strings;
 
 use self::{
-    array::parse_array, bool::parse_bool, member_expr::parse_member_expr, nil::parse_nil,
-    numbers::parse_number, object::parse_object, parenthesized::parse_parenthesized,
+    array::{parse_array, parse_array_indexing},
+    bool::parse_bool,
+    member_expr::parse_member_expr,
+    nil::parse_nil,
+    numbers::parse_number,
+    object::{parse_object, parse_object_indexing},
+    parenthesized::parse_parenthesized,
     strings::parse_string,
 };
 use super::{
@@ -71,6 +76,8 @@ fn parse_basic_expression(i: Span) -> IResult<Span, Expression, VerboseError<Spa
         parse_primitive_value,
         parse_parenthesized,
         parse_fn_call,
+        parse_array_indexing,
+        parse_object_indexing,
         parse_member_expr,
         parse_identifier_expression,
     ))(i)?;

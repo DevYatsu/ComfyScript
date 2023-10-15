@@ -91,8 +91,9 @@ pub enum Expression {
         right: Box<Expression>,
     },
     MemberExpression {
-        object: Box<Expression>,
-        property: Identifier,
+        // either an array indexing or an object indexing
+        indexed: Box<Expression>,
+        property: Box<Expression>,
         computed: bool,
     },
     CallExpression {
@@ -272,9 +273,9 @@ impl fmt::Display for Expression {
                 write!(f, "{}", right)
             }
             Expression::MemberExpression {
-                object, property, ..
+                indexed, property, ..
             } => {
-                write!(f, "{}.{};", object, property)
+                write!(f, "{}.{};", indexed, property)
             }
             Expression::CallExpression { callee, args } => {
                 write!(f, "{}(", callee)?;
