@@ -68,11 +68,13 @@ fn parse_basic_expression(i: Span) -> IResult<Span, Expression, VerboseError<Spa
     let (i, _) = jump_comments(i)?;
 
     let (i, expr) = alt((
+        parse_indexing,
+        parse_fn_call,
+
         parse_composite_value,
         parse_primitive_value,
         parse_parenthesized,
-        parse_fn_call,
-        parse_indexing,
+        
         parse_member_expr,
         parse_identifier_expression,
     ))(i)?;

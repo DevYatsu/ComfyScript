@@ -1,7 +1,7 @@
-let x = [1, 2, 4]
+let x = [[0], 2, 4]
 
 let y = {one: {two: 2}}
 
-x[0]
+(x[0])[0]
 y["one"]
 y.one.two
