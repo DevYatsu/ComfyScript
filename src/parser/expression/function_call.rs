@@ -1,7 +1,7 @@
 use crate::parser::{
     ast::{identifier::parse_identifier_expression, Expression},
     comment::jump_comments,
-    expression::{parse_expression, parse_expression_with},
+    expression::parse_expression_with,
     function::parse_fn_expression,
     Span,
 };
@@ -12,15 +12,18 @@ use nom::{
 };
 
 use super::{
-    indexing::parse_indexing, member_expr::parse_member_expr, parenthesized::parse_parenthesized,
-    parse_composite_value, parse_primitive_value, range::parse_range,
+    member_expr::parse_member_expr, parenthesized::parse_parenthesized,
+    parse_composite_value, parse_primitive_value,
 };
 
 pub fn parse_fn_call(input: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (input, id) = parse_expression_with(parse_expression_except_fn_call)(input)?;
 
     let (input, _) = tag("(")(input)?;
-    let (input, args) = opt(separated_list1(tag(","), parse_expression))(input)?;
+    let (input, args) = opt(separated_list1(
+        tag(","),
+        parse_expression_with(parse_expression_except_fn_call),
+    ))(input)?;
 
     let args = args.unwrap_or_else(|| vec![]);
 
@@ -39,8 +42,6 @@ fn parse_expression_except_fn_call(i: Span) -> IResult<Span, Expression, Verbose
     let (i, _) = jump_comments(i)?;
 
     let (i, expr) = alt((
-        parse_indexing,
-        parse_range,
         parse_composite_value,
         parse_primitive_value,
         parse_parenthesized,

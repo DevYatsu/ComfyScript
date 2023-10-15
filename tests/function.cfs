@@ -21,7 +21,7 @@ test(
 2
 )
 
-(anon fn () {})
+(anon fn () {})()
 
 fn closure () {
     >> anon fn () {}
