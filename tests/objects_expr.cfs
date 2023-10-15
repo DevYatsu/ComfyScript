@@ -2,7 +2,7 @@ let test = {
     xy: {z: "z"},
     t: {ef:{z: "z"}},
     e: 1,
-    init: anon fn() >> {}
+    init: || >> {}
 }
 
 let x = test.init() + test

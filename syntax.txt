@@ -1,9 +1,13 @@
-fn test() >> "test"
+fn test () >> "test"
 
 // anonymous function
-anon fn {
+(|| {
     // do something and call it instantly
-}()
+})()
+
+test(|| {
+    // closure syntax
+})
 
 class Human {
     constructor(name, age) {
@@ -12,12 +16,12 @@ class Human {
     }
 
     operations {
-        "+": anon fn(human1, human2) {
+        "+": |human1, human2| {
             let newName = human1.name + human2.name
             let newAge = (human1.age + human2.age)/2
             >> Human(newName, newAge)
         },
-        "-": anon fn(h1, h2) >> Human(h1.name, (h1.age + h2.age)/3)
+        "-": |h1, h2| >> Human(h1.name, (h1.age + h2.age)/3)
     }
 
     fn sayHello >> "hi" + self.name

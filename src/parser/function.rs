@@ -11,7 +11,7 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::{char as parse_char, multispace0, multispace1},
-    combinator::opt,
+    combinator::{map, opt},
     error::VerboseError,
     multi::separated_list1,
     IResult,
@@ -22,24 +22,25 @@ pub fn parse_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>>
 }
 
 pub fn parse_anon_fn(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
-    let (input, _) = tag("anon")(input)?;
-    let (input, _) = multispace1(input)?;
+    let (input, _) = tag("|")(input)?;
+    let (input, _) = multispace0(input)?;
 
-    let (input, _) = tag("fn")(input)?;
+    let (input, params) = parse_fn_params(input)?;
+
+    let (input, _) = multispace0(input)?;
+    let (input, _) = tag("|")(input)?;
 
     let id = None;
 
     let (input, _) = multispace0(input)?;
-    let (input, params) = parse_fn_params(input)?;
-    let (input, _) = multispace0(input)?;
 
-    let (input, body) = parse_fn_body(input)?;
+    let (input, (body, is_shortcut)) = map(parse_fn_body, |(b, s)| (Box::new(b), s))(input)?;
 
     let node = ASTNode::FunctionDeclaration {
         id,
         params,
-        body: Box::new(body),
-        is_shortcut: false,
+        body,
+        is_shortcut,
     };
 
     Ok((input, node))
@@ -62,13 +63,13 @@ fn parse_classic_fn(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let (input, params) = parse_fn_params(input)?;
     let (input, _) = multispace0(input)?;
 
-    let (input, body) = parse_fn_body(input)?;
+    let (input, (body, is_shortcut)) = map(parse_fn_body, |(b, s)| (Box::new(b), s))(input)?;
 
     let node = ASTNode::FunctionDeclaration {
         id,
         params,
-        body: Box::new(body),
-        is_shortcut: false,
+        body,
+        is_shortcut,
     };
 
     Ok((input, node))
@@ -87,16 +88,16 @@ fn parse_fn_params(input: Span) -> IResult<Span, Vec<Identifier>, VerboseError<S
     Ok((input, params))
 }
 
-fn parse_fn_body(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+fn parse_fn_body(input: Span) -> IResult<Span, (ASTNode, bool), VerboseError<Span>> {
     let (input, return_statement) = opt(parse_return_statement)(input)?;
 
     if let Some(return_statement) = return_statement {
-        return Ok((input, return_statement));
+        return Ok((input, (return_statement, true)));
     }
 
     let (input, body) = parse_block(input)?;
 
-    Ok((input, body))
+    Ok((input, (body, false)))
 }
 
 fn parse_fn_identifier(input: Span) -> IResult<Span, Identifier, VerboseError<Span>> {
