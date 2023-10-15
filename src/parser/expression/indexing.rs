@@ -37,6 +37,7 @@ pub fn parse_indexing(i: Span) -> IResult<Span, Expression, VerboseError<Span>> 
 }
 
 fn parse_expression_except_indexing(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+    // to avoid recursive calls to indexing parser
     alt((
         parse_composite_value,
         parse_primitive_value,

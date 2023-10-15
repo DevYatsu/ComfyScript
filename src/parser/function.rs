@@ -89,9 +89,7 @@ fn parse_fn_body(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
         return Ok((input, return_statement));
     }
 
-    let (input, _) = tag("{")(input)?;
-
-    let (input, body) = parse_block(input, "}")?;
+    let (input, body) = parse_block(input)?;
 
     Ok((input, body))
 }

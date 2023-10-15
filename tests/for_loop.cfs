@@ -3,3 +3,7 @@ let x = ["one"];
 for hey, hihi in x {
     
 }
+
+for i in 0..100 {
+
+}

@@ -13,9 +13,7 @@ pub fn parse_while_statement(input: Span) -> IResult<Span, ASTNode, VerboseError
     let (input, test) = parse_expression(input)?;
     let (input, _) = multispace0(input)?;
 
-    let (input, _) = tag("{")(input)?;
-
-    let (input, body) = parse_block(input, "}")?;
+    let (input, body) = parse_block(input)?;
 
     let node = ASTNode::WhileStatement {
         test,

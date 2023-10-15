@@ -38,7 +38,6 @@ pub fn parse_expression_statement(i: Span) -> IResult<Span, ASTNode, VerboseErro
     Ok((input, expr_statement))
 }
 
-// parsing expressions
 pub fn parse_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (i, expr) = parse_basic_expression(i)?;
 
@@ -71,12 +70,12 @@ fn parse_basic_expression(i: Span) -> IResult<Span, Expression, VerboseError<Spa
     let (i, expr) = alt((
         parse_indexing,
         parse_fn_call,
+        parse_range,
         parse_composite_value,
         parse_primitive_value,
         parse_parenthesized,
         parse_member_expr,
         parse_identifier_expression,
-        parse_range,
     ))(i)?;
 
     Ok((i, expr))

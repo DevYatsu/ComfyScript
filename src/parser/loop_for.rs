@@ -9,7 +9,7 @@ use nom::{
     branch::alt,
     bytes::complete::tag,
     character::complete::{multispace0, multispace1},
-    combinator::opt,
+    combinator::{map, opt},
     error::VerboseError,
     multi::separated_list1,
     IResult,
@@ -45,15 +45,13 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
 
     let (input, _) = multispace0(input)?;
 
-    let (input, _) = tag("{")(input)?;
-
-    let (input, body) = parse_block(input, "}")?;
+    let (input, body) = map(parse_block, |b| Box::new(b))(input)?;
 
     let node = ASTNode::ForStatement {
         kind: keyword,
         declarations: identifiers,
         source: indexed,
-        body: Box::new(body),
+        body,
     };
 
     Ok((input, node))

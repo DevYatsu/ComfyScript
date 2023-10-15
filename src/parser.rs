@@ -51,15 +51,14 @@ pub fn parse_input<'a>(input: Span<'a>) -> IResult<Span, ASTNode, VerboseError<S
     Ok((input, ASTNode::Program { body: statements }))
 }
 
-pub fn parse_block<'a>(
-    input: Span<'a>,
-    until: &'static str,
-) -> IResult<Span<'a>, ASTNode, VerboseError<Span<'a>>> {
+pub fn parse_block<'a>(input: Span<'a>) -> IResult<Span<'a>, ASTNode, VerboseError<Span<'a>>> {
+    let (input, _) = tag("{")(input)?;
+
     let (input, _) = opt(parse_new_lines)(input)?;
 
     let mut statements = Vec::new();
 
-    let (mut input, limit) = opt(tag(until))(input)?;
+    let (mut input, limit) = opt(tag("}"))(input)?;
 
     if limit.is_some() {
         return Ok((input, ASTNode::BlockStatement { body: statements }));
@@ -70,7 +69,7 @@ pub fn parse_block<'a>(
         statements.push(statement);
 
         let (new_input, _) = opt(parse_new_lines)(new_input)?;
-        let (new_input, limit) = opt(tag(until))(new_input)?;
+        let (new_input, limit) = opt(tag("}"))(new_input)?;
 
         input = new_input;
         if limit.is_some() {
