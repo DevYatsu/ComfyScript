@@ -1,6 +1,7 @@
 // working with maths: cos, sin, tan, floor, round, ceil, PI constant etc
 
 use lazy_static::lazy_static;
+use rand::Rng;
 
 use crate::parser::ast::literal_value::LiteralValue;
 use crate::parser::ast::Expression;
@@ -48,4 +49,48 @@ lazy_static! {
             raw: consts::SQRT_2.to_string(),
         }
     };
+}
+
+pub fn cos(expr: f32) -> f32 {
+    expr.cos()
+}
+pub fn sin(expr: f32) -> f32 {
+    expr.sin()
+}
+pub fn tan(expr: f32) -> f32 {
+    expr.tan()
+}
+pub fn acos(expr: f32) -> f32 {
+    expr.acos()
+}
+pub fn asin(expr: f32) -> f32 {
+    expr.asin()
+}
+pub fn atan(expr: f32) -> f32 {
+    expr.atan()
+}
+
+pub fn ceil(expr: f32) -> f32 {
+    expr.ceil()
+}
+pub fn floor(expr: f32) -> f32 {
+    expr.floor()
+}
+
+pub fn log(expr: f32, base: f32) -> f32 {
+    expr.log(base)
+}
+pub fn ln(expr: f32) -> f32 {
+    expr.ln()
+}
+
+pub fn sqrt(expr: f32) -> f32 {
+    expr.sqrt()
+}
+pub fn power(expr: f32, power: f32) -> f32 {
+    expr.powf(power)
+}
+
+pub fn random() -> f32 {
+    rand::thread_rng().gen()
 }
