@@ -4,6 +4,7 @@ use crate::parser::ast::Expression;
 use crate::parser::Span;
 use nom::branch::alt;
 use nom::bytes::complete::tag;
+use nom::character::complete::multispace0;
 use nom::combinator::map;
 use nom::error::VerboseError;
 use nom::IResult;
@@ -19,7 +20,12 @@ pub fn parse_range(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
         parse_expression_with(parse_expression_except_range),
         |expr| Box::new(expr),
     )(i)?;
+    let (i, _) = multispace0(i)?;
+
     let (i, limits) = parse_range_type(i)?;
+
+    let (i, _) = multispace0(i)?;
+
     let (i, to) = map(
         parse_expression_with(parse_expression_except_range),
         |expr| Box::new(expr),
