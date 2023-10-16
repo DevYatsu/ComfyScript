@@ -127,6 +127,7 @@ pub enum Expression {
     },
 }
 
+// display is used to minify the content
 impl fmt::Display for ASTNode {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
