@@ -8,7 +8,6 @@ use super::{
 };
 use crate::parser::ast::identifier::parse_identifier;
 use nom::{
-    branch::alt,
     bytes::complete::tag,
     character::complete::{char as parse_char, multispace0, multispace1},
     combinator::{map, opt},
@@ -18,43 +17,10 @@ use nom::{
 };
 
 pub fn parse_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
-    alt((parse_anon_fn, parse_classic_fn))(input)
-}
-
-pub fn parse_anon_fn(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
-    let (input, _) = tag("|")(input)?;
-    let (input, _) = multispace0(input)?;
-
-    let (input, params) = parse_fn_params(input)?;
-
-    let (input, _) = multispace0(input)?;
-    let (input, _) = tag("|")(input)?;
-
-    let (input, _) = multispace0(input)?;
-
-    let (input, (body, is_shortcut)) = map(parse_fn_body, |(b, s)| (Box::new(b), s))(input)?;
-
-    let node = ASTNode::FunctionDeclaration {
-        id: None,
-        params,
-        body,
-        is_shortcut,
-    };
-
-    Ok((input, node))
-}
-
-pub fn parse_fn_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
-    let (i, f) = parse_anon_fn(i)?;
-
-    Ok((i, f.into()))
-}
-
-fn parse_classic_fn(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     let (input, _) = tag("fn")(input)?;
     let (input, _) = multispace1(input)?;
 
-    let (input, id) = map(parse_identifier, |id| Some(id))(input)?;
+    let (input, id) = parse_identifier(input)?;
 
     let (input, _) = multispace0(input)?;
     let (input, _) = parse_char('(')(input)?;
@@ -70,6 +36,27 @@ fn parse_classic_fn(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
 
     let node = ASTNode::FunctionDeclaration {
         id,
+        params,
+        body,
+        is_shortcut,
+    };
+
+    Ok((input, node))
+}
+pub fn parse_fn_expression(input: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+    let (input, _) = tag("|")(input)?;
+    let (input, _) = multispace0(input)?;
+
+    let (input, params) = parse_fn_params(input)?;
+
+    let (input, _) = multispace0(input)?;
+    let (input, _) = tag("|")(input)?;
+
+    let (input, _) = multispace0(input)?;
+
+    let (input, (body, is_shortcut)) = map(parse_fn_body, |(b, s)| (Box::new(b), s))(input)?;
+
+    let node = Expression::FnExpression {
         params,
         body,
         is_shortcut,

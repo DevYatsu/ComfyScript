@@ -16,10 +16,7 @@ pub fn parse_fn_call(input: Span) -> IResult<Span, Expression, VerboseError<Span
     let (input, id) = parse_expression_with(parse_expression_except_fn_call)(input)?;
 
     let (input, _) = tag("(")(input)?;
-    let (input, args) = opt(separated_list1(
-        tag(","),
-        parse_expression,
-    ))(input)?;
+    let (input, args) = opt(separated_list1(tag(","), parse_expression))(input)?;
 
     let args = args.unwrap_or_else(|| vec![]);
 

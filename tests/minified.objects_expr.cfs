@@ -1,0 +1,1 @@
+let test={xy:{z:"z",},t:{ef:{z:"z",},},e:1,init:|| >> {},};let x=test.init()+test;let arr=[test,test,];let inited_arr=arr.map(|element| >> element.init()).filter(|x| >> typeof(x)=="object");

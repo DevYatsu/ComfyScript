@@ -37,7 +37,7 @@ pub enum ASTNode {
     }, // everything that is not a real statement, that is for example strings and numbers or var reassigment
 
     FunctionDeclaration {
-        id: Option<Identifier>,
+        id: Identifier,
         // if None then anon func
         params: Vec<Identifier>,
         body: Box<ASTNode>,
@@ -165,16 +165,14 @@ impl fmt::Display for ASTNode {
             ASTNode::FunctionDeclaration {
                 id, params, body, ..
             } => {
-                let is_anonymous = id.is_some();
+                write!(f, "fn {}(", id.clone())?;
 
-                if is_anonymous {
-                    write!(f, "anon fn(")?;
-                } else {
-                    write!(f, "fn {}(", id.clone().unwrap())?;
-                }
-
-                for param in params {
-                    write!(f, "{},", param)?;
+                for (i, param) in params.into_iter().enumerate() {
+                    if i == params.len() - 1 {
+                        write!(f, "{}", param)?;
+                    } else {
+                        write!(f, "{},", param)?;
+                    }
                 }
 
                 write!(f, ")")?;
@@ -215,9 +213,7 @@ impl fmt::Display for ASTNode {
                     write!(f, "return ")?;
                 }
 
-                write!(f, "{}", argument)?;
-
-                write!(f, ";")
+                write!(f, "{}", argument)
             }
             ASTNode::IfStatement {
                 test,
@@ -283,15 +279,19 @@ impl fmt::Display for Expression {
             Expression::MemberExpression {
                 indexed, property, ..
             } => {
-                write!(f, "{}.{};", indexed, property)
+                write!(f, "{}.{}", indexed, property)
             }
             Expression::CallExpression { callee, args } => {
                 write!(f, "{}(", callee)?;
-                for arg in args {
-                    write!(f, "{},", arg)?;
+                for (i, arg) in args.into_iter().enumerate() {
+                    if i == args.len() - 1 {
+                        write!(f, "{}", arg)?;
+                    } else {
+                        write!(f, "{},", arg)?;
+                    }
                 }
-                write!(f, ")")?;
-                todo!()
+
+                write!(f, ")")
             }
             Expression::AssignmentExpression {
                 operator,
@@ -312,13 +312,17 @@ impl fmt::Display for Expression {
                 write!(f, "{}", raw_value)
             }
             Expression::FnExpression { params, body, .. } => {
-                write!(f, "anon fn(")?;
+                write!(f, "|")?;
 
-                for param in params {
-                    write!(f, "{},", param)?;
+                for (i, param) in params.into_iter().enumerate() {
+                    if i == params.len() - 1 {
+                        write!(f, "{}", param)?;
+                    } else {
+                        write!(f, "{},", param)?;
+                    }
                 }
 
-                write!(f, ")")?;
+                write!(f, "|")?;
 
                 write!(f, " {}", body)
             }
@@ -342,7 +346,7 @@ impl Into<Expression> for ASTNode {
                 body,
                 is_shortcut,
             },
-            _ => todo!(),
+            _ => unreachable!(),
         }
     }
 }
