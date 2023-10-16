@@ -28,7 +28,7 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
     let (input, _) = multispace1(input)?;
 
     let (input, indexed) = parse_expression(input)?;
-    println!("{indexed}");
+
     let (input, _) = multispace0(input)?;
 
     let (input, body) = map(parse_block, |b| Box::new(b))(input)?;

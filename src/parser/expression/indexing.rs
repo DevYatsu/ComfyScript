@@ -8,10 +8,7 @@ use crate::parser::{
     Span,
 };
 
-use super::{
-    member_expr::parse_member_expr, parenthesized::parse_parenthesized, parse_expression,
-    parse_expression_with,
-};
+use super::{parenthesized::parse_parenthesized, parse_expression, parse_expression_with};
 
 pub fn parse_indexing(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (i, indexed) = parse_expression_with(parse_expression_except_indexing)(i)?;
@@ -38,7 +35,6 @@ pub fn parse_indexing(i: Span) -> IResult<Span, Expression, VerboseError<Span>> 
 fn parse_expression_except_indexing(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     alt((
         parse_parenthesized,
-        parse_member_expr,
         parse_identifier_expression,
         // avoid adding to many parser here
     ))(i)

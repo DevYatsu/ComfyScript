@@ -94,3 +94,43 @@ pub fn power(expr: f32, power: f32) -> f32 {
 pub fn random() -> f32 {
     rand::thread_rng().gen()
 }
+
+pub fn abs(expr: f32) -> f32 {
+    expr.abs()
+}
+
+pub fn exp(expr: f32) -> f32 {
+    expr.exp()
+}
+
+pub fn max(a: f32, b: f32) -> f32 {
+    a.max(b)
+}
+
+pub fn min(a: f32, b: f32) -> f32 {
+    a.min(b)
+}
+
+pub fn round(expr: f32) -> f32 {
+    expr.round()
+}
+
+pub fn trunc(expr: f32) -> f32 {
+    expr.trunc()
+}
+
+pub fn clamp(expr: f32, min: f32, max: f32) -> f32 {
+    expr.max(min).min(max)
+}
+
+pub fn signum(expr: f32) -> f32 {
+    expr.signum()
+}
+
+pub fn to_radians(degrees: f32) -> f32 {
+    degrees.to_radians()
+}
+
+pub fn to_degrees(radians: f32) -> f32 {
+    radians.to_degrees()
+}

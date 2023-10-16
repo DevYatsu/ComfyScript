@@ -10,7 +10,7 @@ use nom::{
     error::VerboseError, multi::separated_list1, IResult,
 };
 
-use super::{member_expr::parse_member_expr, parenthesized::parse_parenthesized};
+use super::parenthesized::parse_parenthesized;
 
 pub fn parse_fn_call(input: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (input, id) = parse_expression_with(parse_expression_except_fn_call)(input)?;
@@ -39,7 +39,6 @@ fn parse_expression_except_fn_call(i: Span) -> IResult<Span, Expression, Verbose
 
     let (i, expr) = alt((
         parse_parenthesized,
-        parse_member_expr,
         parse_identifier_expression,
         // avoid adding to many parser here
     ))(i)?;
