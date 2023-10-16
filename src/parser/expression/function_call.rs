@@ -10,7 +10,7 @@ use nom::{
     error::VerboseError, multi::separated_list1, IResult,
 };
 
-use super::parenthesized::parse_parenthesized;
+use super::{parenthesized::parse_parenthesized, parse_expression};
 
 pub fn parse_fn_call(input: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     let (input, id) = parse_expression_with(parse_expression_except_fn_call)(input)?;
@@ -18,7 +18,7 @@ pub fn parse_fn_call(input: Span) -> IResult<Span, Expression, VerboseError<Span
     let (input, _) = tag("(")(input)?;
     let (input, args) = opt(separated_list1(
         tag(","),
-        parse_expression_with(parse_expression_except_fn_call),
+        parse_expression,
     ))(input)?;
 
     let args = args.unwrap_or_else(|| vec![]);
