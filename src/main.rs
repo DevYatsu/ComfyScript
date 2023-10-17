@@ -53,14 +53,13 @@ fn main() -> Result<(), Box<dyn Error>> {
 
 fn get_file_content(file_path: &Path) -> Result<String, Box<dyn Error>> {
     if !file_path.is_file() {
-        return Err(format!("No file found for path '{}'", file_path.to_string_lossy()).into());
+        return Err(format!("No file found for path {}", file_path.display()).into());
     }
 
     let file_metadata = fs::metadata(&file_path)?;
 
     if file_metadata.len() == 0 {
-        println!("{} is empty", file_path.to_string_lossy());
-        std::process::exit(1)
+        return Ok(String::new())
     }
 
     let file = File::open(&file_path)?;
