@@ -8,6 +8,10 @@ use crate::{
 pub fn minify_input(path: &Path) -> Result<(), Box<dyn Error>> {
     let content = get_file_content(&path)?;
 
+    if content.is_empty() {
+        return Ok(generate_minified_file(path, &[])?);
+    }
+
     let span = Span::new(content.as_str());
     let (rest, program) = match parse_input(span) {
         Ok(r) => r,
@@ -29,17 +33,23 @@ pub fn minify_input(path: &Path) -> Result<(), Box<dyn Error>> {
         buffer.push_str(&node.to_string())
     }
 
-    let file_name = path
+    generate_minified_file(path, buffer.as_bytes())?;
+
+    Ok(())
+}
+
+fn generate_minified_file(initial_path: &Path, content: &[u8]) -> Result<(), Box<dyn Error>> {
+    let file_name = initial_path
         .file_name()
         .ok_or("Invalid file path!")?
         .to_string_lossy()
         .to_string();
 
-    let parent_dir = path.parent().unwrap_or_else(|| Path::new(""));
+    let parent_dir = initial_path.parent().unwrap_or_else(|| Path::new(""));
 
     let new_path = parent_dir.join(format!("minified.{}", file_name));
 
-    fs::write(new_path, buffer.as_bytes())?;
+    fs::write(new_path, content)?;
 
     Ok(())
 }

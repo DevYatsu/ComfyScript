@@ -8,6 +8,10 @@ use crate::{
 pub fn exec_script(path: &Path) -> Result<(), Box<dyn Error>> {
     let content = get_file_content(&path)?;
 
+    if content.is_empty() {
+        return Ok(());
+    }
+
     let span = Span::new(content.as_str());
     let (rest, program) = match parse_input(span) {
         Ok(r) => r,

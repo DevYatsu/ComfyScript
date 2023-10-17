@@ -59,7 +59,7 @@ fn get_file_content(file_path: &Path) -> Result<String, Box<dyn Error>> {
     let file_metadata = fs::metadata(&file_path)?;
 
     if file_metadata.len() == 0 {
-        return Ok(String::new())
+        return Ok(String::new());
     }
 
     let file = File::open(&file_path)?;
