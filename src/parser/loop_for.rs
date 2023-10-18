@@ -17,16 +17,19 @@ use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = tag("for")(input)?;
-    let (input, _) = multispace1.context(expected_space()).parse(input)?;
+    let (input, _) = multispace1.context(expected_space()).cut().parse(input)?;
 
     let (input, kind) = parse_for_var_keyword(input)?;
 
     let (input, identifiers) = separated_list1(tag(","), parse_for_identifier)(input)?;
     let (input, _) = opt(tag(","))(input)?;
-    let (input, _) = multispace1.context(expected_space()).parse(input)?;
+    let (input, _) = multispace1.context(expected_space()).cut().parse(input)?;
 
-    let (input, _) = tag("in").context(expected_keyword!("in")).parse(input)?;
-    let (input, _) = multispace1.context(expected_space()).parse(input)?;
+    let (input, _) = tag("in")
+        .context(expected_keyword!("in"))
+        .cut()
+        .parse(input)?;
+    let (input, _) = multispace1.context(expected_space()).cut().parse(input)?;
 
     let (input, indexed) = parse_expression
         .context(expected_expression())

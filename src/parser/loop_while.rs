@@ -12,7 +12,7 @@ use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_while_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = tag("while")(input)?;
-    let (input, _) = multispace1.context(expected_space()).parse(input)?;
+    let (input, _) = multispace1.context(expected_space()).cut().parse(input)?;
 
     let (input, test) = parse_expression
         .context(expected_expression())

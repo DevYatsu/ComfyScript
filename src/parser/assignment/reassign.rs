@@ -20,12 +20,14 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 
     let (i, op) = parse_assignment_operator
         .context("Expected a valid assignment operator such as '=', '+=', '-='")
+        .cut()
         .parse(i)?;
     let (i, _) = multispace0(i)?;
 
     let (i, assigned) = parse_expression
         .context("Expected a valid expression")
-        .parse(i)?; //todo! parse expression
+        .cut()
+        .parse(i)?;
 
     Ok((
         i,

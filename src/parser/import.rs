@@ -31,7 +31,7 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         let (i, comma) = opt(tag(","))(i)?;
 
         if comma.is_some() {
-            let (i, _) = multispace1.context(expected_space()).parse(i)?;
+            let (i, _) = multispace1.context(expected_space()).cut().parse(i)?;
             (i, specifiers)
         } else {
             (i, specifiers)
@@ -65,11 +65,13 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 
     let (i, _) = tag("from")
         .context(expected_valid!("import source"))
+        .cut()
         .parse(i)?;
-    let (i, _) = multispace1.context(expected_space()).parse(i)?;
+    let (i, _) = multispace1.context(expected_space()).cut().parse(i)?;
 
     let (i, source) = parse_string
         .context(expected_valid!("import source"))
+        .cut()
         .parse(i)?;
 
     let source = match source {
@@ -87,6 +89,7 @@ fn parse_import_specifier(i: &str) -> IResult<&str, ImportSpecifier, ErrorTree<&
     let (i, _) = multispace0(i)?;
     let (i, imported_name) = parse_identifier
         .context(expected_valid!("import identifier"))
+        .cut()
         .parse(i)?;
     let (i, local_name) = opt_import_as(i)?;
     let (i, _) = multispace0(i)?;
@@ -115,9 +118,10 @@ fn opt_import_as(i: &str) -> IResult<&str, Option<Identifier>, ErrorTree<&str>> 
     let (i, opt_val) = opt(preceded(multispace1, tag("as")))(i)?;
 
     if opt_val.is_some() {
-        let (i, _) = multispace1.context(expected_space()).parse(i)?;
+        let (i, _) = multispace1.context(expected_space()).cut().parse(i)?;
         let (i, local_name) = parse_identifier
             .context(expected_valid!("import identifer"))
+            .cut()
             .parse(i)?;
 
         return Ok((i, Some(local_name)));

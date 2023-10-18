@@ -15,10 +15,17 @@ pub fn exec_script(path: &Path) -> Result<(), Box<dyn Error>> {
     let program = match parse_input(&content) {
         Ok(r) => r,
         Err(e) => {
-            println!("err {:?}", e);
-            // todo! manage error here to display a user friendly message
+            match e {
+                nom_supreme::error::GenericErrorTree::Stack { contexts, .. } => {
+                    let ctx = contexts[0].1;
 
-            return Err("An error occurred!".into());
+                    match ctx {
+                        nom_supreme::error::StackContext::Context(c) => return Err(c.into()),
+                        _ => unreachable!(),
+                    }
+                }
+                _ => unreachable!(),
+            }
         }
     };
 

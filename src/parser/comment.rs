@@ -49,7 +49,10 @@ fn parse_line_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&str>>
 
 fn parse_multiline_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (input, comment_opening) = tag("/*")(input)?;
-    let (input, comment_value) = take_until("*/").context(expected!("*/")).parse(input)?;
+    let (input, comment_value) = take_until("*/")
+        .context(expected!("*/"))
+        .cut()
+        .parse(input)?;
     let (input, comment_closing) = tag("*/")(input)?;
 
     let comment_expr = Expression::Comment {

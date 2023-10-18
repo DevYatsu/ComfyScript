@@ -14,7 +14,10 @@ pub fn parse_return_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>
 
     let (i, _) = multispace0(i)?;
 
-    let (i, argument) = parse_expression.context(expected_expression()).parse(i)?;
+    let (i, argument) = parse_expression
+        .context(expected_expression())
+        .cut()
+        .parse(i)?;
 
     Ok((
         i,

@@ -7,7 +7,7 @@ use crate::parser::{
 use nom::{
     branch::alt,
     character::complete::{multispace0, multispace1},
-    combinator::{map, verify},
+    combinator::{cut, map, verify},
     multi::separated_list1,
     IResult, Parser,
 };
@@ -51,15 +51,17 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
 
     let (input, id) = verify(parse_identifier, |id| id.name.parse::<i32>().is_err())
         .context("Expected a valid variable name")
+        .cut()
         .parse(input)?;
 
     let (input, _) = multispace0(input)?;
 
-    let (input, _) = tag("=").context("Expected an '=' tag").parse(input)?;
+    let (input, _) = tag("=").context("Expected an '=' tag").cut().parse(input)?;
     let (input, _) = multispace0(input)?;
 
     let (input, value) = parse_expression
         .context("Expected a valid expression")
+        .cut()
         .parse(input)?;
     let declarator = VariableDeclarator { id, init: value };
 

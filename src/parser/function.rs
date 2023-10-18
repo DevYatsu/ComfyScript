@@ -18,20 +18,20 @@ use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = tag("fn")(input)?;
-    let (input, _) = multispace1.context(expected_space()).parse(input)?;
+    let (input, _) = multispace1.context(expected_space()).cut().parse(input)?;
 
     let (input, id) = parse_identifier
         .context(expected_valid!("function name"))
         .parse(input)?;
 
     let (input, _) = multispace0(input)?;
-    let (input, _) = parse_char('(').context(expected!('(')).parse(input)?;
+    let (input, _) = parse_char('(').context(expected!('(')).cut().parse(input)?;
     let (input, _) = multispace0(input)?;
 
     let (input, params) = parse_fn_params(input)?;
 
     let (input, _) = multispace0(input)?;
-    let (input, _) = parse_char(')').context(expected!(')')).parse(input)?;
+    let (input, _) = parse_char(')').context(expected!(')')).cut().parse(input)?;
     let (input, _) = multispace0(input)?;
 
     let (input, (body, is_shortcut)) = map(parse_fn_body, |(b, s)| (Box::new(b), s))(input)?;
@@ -52,7 +52,7 @@ pub fn parse_fn_expression(input: &str) -> IResult<&str, Expression, ErrorTree<&
     let (input, params) = parse_fn_params(input)?;
 
     let (input, _) = multispace0(input)?;
-    let (input, _) = tag("|").context(expected!("|")).parse(input)?;
+    let (input, _) = tag("|").context(expected!("|")).cut().parse(input)?;
 
     let (input, _) = multispace0(input)?;
 
