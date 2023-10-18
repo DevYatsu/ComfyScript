@@ -1,9 +1,11 @@
+use crate::expected;
+
 use super::ast::{ASTNode, Expression};
 use nom::{
     branch::alt, bytes::complete::take_until, character::complete::multispace0, multi::many0,
-    sequence::preceded, IResult,
+    sequence::preceded, IResult, Parser,
 };
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_comment_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, comment) = parse_comment(input)?;
@@ -47,7 +49,7 @@ fn parse_line_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&str>>
 
 fn parse_multiline_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (input, comment_opening) = tag("/*")(input)?;
-    let (input, comment_value) = take_until("*/")(input)?;
+    let (input, comment_value) = take_until("*/").context(expected!("*/")).parse(input)?;
     let (input, comment_closing) = tag("*/")(input)?;
 
     let comment_expr = Expression::Comment {
