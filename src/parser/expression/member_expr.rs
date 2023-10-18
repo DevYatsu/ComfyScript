@@ -1,20 +1,20 @@
 use crate::parser::ast::identifier::parse_identifier_expression;
 use crate::parser::ast::Expression;
 use crate::parser::comment::jump_comments;
-use crate::parser::Span;
 use nom::branch::alt;
+use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::IResult;
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use nom_supreme::error::ErrorTree;
 
 use super::function_call::parse_fn_call;
 use super::indexing::parse_indexing;
 use super::parenthesized::parse_parenthesized;
 use super::parse_expression_with;
 
-pub fn parse_member_expr(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
+pub fn parse_member_expr(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, mut ids) = separated_list1(
-        tag("."),
+        char('.'),
         parse_expression_with(parse_expression_except_member_expr),
     )(i)?;
     // we are sure that ids length is >= 2 here
@@ -56,7 +56,7 @@ fn build_member_expr(mut ids: Vec<Expression>) -> Expression {
     expr
 }
 
-fn parse_expression_except_member_expr(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
+fn parse_expression_except_member_expr(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, _) = jump_comments(i)?;
 
     let (i, expr) = alt((

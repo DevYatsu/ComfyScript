@@ -2,7 +2,7 @@ use std::{error::Error, fs, path::Path};
 
 use crate::{
     get_file_content,
-    parser::{ast, parse_input, Span},
+    parser::{ast, parse_input},
 };
 
 pub fn minify_input(path: &Path) -> Result<(), Box<dyn Error>> {
@@ -12,8 +12,7 @@ pub fn minify_input(path: &Path) -> Result<(), Box<dyn Error>> {
         return Ok(generate_minified_file(path, &[])?);
     }
 
-    let span = Span::new(content.as_str());
-    let (rest, program) = match parse_input(span) {
+    let (rest, program) = match parse_input(&content) {
         Ok(r) => r,
         Err(_) => return Err("An error occurred!".into()),
     };

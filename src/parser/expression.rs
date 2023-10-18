@@ -21,7 +21,7 @@ use super::{
     function::parse_fn_expression,
     operations::{binary::parse_binary_operator, build_binary_expression},
 };
-use crate::parser::{ast::Expression, Span};
+use crate::parser::ast::Expression;
 use nom::{
     branch::alt,
     character::complete::multispace0,
@@ -31,7 +31,7 @@ use nom::{
 };
 use nom_supreme::error::ErrorTree;
 
-pub fn parse_expression_statement(i: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
+pub fn parse_expression_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, expr) = parse_expression(i)?;
 
     let expr_statement = ASTNode::ExpressionStatement { expression: expr };
@@ -39,15 +39,15 @@ pub fn parse_expression_statement(i: Span) -> IResult<Span, ASTNode, ErrorTree<S
     Ok((input, expr_statement))
 }
 
-pub fn parse_expression(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
+pub fn parse_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     parse_expression_with(parse_basic_expression)(i)
 }
 
 pub fn parse_expression_with<'a, F>(
     parser: F,
-) -> impl Fn(Span<'a>) -> IResult<Span<'a>, Expression, ErrorTree<Span>>
+) -> impl Fn(&'a str) -> IResult<&'a str, Expression, ErrorTree<&str>>
 where
-    F: Fn(Span<'a>) -> IResult<Span<'a>, Expression, ErrorTree<Span>>,
+    F: Fn(&'a str) -> IResult<&'a str, Expression, ErrorTree<&str>>,
 {
     move |input| {
         let parser_closure = |i| parser(i);
@@ -78,7 +78,7 @@ where
     }
 }
 
-fn parse_basic_expression(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
+fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, _) = jump_comments(i)?;
 
     let (i, expr) = alt((
@@ -96,9 +96,9 @@ fn parse_basic_expression(i: Span) -> IResult<Span, Expression, ErrorTree<Span>>
     Ok((i, expr))
 }
 
-fn parse_primitive_value(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
+fn parse_primitive_value(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     alt((parse_string, parse_bool, parse_number, parse_nil))(i)
 }
-fn parse_composite_value(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
+fn parse_composite_value(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     alt((parse_array, parse_object))(i)
 }

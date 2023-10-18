@@ -6,7 +6,6 @@ use super::{
         ASTNode, Expression,
     },
     expression::strings::parse_string,
-    Span,
 };
 use nom::{
     character::complete::{multispace0, multispace1},
@@ -16,7 +15,7 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
-pub fn parse_import(i: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
+pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (i, _) = tag("import")(i)?;
     let (i, _) = multispace1(i)?;
 
@@ -77,7 +76,7 @@ pub fn parse_import(i: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     Ok((i, ASTNode::ImportDeclaration { specifiers, source }))
 }
 
-fn parse_import_specifier(i: Span) -> IResult<Span, ImportSpecifier, ErrorTree<Span>> {
+fn parse_import_specifier(i: &str) -> IResult<&str, ImportSpecifier, ErrorTree<&str>> {
     let (i, _) = multispace0(i)?;
     let (i, imported_name) = parse_identifier(i)?;
     let (i, _) = multispace0(i)?;
@@ -104,7 +103,7 @@ fn parse_import_specifier(i: Span) -> IResult<Span, ImportSpecifier, ErrorTree<S
     }
 }
 
-fn opt_import_as(i: Span) -> IResult<Span, Option<Identifier>, ErrorTree<Span>> {
+fn opt_import_as(i: &str) -> IResult<&str, Option<Identifier>, ErrorTree<&str>> {
     let (i, opt_val) = opt(tag("as"))(i)?;
 
     if opt_val.is_some() {

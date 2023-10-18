@@ -1,8 +1,8 @@
 use std::fmt;
 
-use crate::{parser::Span, reserved_keywords::RESERVED_KEYWORD};
-use nom::{branch::alt, character::complete::alphanumeric1, Err, IResult};
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use crate::reserved_keywords::RESERVED_KEYWORD;
+use nom::{branch::alt, bytes::complete::tag, character::complete::alphanumeric1, IResult};
+use nom_supreme::error::ErrorTree;
 
 use super::Expression;
 
@@ -11,18 +11,18 @@ pub struct Identifier {
     pub name: String,
 }
 
-pub fn parse_identifier(i: Span) -> IResult<Span, Identifier, ErrorTree<Span>> {
+pub fn parse_identifier(i: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
     let (mut i, word) = alt((alphanumeric1, tag("_")))(i)?;
-    let mut word = word.fragment().to_string();
+    let mut word = word.to_owned();
 
     loop {
-        match alt((alphanumeric1::<Span, ErrorTree<Span>>, tag("_")))(i) {
+        match alt((alphanumeric1::<&str, ErrorTree<&str>>, tag("_")))(i) {
             Ok((input, s)) => {
-                word.push_str(s.fragment());
+                word.push_str(s);
 
-                match alt((alphanumeric1::<Span, ErrorTree<Span>>, tag("_")))(input) {
+                match alt((alphanumeric1::<&str, ErrorTree<&str>>, tag("_")))(input) {
                     Ok((input, w)) => {
-                        word.push_str(w.fragment());
+                        word.push_str(w);
                         i = input;
                     }
                     Err(_) => {
@@ -43,7 +43,7 @@ pub fn parse_identifier(i: Span) -> IResult<Span, Identifier, ErrorTree<Span>> {
     }
 }
 
-pub fn parse_identifier_expression(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
+pub fn parse_identifier_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, id) = parse_identifier(i)?;
 
     Ok((i, Expression::IdentifierExpression(id)))

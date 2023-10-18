@@ -3,8 +3,6 @@ use std::fmt;
 use nom::{branch::alt, IResult};
 use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
-use crate::parser::Span;
-
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum BinaryOperator {
     Plus,
@@ -25,7 +23,7 @@ pub enum BinaryOperator {
     Or,  // ||
 }
 
-pub fn parse_binary_operator(i: Span) -> IResult<Span, BinaryOperator, ErrorTree<Span>> {
+pub fn parse_binary_operator(i: &str) -> IResult<&str, BinaryOperator, ErrorTree<&str>> {
     let (i, operator) = alt((
         tag("+"),
         tag("-"),
@@ -45,21 +43,21 @@ pub fn parse_binary_operator(i: Span) -> IResult<Span, BinaryOperator, ErrorTree
 
     Ok((
         i,
-        match operator.fragment() {
-            &"+" => BinaryOperator::Plus,
-            &"-" => BinaryOperator::Minus,
-            &"*" => BinaryOperator::Times,
-            &"**" => BinaryOperator::Exponential,
-            &"/" => BinaryOperator::Divide,
-            &"%" => BinaryOperator::Modulo,
-            &"==" => BinaryOperator::Equal,
-            &"!=" => BinaryOperator::NotEqual,
-            &">" => BinaryOperator::Greater,
-            &">=" => BinaryOperator::GreaterOrEqual,
-            &"<" => BinaryOperator::Smaller,
-            &"<=" => BinaryOperator::SmallerOrEqual,
-            &"&&" => BinaryOperator::And,
-            &"||" => BinaryOperator::Or,
+        match operator {
+            "+" => BinaryOperator::Plus,
+            "-" => BinaryOperator::Minus,
+            "*" => BinaryOperator::Times,
+            "**" => BinaryOperator::Exponential,
+            "/" => BinaryOperator::Divide,
+            "%" => BinaryOperator::Modulo,
+            "==" => BinaryOperator::Equal,
+            "!=" => BinaryOperator::NotEqual,
+            ">" => BinaryOperator::Greater,
+            ">=" => BinaryOperator::GreaterOrEqual,
+            "<" => BinaryOperator::Smaller,
+            "<=" => BinaryOperator::SmallerOrEqual,
+            "&&" => BinaryOperator::And,
+            "||" => BinaryOperator::Or,
             _ => unreachable!(),
         },
     ))

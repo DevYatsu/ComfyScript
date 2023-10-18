@@ -21,12 +21,9 @@ use self::{
 };
 use crate::parser::import::parse_import;
 use nom::{branch::alt, bytes::complete::take_while1, combinator::opt, IResult};
-use nom_locate::LocatedSpan;
 use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
-pub type Span<'a> = LocatedSpan<&'a str>;
-
-pub fn parse_input<'a>(input: Span<'a>) -> IResult<Span, ASTNode, ErrorTree<Span>> {
+pub fn parse_input<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
     let (mut input, _) = opt(parse_new_lines)(input)?;
 
     let mut statements = Vec::new();
@@ -46,7 +43,7 @@ pub fn parse_input<'a>(input: Span<'a>) -> IResult<Span, ASTNode, ErrorTree<Span
     Ok((input, ASTNode::Program { body: statements }))
 }
 
-pub fn parse_block<'a>(input: Span<'a>) -> IResult<Span<'a>, ASTNode, ErrorTree<Span<'a>>> {
+pub fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
     let (input, _) = tag("{")(input)?;
 
     let (input, _) = opt(parse_new_lines)(input)?;
@@ -75,7 +72,7 @@ pub fn parse_block<'a>(input: Span<'a>) -> IResult<Span<'a>, ASTNode, ErrorTree<
     Ok((input, ASTNode::BlockStatement { body: statements }))
 }
 
-fn parse_statement(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
+fn parse_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     alt((
         parse_var_init,
         parse_assignment,
@@ -90,7 +87,7 @@ fn parse_statement(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     ))(input)
 }
 
-fn parse_new_lines(i: Span) -> IResult<Span, Span, ErrorTree<Span>> {
+fn parse_new_lines(i: &str) -> IResult<&str, &str, ErrorTree<&str>> {
     let (i, removed) = take_while1(|c: char| c == ';' || c.is_ascii_whitespace())(i)?;
 
     Ok((i, removed))

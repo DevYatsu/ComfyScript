@@ -5,10 +5,9 @@ use crate::parser::{
     ast::{identifier::parse_identifier_expression, ASTNode, Expression},
     expression::{indexing::parse_indexing, member_expr::parse_member_expr, parse_expression},
     operations::assignment::parse_assignment_operator,
-    Span,
 };
 
-pub fn parse_assignment(i: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
+pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (i, id) = map(
         alt((
             parse_indexing,

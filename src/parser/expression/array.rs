@@ -1,11 +1,14 @@
-use nom::{character::complete::multispace0, combinator::opt, multi::separated_list0, IResult};
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use nom::{
+    bytes::complete::tag, character::complete::multispace0, combinator::opt,
+    multi::separated_list0, IResult,
+};
+use nom_supreme::error::ErrorTree;
 
-use crate::parser::{ast::Expression, Span};
+use crate::parser::ast::Expression;
 
 use super::parse_expression;
 
-pub fn parse_array(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
+pub fn parse_array(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, _) = tag("[")(i)?;
     let (i, _) = multispace0(i)?;
 
@@ -19,7 +22,7 @@ pub fn parse_array(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     Ok((i, Expression::Array { elements }))
 }
 
-fn parse_values(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
+fn parse_values(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, _) = multispace0(i)?;
     parse_expression(i)
 }

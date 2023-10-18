@@ -1,24 +1,21 @@
-use nom::{branch::alt, character::complete::multispace0, IResult};
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use nom::{branch::alt, character::complete::char, character::complete::multispace0, IResult};
+use nom_supreme::error::ErrorTree;
 
-use crate::parser::{
-    ast::{identifier::parse_identifier_expression, Expression},
-    Span,
-};
+use crate::parser::ast::{identifier::parse_identifier_expression, Expression};
 
 use super::{parenthesized::parse_parenthesized, parse_expression, parse_expression_with};
 
-pub fn parse_indexing(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
+pub fn parse_indexing(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, indexed) = parse_expression_with(parse_expression_except_indexing)(i)?;
     // to avoid infinite recursive call
 
-    let (i, _) = tag("[")(i)?;
+    let (i, _) = char('[')(i)?;
     let (i, _) = multispace0(i)?;
 
     let (i, elements) = parse_expression(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, _) = tag("]")(i)?;
+    let (i, _) = char(']')(i)?;
 
     Ok((
         i,
@@ -30,7 +27,7 @@ pub fn parse_indexing(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     ))
 }
 
-fn parse_expression_except_indexing(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
+fn parse_expression_except_indexing(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     alt((
         parse_parenthesized,
         parse_identifier_expression,

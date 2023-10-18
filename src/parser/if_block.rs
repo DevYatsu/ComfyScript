@@ -1,7 +1,7 @@
 use super::{
     ast::{ASTNode, Expression},
     expression::parse_expression,
-    parse_block, Span,
+    parse_block,
 };
 use nom::{
     character::complete::{multispace0, multispace1},
@@ -10,7 +10,7 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
-pub fn parse_if_statement(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
+pub fn parse_if_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, (test, body)) = parse_if_block(input)?;
 
     let (else_input, _) = multispace0(input)?;
@@ -54,7 +54,7 @@ pub fn parse_if_statement(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>
     Ok((input, node))
 }
 
-fn parse_if_block(input: Span) -> IResult<Span, (Expression, Box<ASTNode>), ErrorTree<Span>> {
+fn parse_if_block(input: &str) -> IResult<&str, (Expression, Box<ASTNode>), ErrorTree<&str>> {
     let (input, _) = tag("if")(input)?;
     let (input, _) = multispace1(input)?;
 

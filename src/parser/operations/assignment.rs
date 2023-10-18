@@ -3,8 +3,6 @@ use std::fmt;
 use nom::{branch::alt, IResult};
 use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
-use crate::parser::Span;
-
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum AssignmentOperator {
     Equal,       // =
@@ -15,7 +13,7 @@ pub enum AssignmentOperator {
     ModuloEqual, // =%
 }
 
-pub fn parse_assignment_operator(i: Span) -> IResult<Span, AssignmentOperator, ErrorTree<Span>> {
+pub fn parse_assignment_operator(i: &str) -> IResult<&str, AssignmentOperator, ErrorTree<&str>> {
     // one_of matches one of the characters we give it
     let (i, t) = alt((
         tag("="),
@@ -28,13 +26,13 @@ pub fn parse_assignment_operator(i: Span) -> IResult<Span, AssignmentOperator, E
 
     Ok((
         i,
-        match t.fragment() {
-            &"=" => AssignmentOperator::Equal,
-            &"+=" => AssignmentOperator::PlusEqual,
-            &"-=" => AssignmentOperator::MinusEqual,
-            &"*=" => AssignmentOperator::TimesEqual,
-            &"/=" => AssignmentOperator::DivideEqual,
-            &"%=" => AssignmentOperator::ModuloEqual,
+        match t {
+            "=" => AssignmentOperator::Equal,
+            "+=" => AssignmentOperator::PlusEqual,
+            "-=" => AssignmentOperator::MinusEqual,
+            "*=" => AssignmentOperator::TimesEqual,
+            "/=" => AssignmentOperator::DivideEqual,
+            "%=" => AssignmentOperator::ModuloEqual,
             _ => unreachable!(),
         },
     ))

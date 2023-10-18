@@ -4,7 +4,7 @@ use self::return_expression::parse_return_statement;
 
 use super::{
     ast::{identifier::Identifier, ASTNode, Expression},
-    parse_block, Span,
+    parse_block,
 };
 use crate::parser::ast::identifier::parse_identifier;
 use nom::{
@@ -15,7 +15,7 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
-pub fn parse_function(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
+pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = tag("fn")(input)?;
     let (input, _) = multispace1(input)?;
 
@@ -42,7 +42,7 @@ pub fn parse_function(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
 
     Ok((input, node))
 }
-pub fn parse_fn_expression(input: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
+pub fn parse_fn_expression(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (input, _) = tag("|")(input)?;
     let (input, _) = multispace0(input)?;
 
@@ -64,14 +64,14 @@ pub fn parse_fn_expression(input: Span) -> IResult<Span, Expression, ErrorTree<S
     Ok((input, node))
 }
 
-fn parse_fn_params(input: Span) -> IResult<Span, Vec<Identifier>, ErrorTree<Span>> {
+fn parse_fn_params(input: &str) -> IResult<&str, Vec<Identifier>, ErrorTree<&str>> {
     let (input, params) = opt(separated_list1(tag(","), parse_fn_identifier))(input)?;
     let params = params.unwrap_or_else(|| vec![]);
 
     Ok((input, params))
 }
 
-fn parse_fn_body(input: Span) -> IResult<Span, (ASTNode, bool), ErrorTree<Span>> {
+fn parse_fn_body(input: &str) -> IResult<&str, (ASTNode, bool), ErrorTree<&str>> {
     let (input, return_statement) = opt(parse_return_statement)(input)?;
 
     if let Some(return_statement) = return_statement {
@@ -83,7 +83,7 @@ fn parse_fn_body(input: Span) -> IResult<Span, (ASTNode, bool), ErrorTree<Span>>
     Ok((input, (body, false)))
 }
 
-fn parse_fn_identifier(input: Span) -> IResult<Span, Identifier, ErrorTree<Span>> {
+fn parse_fn_identifier(input: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
     let (input, _) = multispace0(input)?;
 
     let (input, id) = parse_identifier(input)?;

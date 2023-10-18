@@ -1,12 +1,12 @@
 use crate::parser::ast::identifier::parse_identifier_expression;
 use crate::parser::ast::range::RangeType;
 use crate::parser::ast::Expression;
-use crate::parser::Span;
 use nom::branch::alt;
+use nom::bytes::complete::tag;
 use nom::character::complete::multispace0;
 use nom::combinator::map;
 use nom::IResult;
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use nom_supreme::error::ErrorTree;
 
 use super::function_call::parse_fn_call;
 use super::indexing::parse_indexing;
@@ -14,7 +14,7 @@ use super::member_expr::parse_member_expr;
 use super::parenthesized::parse_parenthesized;
 use super::{parse_composite_value, parse_expression_with, parse_primitive_value};
 
-pub fn parse_range(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
+pub fn parse_range(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, from) = map(
         parse_expression_with(parse_expression_except_range),
         |expr| Box::new(expr),
@@ -33,7 +33,7 @@ pub fn parse_range(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     Ok((i, Expression::Range { from, limits, to }))
 }
 
-fn parse_expression_except_range(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
+fn parse_expression_except_range(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     // to avoid recursive calls to range parser
     alt((
         parse_indexing,
@@ -46,11 +46,11 @@ fn parse_expression_except_range(i: Span) -> IResult<Span, Expression, ErrorTree
     ))(i)
 }
 
-pub fn parse_range_type(i: Span) -> IResult<Span, RangeType, ErrorTree<Span>> {
+pub fn parse_range_type(i: &str) -> IResult<&str, RangeType, ErrorTree<&str>> {
     let (i, range) = alt((tag("..="), tag("..")))(i)?;
 
-    let range_type = match range.fragment() {
-        &"..=" => RangeType::DotEqual,
+    let range_type = match range {
+        "..=" => RangeType::DotEqual,
         _ => RangeType::Dot,
     };
 

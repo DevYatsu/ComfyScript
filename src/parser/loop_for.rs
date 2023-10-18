@@ -2,7 +2,7 @@ use super::{
     assignment::initial::VariableKeyword,
     ast::{identifier::Identifier, ASTNode},
     expression::parse_expression,
-    parse_block, Span,
+    parse_block,
 };
 use crate::parser::ast::identifier::parse_identifier;
 use nom::{
@@ -14,7 +14,7 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
-pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
+pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = tag("for")(input)?;
     let (input, _) = multispace1(input)?;
 
@@ -42,7 +42,7 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span
     Ok((input, node))
 }
 
-fn parse_for_identifier(input: Span) -> IResult<Span, Identifier, ErrorTree<Span>> {
+fn parse_for_identifier(input: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
     let (input, _) = multispace0(input)?;
 
     let (input, id) = parse_identifier(input)?;
@@ -50,7 +50,7 @@ fn parse_for_identifier(input: Span) -> IResult<Span, Identifier, ErrorTree<Span
     Ok((input, id))
 }
 
-fn parse_for_var_keyword(input: Span) -> IResult<Span, VariableKeyword, ErrorTree<Span>> {
+fn parse_for_var_keyword(input: &str) -> IResult<&str, VariableKeyword, ErrorTree<&str>> {
     let (input, opt_keyword) = opt(alt((tag("let"), tag("var"))))(input)?;
 
     Ok(if let Some(k) = opt_keyword {
@@ -58,8 +58,8 @@ fn parse_for_var_keyword(input: Span) -> IResult<Span, VariableKeyword, ErrorTre
 
         (
             input,
-            match k.fragment() {
-                &"var" => VariableKeyword::Var,
+            match k {
+                "var" => VariableKeyword::Var,
                 _ => VariableKeyword::Let,
             },
         )
