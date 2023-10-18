@@ -7,7 +7,8 @@ use super::{
         literal_value::LiteralValue,
         ASTNode, Expression,
     },
-    expression::strings::parse_string, errors::{expected_expression, expected_space},
+    errors::{expected_expression, expected_space},
+    expression::strings::parse_string,
 };
 use nom::{
     character::complete::{multispace0, multispace1},
@@ -62,10 +63,14 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         }
     };
 
-    let (i, _) = tag("from").context(expected_valid!("import source")).parse(i)?;
+    let (i, _) = tag("from")
+        .context(expected_valid!("import source"))
+        .parse(i)?;
     let (i, _) = multispace1.context(expected_space()).parse(i)?;
 
-    let (i, source) = parse_string.context(expected_valid!("import source")).parse(i)?; 
+    let (i, source) = parse_string
+        .context(expected_valid!("import source"))
+        .parse(i)?;
 
     let source = match source {
         Expression::Literal { value, .. } => match value {

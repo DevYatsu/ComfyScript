@@ -4,9 +4,10 @@ use self::return_expression::parse_return_statement;
 
 use super::{
     ast::{identifier::Identifier, ASTNode, Expression},
-    parse_block, errors::expected_space,
+    errors::expected_space,
+    parse_block,
 };
-use crate::{parser::ast::identifier::parse_identifier, expected, expected_valid};
+use crate::{expected, expected_valid, parser::ast::identifier::parse_identifier};
 use nom::{
     character::complete::{char as parse_char, multispace0, multispace1},
     combinator::{map, opt},
@@ -19,7 +20,9 @@ pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = tag("fn")(input)?;
     let (input, _) = multispace1.context(expected_space()).parse(input)?;
 
-    let (input, id) = parse_identifier.context(expected_valid!("function name")).parse(input)?;
+    let (input, id) = parse_identifier
+        .context(expected_valid!("function name"))
+        .parse(input)?;
 
     let (input, _) = multispace0(input)?;
     let (input, _) = parse_char('(').context(expected!('(')).parse(input)?;
@@ -86,7 +89,9 @@ fn parse_fn_body(input: &str) -> IResult<&str, (ASTNode, bool), ErrorTree<&str>>
 fn parse_fn_param(input: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
     let (input, _) = multispace0(input)?;
 
-    let (input, id) = parse_identifier.context(expected_valid!("function parameter")).parse(input)?;
+    let (input, id) = parse_identifier
+        .context(expected_valid!("function parameter"))
+        .parse(input)?;
 
     Ok((input, id))
 }

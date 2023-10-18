@@ -15,6 +15,7 @@ pub fn exec_script(path: &Path) -> Result<(), Box<dyn Error>> {
     let program = match parse_input(&content) {
         Ok(r) => r,
         Err(e) => {
+            println!("err {}", e);
             match e {
                 nom_supreme::error::GenericErrorTree::Base { location, kind } => {
                     println!("its base")
@@ -29,7 +30,7 @@ pub fn exec_script(path: &Path) -> Result<(), Box<dyn Error>> {
                     }
                     _ => {
                         println!("here: {:?}", val[val.len() - 1])
-                    },
+                    }
                 },
             }
 

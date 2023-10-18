@@ -1,48 +1,31 @@
-use nom::{branch::alt, bytes::complete::take_until, combinator::map, IResult};
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use nom::{
+    branch::alt, bytes::complete::take_until1, character::complete::char, combinator::map, IResult,
+};
+use nom_supreme::error::ErrorTree;
 
 use crate::parser::ast::{literal_value::LiteralValue, Expression};
-
-enum Quote {
-    Unique,
-    Double,
-}
 
 pub fn parse_string(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, quote) = parse_quote(i)?;
 
-    match quote {
-        Quote::Unique => {
-            let (i, result) = take_until("'")(i)?;
-            let (i, c) = tag("'")(i)?;
+    let (i, result) = take_until1(&*quote.to_string())(i)?;
+    let (i, c) = char(quote)(i)?;
 
-            return Ok((
-                i,
-                Expression::Literal {
-                    value: LiteralValue::Str(result.to_owned()),
-                    raw: c.to_owned() + result + c,
-                },
-            ));
-        }
-        Quote::Double => {
-            let (i, result) = take_until("\"")(i)?;
-            let (i, c) = tag("\"")(i)?;
-
-            return Ok((
-                i,
-                Expression::Literal {
-                    value: LiteralValue::Str(result.to_owned()),
-                    raw: c.to_owned() + result + c,
-                },
-            ));
-        }
-    }
+    return Ok((
+        i,
+        Expression::Literal {
+            value: LiteralValue::Str(result.to_owned()),
+            raw: c.to_string() + result + &c.to_string(),
+        },
+    ));
 }
-// todo!
 
-fn parse_quote(i: &str) -> IResult<&str, Quote, ErrorTree<&str>> {
+fn parse_quote(i: &str) -> IResult<&str, char, ErrorTree<&str>> {
+    let simple_quote = '\'';
+    let double_quote = '"';
+
     alt((
-        map(tag("\""), |_| Quote::Double),
-        map(tag("'"), |_| Quote::Unique),
+        map(char(double_quote), move |_| double_quote),
+        map(char(simple_quote), move |_| simple_quote),
     ))(i)
 }

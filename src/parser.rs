@@ -1,6 +1,7 @@
 mod assignment;
 pub mod ast;
 mod comment;
+mod errors;
 mod expression;
 mod function;
 mod if_block;
@@ -8,7 +9,6 @@ mod import;
 mod loop_for;
 mod loop_while;
 mod operations;
-mod errors;
 
 use self::{
     assignment::{initial::parse_var_init, reassign::parse_assignment},
@@ -20,7 +20,7 @@ use self::{
     loop_for::parse_for_statement,
     loop_while::parse_while_statement,
 };
-use crate::{parser::import::parse_import, expected};
+use crate::{expected, parser::import::parse_import};
 use nom::{branch::alt, bytes::complete::take_while1, combinator::opt, IResult, Parser};
 use nom_supreme::{error::ErrorTree, final_parser::final_parser, tag::complete::tag, ParserExt};
 

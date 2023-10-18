@@ -21,7 +21,7 @@ use super::{
     function::parse_fn_expression,
     operations::{binary::parse_binary_operator, build_binary_expression},
 };
-use crate::{parser::ast::Expression, expected};
+use crate::{expected, parser::ast::Expression};
 use nom::{
     branch::alt,
     character::complete::multispace0,

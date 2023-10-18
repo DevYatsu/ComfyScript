@@ -1,10 +1,11 @@
 use super::{
     assignment::initial::VariableKeyword,
     ast::{identifier::Identifier, ASTNode},
+    errors::{expected_expression, expected_space},
     expression::parse_expression,
-    parse_block, errors::{expected_space, expected_expression},
+    parse_block,
 };
-use crate::{parser::ast::identifier::parse_identifier, expected_keyword, expected_valid};
+use crate::{expected_keyword, expected_valid, parser::ast::identifier::parse_identifier};
 use nom::{
     branch::alt,
     character::complete::{multispace0, multispace1},
@@ -27,7 +28,9 @@ pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
     let (input, _) = tag("in").context(expected_keyword!("in")).parse(input)?;
     let (input, _) = multispace1.context(expected_space()).parse(input)?;
 
-    let (input, indexed) = parse_expression.context(expected_expression()).parse(input)?;
+    let (input, indexed) = parse_expression
+        .context(expected_expression())
+        .parse(input)?;
 
     let (input, _) = multispace0(input)?;
 
@@ -46,7 +49,9 @@ pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
 fn parse_for_identifier(input: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
     let (input, _) = multispace0(input)?;
 
-    let (input, id) = parse_identifier.context(expected_valid!("identifier")).parse(input)?;
+    let (input, id) = parse_identifier
+        .context(expected_valid!("identifier"))
+        .parse(input)?;
 
     Ok((input, id))
 }

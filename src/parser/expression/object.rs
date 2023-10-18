@@ -1,5 +1,5 @@
-use nom::{character::complete::multispace0, combinator::opt, multi::separated_list0, IResult};
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use nom::{character::complete::multispace0, combinator::opt, multi::separated_list0, IResult, character::complete::char};
+use nom_supreme::{error::ErrorTree};
 
 use crate::parser::ast::{
     identifier::parse_identifier,
@@ -10,15 +10,15 @@ use crate::parser::ast::{
 use super::parse_expression;
 
 pub fn parse_object(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    let (i, _) = tag("{")(i)?;
+    let (i, _) = char('{')(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, elements) = separated_list0(tag(","), parse_property)(i)?;
+    let (i, elements) = separated_list0(char(','), parse_property)(i)?;
     let (i, _) = multispace0(i)?;
-    let (i, _) = opt(tag(","))(i)?;
+    let (i, _) = opt(char(','))(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, _) = tag("}")(i)?;
+    let (i, _) = char('}')(i)?;
 
     Ok((
         i,
@@ -33,7 +33,7 @@ fn parse_property(i: &str) -> IResult<&str, Property, ErrorTree<&str>> {
     let (i, id) = parse_identifier(i)?;
 
     let (i, _) = multispace0(i)?;
-    let (i, _) = tag(":")(i)?;
+    let (i, _) = char(':')(i)?;
     let (i, _) = multispace0(i)?;
 
     let (i, expr) = parse_expression(i)?;

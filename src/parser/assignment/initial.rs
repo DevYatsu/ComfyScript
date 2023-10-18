@@ -49,7 +49,7 @@ pub fn parse_var_init(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator, ErrorTree<&str>> {
     let (input, _) = multispace0(input)?;
 
-    let (input, id) = verify(parse_identifier, |id| id.name.parse::<i32>().is_ok())
+    let (input, id) = verify(parse_identifier, |id| id.name.parse::<i32>().is_err())
         .context("Expected a valid variable name")
         .parse(input)?;
 

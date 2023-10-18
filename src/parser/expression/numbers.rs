@@ -1,7 +1,7 @@
-use nom::bytes::complete::{take, take_until};
+use nom::bytes::complete::{take, take_until1};
 use nom::number::complete::float;
 use nom::{branch::alt, character::complete::char, combinator::opt, IResult};
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use nom_supreme::error::ErrorTree;
 
 use crate::parser::ast::literal_value::LiteralValue;
 use crate::parser::ast::Expression;
@@ -10,10 +10,10 @@ pub fn parse_number(initial_i: &str) -> IResult<&str, Expression, ErrorTree<&str
     let (base_input, sign) = opt(alt((char('+'), char('-'))))(initial_i)?;
 
     let (i, num) = float(base_input)?;
-    let (_, other_dot) = opt(tag("."))(i)?;
+    let (_, other_dot) = opt(char('.'))(i)?;
 
     let (i, num) = if other_dot.is_some() {
-        let (i, num_string) = take_until(".")(base_input)?;
+        let (i, num_string) = take_until1(".")(base_input)?;
         (i, num_string.parse::<f32>().unwrap())
     } else {
         (i, num)
