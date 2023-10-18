@@ -1,5 +1,8 @@
-use nom::{character::complete::multispace0, combinator::opt, multi::separated_list0, IResult, character::complete::char};
-use nom_supreme::{error::ErrorTree};
+use nom::{
+    character::complete::char, character::complete::multispace0, combinator::opt,
+    multi::separated_list0, IResult,
+};
+use nom_supreme::error::ErrorTree;
 
 use crate::parser::ast::{
     identifier::parse_identifier,
