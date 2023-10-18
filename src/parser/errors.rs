@@ -14,13 +14,13 @@ macro_rules! expected_keyword {
 #[macro_export]
 macro_rules! expected_valid {
     ($x:expr) => {
-        concat!("Expected valid {}", $x)
+        concat!("Expected valid ", $x)
     };
 }
 
 #[macro_export]
 macro_rules! expected {
     ($x:expr) => {
-        concat!("Expected '{}'", $x)
+        concat!("Expected ", $x)
     };
 }

@@ -17,6 +17,7 @@ pub fn exec_script(path: &Path) -> Result<(), Box<dyn Error>> {
         Err(e) => {
             match e {
                 nom_supreme::error::GenericErrorTree::Stack { contexts, .. } => {
+                    println!("{:?}", contexts);
                     let ctx = contexts[0].1;
 
                     match ctx {

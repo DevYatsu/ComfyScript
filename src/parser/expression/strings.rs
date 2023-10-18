@@ -1,14 +1,14 @@
 use nom::{
-    branch::alt, bytes::complete::take_until1, character::complete::char, combinator::map, IResult,
+    branch::alt, bytes::complete::take_until1, character::complete::char, combinator::map, IResult, Parser,
 };
-use nom_supreme::error::ErrorTree;
+use nom_supreme::{error::ErrorTree, ParserExt};
 
-use crate::parser::ast::{literal_value::LiteralValue, Expression};
+use crate::{parser::ast::{literal_value::LiteralValue, Expression}, expected};
 
 pub fn parse_string(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, quote) = parse_quote(i)?;
 
-    let (i, result) = take_until1(&*quote.to_string())(i)?;
+    let (i, result) = take_until1(&*quote.to_string()).context(expected!("an ending quote")).cut().parse(i)?;
     let (i, c) = char(quote)(i)?;
 
     return Ok((

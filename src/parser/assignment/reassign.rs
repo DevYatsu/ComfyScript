@@ -18,10 +18,7 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     )(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, op) = parse_assignment_operator
-        .context("Expected a valid assignment operator such as '=', '+=', '-='")
-        .cut()
-        .parse(i)?;
+    let (i, op) = parse_assignment_operator.parse(i)?;
     let (i, _) = multispace0(i)?;
 
     let (i, assigned) = parse_expression
