@@ -36,10 +36,8 @@ pub fn parse_identifier(i: Span) -> IResult<Span, Identifier, ErrorTree<Span>> {
     }
 
     if RESERVED_KEYWORD.contains(&word.as_str()) {
-        Err(Err::Error(ErrorTree::Stack {
-            base: todo!(),
-            contexts: todo!(),
-        })) // return an error
+        Err(nom::Err::Error(ErrorTree::Alt(vec![])))
+        // return an error
     } else {
         Ok((i, Identifier { name: word }))
     }

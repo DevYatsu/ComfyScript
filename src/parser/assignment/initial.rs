@@ -54,12 +54,7 @@ pub fn parse_single_declaration(input: Span) -> IResult<Span, VariableDeclarator
     let (input, id) = parse_identifier(input)?;
 
     match id.name.parse::<i32>().is_ok() {
-        true => {
-            return Err(nom::Err::Error(ErrorTree::Base {
-                location: todo!(),
-                kind: todo!(),
-            }))
-        }
+        true => return Err(nom::Err::Error(ErrorTree::Alt(vec![]))),
         false => (),
     }
 

@@ -22,10 +22,7 @@ pub fn parse_member_expr(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> 
     let property = Box::new(ids.pop().unwrap());
 
     if ids.len() == 0 {
-        return Err(nom::Err::Error(ErrorTree::Stack {
-            base: todo!(),
-            contexts: todo!(),
-        }));
+        return Err(nom::Err::Error(ErrorTree::Alt(vec![])));
     }
 
     let indexed = if ids.len() == 1 {
