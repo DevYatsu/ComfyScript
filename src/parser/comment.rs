@@ -6,13 +6,13 @@ use nom::{
     branch::alt,
     bytes::complete::{tag, take_until},
     character::complete::multispace0,
-    error::VerboseError,
     multi::many0,
     sequence::preceded,
     IResult,
 };
+use nom_supreme::error::ErrorTree;
 
-pub fn parse_comment_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+pub fn parse_comment_statement(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     let (input, comment) = parse_comment(input)?;
 
     let comment_statement = ASTNode::ExpressionStatement {
@@ -22,13 +22,13 @@ pub fn parse_comment_statement(input: Span) -> IResult<Span, ASTNode, VerboseErr
     Ok((input, comment_statement))
 }
 
-pub fn parse_comment(input: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+pub fn parse_comment(input: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     let (input, comment) = alt((parse_line_comment, parse_multiline_comment))(input)?;
 
     Ok((input, comment))
 }
 
-pub fn jump_comments(input: Span) -> IResult<Span, String, VerboseError<Span>> {
+pub fn jump_comments(input: Span) -> IResult<Span, String, ErrorTree<Span>> {
     let (input, comments) = many0(preceded(
         multispace0,
         alt((parse_line_comment, parse_multiline_comment)),
@@ -39,7 +39,7 @@ pub fn jump_comments(input: Span) -> IResult<Span, String, VerboseError<Span>> {
     Ok((input, comments_str))
 }
 
-fn parse_line_comment(input: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+fn parse_line_comment(input: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     let (input, comment_opening) = tag("//")(input)?;
     let (input, comment_value) = take_until("\n")(input)?;
     let (input, comment_closing) = tag("\n")(input)?;
@@ -52,7 +52,7 @@ fn parse_line_comment(input: Span) -> IResult<Span, Expression, VerboseError<Spa
     Ok((input, comment_expr))
 }
 
-fn parse_multiline_comment(input: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+fn parse_multiline_comment(input: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     let (input, comment_opening) = tag("/*")(input)?;
     let (input, comment_value) = take_until("*/")(input)?;
     let (input, comment_closing) = tag("*/")(input)?;

@@ -1,6 +1,7 @@
 use std::fmt;
 
-use nom::{branch::alt, bytes::complete::tag, error::VerboseError, IResult};
+use nom::{branch::alt, bytes::complete::tag, IResult};
+use nom_supreme::error::ErrorTree;
 
 use crate::parser::Span;
 
@@ -14,7 +15,7 @@ pub enum AssignmentOperator {
     ModuloEqual, // =%
 }
 
-pub fn parse_assignment_operator(i: Span) -> IResult<Span, AssignmentOperator, VerboseError<Span>> {
+pub fn parse_assignment_operator(i: Span) -> IResult<Span, AssignmentOperator, ErrorTree<Span>> {
     // one_of matches one of the characters we give it
     let (i, t) = alt((
         tag("="),

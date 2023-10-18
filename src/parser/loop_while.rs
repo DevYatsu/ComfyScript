@@ -2,11 +2,11 @@ use super::{ast::ASTNode, expression::parse_expression, parse_block, Span};
 use nom::{
     bytes::complete::tag,
     character::complete::{multispace0, multispace1},
-    error::VerboseError,
     IResult,
 };
+use nom_supreme::error::ErrorTree;
 
-pub fn parse_while_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+pub fn parse_while_statement(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     let (input, _) = tag("while")(input)?;
     let (input, _) = multispace1(input)?;
 

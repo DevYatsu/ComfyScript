@@ -25,13 +25,13 @@ use crate::parser::{ast::Expression, Span};
 use nom::{
     branch::alt,
     character::complete::multispace0,
-    error::VerboseError,
     multi::many0,
     sequence::{preceded, separated_pair},
     IResult,
 };
+use nom_supreme::error::ErrorTree;
 
-pub fn parse_expression_statement(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+pub fn parse_expression_statement(i: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     let (input, expr) = parse_expression(i)?;
 
     let expr_statement = ASTNode::ExpressionStatement { expression: expr };
@@ -39,15 +39,15 @@ pub fn parse_expression_statement(i: Span) -> IResult<Span, ASTNode, VerboseErro
     Ok((input, expr_statement))
 }
 
-pub fn parse_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+pub fn parse_expression(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     parse_expression_with(parse_basic_expression)(i)
 }
 
 pub fn parse_expression_with<'a, F>(
     parser: F,
-) -> impl Fn(Span<'a>) -> IResult<Span<'a>, Expression, VerboseError<Span>>
+) -> impl Fn(Span<'a>) -> IResult<Span<'a>, Expression, ErrorTree<Span>>
 where
-    F: Fn(Span<'a>) -> IResult<Span<'a>, Expression, VerboseError<Span>>,
+    F: Fn(Span<'a>) -> IResult<Span<'a>, Expression, ErrorTree<Span>>,
 {
     move |input| {
         let parser_closure = |i| parser(i);
@@ -78,7 +78,7 @@ where
     }
 }
 
-fn parse_basic_expression(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+fn parse_basic_expression(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     let (i, _) = jump_comments(i)?;
 
     let (i, expr) = alt((
@@ -96,9 +96,9 @@ fn parse_basic_expression(i: Span) -> IResult<Span, Expression, VerboseError<Spa
     Ok((i, expr))
 }
 
-fn parse_primitive_value(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+fn parse_primitive_value(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     alt((parse_string, parse_bool, parse_number, parse_nil))(i)
 }
-fn parse_composite_value(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+fn parse_composite_value(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     alt((parse_array, parse_object))(i)
 }

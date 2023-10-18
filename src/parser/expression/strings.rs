@@ -1,7 +1,8 @@
 use nom::{
     branch::alt, bytes::complete::tag, bytes::complete::take_until, combinator::map,
-    error::VerboseError, IResult,
+    IResult,
 };
+use nom_supreme::error::ErrorTree;
 
 use crate::parser::{
     ast::{literal_value::LiteralValue, Expression},
@@ -13,7 +14,7 @@ enum Quote {
     Double,
 }
 
-pub fn parse_string(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+pub fn parse_string(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     let (i, quote) = parse_quote(i)?;
 
     match quote {
@@ -45,7 +46,7 @@ pub fn parse_string(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
 }
 // todo!
 
-fn parse_quote(i: Span) -> IResult<Span, Quote, VerboseError<Span>> {
+fn parse_quote(i: Span) -> IResult<Span, Quote, ErrorTree<Span>> {
     alt((
         map(tag("\""), |_| Quote::Double),
         map(tag("'"), |_| Quote::Unique),

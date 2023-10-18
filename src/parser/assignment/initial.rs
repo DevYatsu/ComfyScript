@@ -10,10 +10,11 @@ use nom::{
     bytes::complete::tag,
     character::complete::{multispace0, multispace1},
     combinator::map,
-    error::{context, ContextError, VerboseError},
+    error::{context},
     multi::separated_list1,
     IResult,
 };
+use nom_supreme::error::ErrorTree;
 
 #[derive(Debug, Eq, PartialEq, Clone)]
 pub enum VariableKeyword {
@@ -30,7 +31,7 @@ impl fmt::Display for VariableKeyword {
     }
 }
 
-pub fn parse_var_init(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+pub fn parse_var_init(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     let (input, keyword) = parse_variable_keyword(input)?;
 
     let (input, _) = multispace1(input)?;
@@ -50,18 +51,14 @@ pub fn parse_var_init(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>>
 
 pub fn parse_single_declaration(
     input: Span,
-) -> IResult<Span, VariableDeclarator, VerboseError<Span>> {
+) -> IResult<Span, VariableDeclarator, ErrorTree<Span>> {
     let (input, _) = multispace0(input)?;
 
     let (input, id) = parse_identifier(input)?;
 
     match id.name.parse::<i32>().is_ok() {
         true => {
-            return Err(nom::Err::Error(VerboseError::add_context(
-                input,
-                "test",
-                VerboseError { errors: vec![] },
-            )));
+            return Err(nom::Err::Error(ErrorTree::Base { location: todo!(), kind: todo!() }))
         }
         false => (),
     }
@@ -77,7 +74,7 @@ pub fn parse_single_declaration(
     Ok((input, declarator))
 }
 
-fn parse_variable_keyword(i: Span) -> IResult<Span, VariableKeyword, VerboseError<Span>> {
+fn parse_variable_keyword(i: Span) -> IResult<Span, VariableKeyword, ErrorTree<Span>> {
     alt((
         map(tag("let"), |_| VariableKeyword::Let),
         map(tag("var"), |_| VariableKeyword::Var),

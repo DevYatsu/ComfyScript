@@ -6,8 +6,8 @@ use nom::branch::alt;
 use nom::bytes::complete::tag;
 use nom::character::complete::multispace0;
 use nom::combinator::map;
-use nom::error::VerboseError;
 use nom::IResult;
+use nom_supreme::error::ErrorTree;
 
 use super::function_call::parse_fn_call;
 use super::indexing::parse_indexing;
@@ -15,7 +15,7 @@ use super::member_expr::parse_member_expr;
 use super::parenthesized::parse_parenthesized;
 use super::{parse_composite_value, parse_expression_with, parse_primitive_value};
 
-pub fn parse_range(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+pub fn parse_range(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     let (i, from) = map(
         parse_expression_with(parse_expression_except_range),
         |expr| Box::new(expr),
@@ -34,7 +34,7 @@ pub fn parse_range(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     Ok((i, Expression::Range { from, limits, to }))
 }
 
-fn parse_expression_except_range(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+fn parse_expression_except_range(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     // to avoid recursive calls to range parser
     alt((
         parse_indexing,
@@ -47,7 +47,7 @@ fn parse_expression_except_range(i: Span) -> IResult<Span, Expression, VerboseEr
     ))(i)
 }
 
-pub fn parse_range_type(i: Span) -> IResult<Span, RangeType, VerboseError<Span>> {
+pub fn parse_range_type(i: Span) -> IResult<Span, RangeType, ErrorTree<Span>> {
     let (i, range) = alt((tag("..="), tag("..")))(i)?;
 
     let range_type = match range.fragment() {

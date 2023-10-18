@@ -1,6 +1,7 @@
 use std::fmt;
 
-use nom::{branch::alt, bytes::complete::tag, error::VerboseError, IResult};
+use nom::{branch::alt, bytes::complete::tag, IResult};
+use nom_supreme::error::ErrorTree;
 
 use crate::parser::Span;
 
@@ -24,7 +25,7 @@ pub enum BinaryOperator {
     Or,  // ||
 }
 
-pub fn parse_binary_operator(i: Span) -> IResult<Span, BinaryOperator, VerboseError<Span>> {
+pub fn parse_binary_operator(i: Span) -> IResult<Span, BinaryOperator, ErrorTree<Span>> {
     let (i, operator) = alt((
         tag("+"),
         tag("-"),

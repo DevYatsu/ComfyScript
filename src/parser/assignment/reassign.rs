@@ -1,6 +1,7 @@
 use nom::{
-    branch::alt, character::complete::multispace0, combinator::map, error::VerboseError, IResult,
+    branch::alt, character::complete::multispace0, combinator::map, IResult,
 };
+use nom_supreme::error::ErrorTree;
 
 use crate::parser::{
     ast::{identifier::parse_identifier_expression, ASTNode, Expression},
@@ -9,7 +10,7 @@ use crate::parser::{
     Span,
 };
 
-pub fn parse_assignment(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+pub fn parse_assignment(i: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     let (i, id) = map(
         alt((
             parse_indexing,

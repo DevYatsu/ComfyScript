@@ -11,12 +11,12 @@ use nom::{
     bytes::complete::tag,
     character::complete::{char as parse_char, multispace0, multispace1},
     combinator::{map, opt},
-    error::VerboseError,
     multi::separated_list1,
     IResult,
 };
+use nom_supreme::error::ErrorTree;
 
-pub fn parse_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+pub fn parse_function(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     let (input, _) = tag("fn")(input)?;
     let (input, _) = multispace1(input)?;
 
@@ -43,7 +43,7 @@ pub fn parse_function(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>>
 
     Ok((input, node))
 }
-pub fn parse_fn_expression(input: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+pub fn parse_fn_expression(input: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     let (input, _) = tag("|")(input)?;
     let (input, _) = multispace0(input)?;
 
@@ -65,14 +65,14 @@ pub fn parse_fn_expression(input: Span) -> IResult<Span, Expression, VerboseErro
     Ok((input, node))
 }
 
-fn parse_fn_params(input: Span) -> IResult<Span, Vec<Identifier>, VerboseError<Span>> {
+fn parse_fn_params(input: Span) -> IResult<Span, Vec<Identifier>, ErrorTree<Span>> {
     let (input, params) = opt(separated_list1(tag(","), parse_fn_identifier))(input)?;
     let params = params.unwrap_or_else(|| vec![]);
 
     Ok((input, params))
 }
 
-fn parse_fn_body(input: Span) -> IResult<Span, (ASTNode, bool), VerboseError<Span>> {
+fn parse_fn_body(input: Span) -> IResult<Span, (ASTNode, bool), ErrorTree<Span>> {
     let (input, return_statement) = opt(parse_return_statement)(input)?;
 
     if let Some(return_statement) = return_statement {
@@ -84,7 +84,7 @@ fn parse_fn_body(input: Span) -> IResult<Span, (ASTNode, bool), VerboseError<Spa
     Ok((input, (body, false)))
 }
 
-fn parse_fn_identifier(input: Span) -> IResult<Span, Identifier, VerboseError<Span>> {
+fn parse_fn_identifier(input: Span) -> IResult<Span, Identifier, ErrorTree<Span>> {
     let (input, _) = multispace0(input)?;
 
     let (input, id) = parse_identifier(input)?;

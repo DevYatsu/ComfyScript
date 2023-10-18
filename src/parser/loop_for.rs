@@ -10,12 +10,12 @@ use nom::{
     bytes::complete::tag,
     character::complete::{multispace0, multispace1},
     combinator::{map, opt},
-    error::VerboseError,
     multi::separated_list1,
     IResult,
 };
+use nom_supreme::error::ErrorTree;
 
-pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     let (input, _) = tag("for")(input)?;
     let (input, _) = multispace1(input)?;
 
@@ -43,7 +43,7 @@ pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<S
     Ok((input, node))
 }
 
-fn parse_for_identifier(input: Span) -> IResult<Span, Identifier, VerboseError<Span>> {
+fn parse_for_identifier(input: Span) -> IResult<Span, Identifier, ErrorTree<Span>> {
     let (input, _) = multispace0(input)?;
 
     let (input, id) = parse_identifier(input)?;
@@ -51,7 +51,7 @@ fn parse_for_identifier(input: Span) -> IResult<Span, Identifier, VerboseError<S
     Ok((input, id))
 }
 
-fn parse_for_var_keyword(input: Span) -> IResult<Span, VariableKeyword, VerboseError<Span>> {
+fn parse_for_var_keyword(input: Span) -> IResult<Span, VariableKeyword, ErrorTree<Span>> {
     let (input, opt_keyword) = opt(alt((tag("let"), tag("var"))))(input)?;
 
     Ok(if let Some(k) = opt_keyword {

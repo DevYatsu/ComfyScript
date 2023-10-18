@@ -12,12 +12,12 @@ use nom::{
     bytes::complete::tag,
     character::complete::{multispace0, multispace1},
     combinator::opt,
-    error::VerboseError,
     multi::separated_list1,
     IResult,
 };
+use nom_supreme::error::ErrorTree;
 
-pub fn parse_import(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+pub fn parse_import(i: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     let (i, _) = tag("import")(i)?;
     let (i, _) = multispace1(i)?;
 
@@ -78,7 +78,7 @@ pub fn parse_import(i: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
     Ok((i, ASTNode::ImportDeclaration { specifiers, source }))
 }
 
-fn parse_import_specifier(i: Span) -> IResult<Span, ImportSpecifier, VerboseError<Span>> {
+fn parse_import_specifier(i: Span) -> IResult<Span, ImportSpecifier, ErrorTree<Span>> {
     let (i, _) = multispace0(i)?;
     let (i, imported_name) = parse_identifier(i)?;
     let (i, _) = multispace0(i)?;
@@ -105,7 +105,7 @@ fn parse_import_specifier(i: Span) -> IResult<Span, ImportSpecifier, VerboseErro
     }
 }
 
-fn opt_import_as(i: Span) -> IResult<Span, Option<Identifier>, VerboseError<Span>> {
+fn opt_import_as(i: Span) -> IResult<Span, Option<Identifier>, ErrorTree<Span>> {
     let (i, opt_val) = opt(tag("as"))(i)?;
 
     if opt_val.is_some() {

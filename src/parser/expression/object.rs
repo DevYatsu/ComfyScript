@@ -1,7 +1,8 @@
 use nom::{
-    bytes::complete::tag, character::complete::multispace0, combinator::opt, error::VerboseError,
+    bytes::complete::tag, character::complete::multispace0, combinator::opt, 
     multi::separated_list0, IResult,
 };
+use nom_supreme::error::ErrorTree;
 
 use crate::parser::{
     ast::{
@@ -14,7 +15,7 @@ use crate::parser::{
 
 use super::parse_expression;
 
-pub fn parse_object(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+pub fn parse_object(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     let (i, _) = tag("{")(i)?;
     let (i, _) = multispace0(i)?;
 
@@ -33,7 +34,7 @@ pub fn parse_object(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
     ))
 }
 
-fn parse_property(i: Span) -> IResult<Span, Property, VerboseError<Span>> {
+fn parse_property(i: Span) -> IResult<Span, Property, ErrorTree<Span>> {
     let (i, _) = multispace0(i)?;
     let (i, id) = parse_identifier(i)?;
 

@@ -1,11 +1,12 @@
-use nom::{bytes::complete::tag, error::VerboseError, IResult};
+use nom::{bytes::complete::tag, IResult};
+use nom_supreme::error::ErrorTree;
 
 use crate::parser::{
     ast::{literal_value::LiteralValue, Expression},
     Span,
 };
 
-pub fn parse_nil(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+pub fn parse_nil(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     let (i, _) = tag("nil")(i)?;
 
     Ok((

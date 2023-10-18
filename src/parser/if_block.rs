@@ -7,11 +7,11 @@ use nom::{
     bytes::complete::tag,
     character::complete::{multispace0, multispace1},
     combinator::{map, opt},
-    error::VerboseError,
     IResult,
 };
+use nom_supreme::error::ErrorTree;
 
-pub fn parse_if_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Span>> {
+pub fn parse_if_statement(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     let (input, (test, body)) = parse_if_block(input)?;
 
     let (else_input, _) = multispace0(input)?;
@@ -55,7 +55,7 @@ pub fn parse_if_statement(input: Span) -> IResult<Span, ASTNode, VerboseError<Sp
     Ok((input, node))
 }
 
-fn parse_if_block(input: Span) -> IResult<Span, (Expression, Box<ASTNode>), VerboseError<Span>> {
+fn parse_if_block(input: Span) -> IResult<Span, (Expression, Box<ASTNode>), ErrorTree<Span>> {
     let (input, _) = tag("if")(input)?;
     let (input, _) = multispace1(input)?;
 

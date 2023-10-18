@@ -7,12 +7,13 @@ use crate::parser::{
 
 use nom::{
     branch::alt, bytes::complete::tag, character::complete::multispace0, combinator::opt,
-    error::VerboseError, multi::separated_list1, IResult,
+     multi::separated_list1, IResult,
 };
+use nom_supreme::error::ErrorTree;
 
 use super::{parenthesized::parse_parenthesized, parse_expression};
 
-pub fn parse_fn_call(input: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+pub fn parse_fn_call(input: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     let (input, id) = parse_expression_with(parse_expression_except_fn_call)(input)?;
 
     let (input, _) = tag("(")(input)?;
@@ -31,7 +32,7 @@ pub fn parse_fn_call(input: Span) -> IResult<Span, Expression, VerboseError<Span
     Ok((input, expr))
 }
 
-fn parse_expression_except_fn_call(i: Span) -> IResult<Span, Expression, VerboseError<Span>> {
+fn parse_expression_except_fn_call(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> {
     let (i, _) = jump_comments(i)?;
 
     let (i, expr) = alt((
