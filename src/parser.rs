@@ -21,7 +21,10 @@ use self::{
     loop_while::parse_while_statement,
 };
 use crate::{expected, parser::import::parse_import};
-use nom::{branch::alt, bytes::complete::take_while1, combinator::opt, IResult, Parser, character::complete::char};
+use nom::{
+    branch::alt, bytes::complete::take_while1, character::complete::char, combinator::opt, IResult,
+    Parser,
+};
 use nom_supreme::{error::ErrorTree, final_parser::final_parser, ParserExt};
 
 pub fn parse_input(input: &str) -> Result<ASTNode, ErrorTree<&str>> {

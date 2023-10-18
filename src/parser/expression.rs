@@ -21,15 +21,15 @@ use super::{
     function::parse_fn_expression,
     operations::{binary::parse_binary_operator, build_binary_expression},
 };
-use crate::{expected, parser::ast::Expression};
+use crate::parser::ast::Expression;
 use nom::{
     branch::alt,
     character::complete::multispace0,
     multi::many0,
     sequence::{preceded, separated_pair},
-    IResult, Parser,
+    IResult,
 };
-use nom_supreme::{error::ErrorTree, ParserExt};
+use nom_supreme::error::ErrorTree;
 
 pub fn parse_expression_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, expr) = parse_expression(i)?;
