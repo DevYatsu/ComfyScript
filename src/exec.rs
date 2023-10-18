@@ -15,7 +15,7 @@ pub fn exec_script(path: &Path) -> Result<(), Box<dyn Error>> {
     let program = match parse_input(&content) {
         Ok(r) => r,
         Err(e) => {
-            println!("err {}", e);
+            println!("err {:?}", e);
             // todo! manage error here to display a user friendly message
 
             return Err("An error occurred!".into());

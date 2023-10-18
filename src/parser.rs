@@ -21,8 +21,8 @@ use self::{
     loop_while::parse_while_statement,
 };
 use crate::{expected, parser::import::parse_import};
-use nom::{branch::alt, bytes::complete::take_while1, combinator::opt, IResult, Parser};
-use nom_supreme::{error::ErrorTree, final_parser::final_parser, tag::complete::tag, ParserExt};
+use nom::{branch::alt, bytes::complete::take_while1, combinator::opt, IResult, Parser, character::complete::char};
+use nom_supreme::{error::ErrorTree, final_parser::final_parser, ParserExt};
 
 pub fn parse_input(input: &str) -> Result<ASTNode, ErrorTree<&str>> {
     final_parser(parse_code)(input)
@@ -49,13 +49,13 @@ fn parse_code<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str
 }
 
 fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
-    let (input, _) = tag("{").context(expected!("{")).parse(input)?;
+    let (input, _) = char('{').context(expected!("{")).parse(input)?;
 
     let (input, _) = opt(parse_new_lines)(input)?;
 
     let mut statements = Vec::new();
 
-    let (mut input, limit) = opt(tag("}"))(input)?;
+    let (mut input, limit) = opt(char('}'))(input)?;
 
     if limit.is_some() {
         return Ok((input, ASTNode::BlockStatement { body: statements }));
@@ -66,7 +66,7 @@ fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a st
         statements.push(statement);
 
         let (new_input, _) = opt(parse_new_lines)(new_input)?;
-        let (new_input, limit) = opt(tag("}"))(new_input)?;
+        let (new_input, limit) = opt(char('}'))(new_input)?;
 
         input = new_input;
         if limit.is_some() {
