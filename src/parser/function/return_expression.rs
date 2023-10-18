@@ -1,8 +1,5 @@
-use nom::{
-    branch::alt, bytes::complete::tag, character::complete::multispace0, 
-    IResult,
-};
-use nom_supreme::error::ErrorTree;
+use nom::{branch::alt, character::complete::multispace0, IResult};
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 use crate::parser::{ast::ASTNode, expression::parse_expression, Span};
 

@@ -1,7 +1,7 @@
-use nom::bytes::complete::{tag, take, take_until};
+use nom::bytes::complete::{take, take_until};
 use nom::number::complete::float;
 use nom::{branch::alt, character::complete::char, combinator::opt, IResult};
-use nom_supreme::error::ErrorTree;
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 use crate::parser::ast::literal_value::LiteralValue;
 use crate::parser::ast::Expression;

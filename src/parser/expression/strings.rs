@@ -1,8 +1,5 @@
-use nom::{
-    branch::alt, bytes::complete::tag, bytes::complete::take_until, combinator::map,
-    IResult,
-};
-use nom_supreme::error::ErrorTree;
+use nom::{branch::alt, bytes::complete::take_until, combinator::map, IResult};
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 use crate::parser::{
     ast::{literal_value::LiteralValue, Expression},

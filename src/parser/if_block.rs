@@ -4,12 +4,11 @@ use super::{
     parse_block, Span,
 };
 use nom::{
-    bytes::complete::tag,
     character::complete::{multispace0, multispace1},
     combinator::{map, opt},
     IResult,
 };
-use nom_supreme::error::ErrorTree;
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 pub fn parse_if_statement(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     let (input, (test, body)) = parse_if_block(input)?;

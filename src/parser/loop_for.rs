@@ -7,13 +7,12 @@ use super::{
 use crate::parser::ast::identifier::parse_identifier;
 use nom::{
     branch::alt,
-    bytes::complete::tag,
     character::complete::{multispace0, multispace1},
     combinator::{map, opt},
     multi::separated_list1,
     IResult,
 };
-use nom_supreme::error::ErrorTree;
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 pub fn parse_for_statement(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     let (input, _) = tag("for")(input)?;

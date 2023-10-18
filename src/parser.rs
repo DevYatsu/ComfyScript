@@ -20,14 +20,9 @@ use self::{
     loop_while::parse_while_statement,
 };
 use crate::parser::import::parse_import;
-use nom::{
-    branch::alt,
-    bytes::complete::{tag, take_while1},
-    combinator::opt,
-    IResult,
-};
+use nom::{branch::alt, bytes::complete::take_while1, combinator::opt, IResult};
 use nom_locate::LocatedSpan;
-use nom_supreme::error::ErrorTree;
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 pub type Span<'a> = LocatedSpan<&'a str>;
 

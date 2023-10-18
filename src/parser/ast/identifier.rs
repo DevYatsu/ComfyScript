@@ -1,11 +1,8 @@
 use std::fmt;
 
 use crate::{parser::Span, reserved_keywords::RESERVED_KEYWORD};
-use nom::{
-    branch::alt, bytes::complete::tag, character::complete::alphanumeric1, 
-    Err, IResult,
-};
-use nom_supreme::error::ErrorTree;
+use nom::{branch::alt, character::complete::alphanumeric1, Err, IResult};
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 use super::Expression;
 
@@ -39,7 +36,10 @@ pub fn parse_identifier(i: Span) -> IResult<Span, Identifier, ErrorTree<Span>> {
     }
 
     if RESERVED_KEYWORD.contains(&word.as_str()) {
-        Err(Err::Error(ErrorTree::Stack { base: todo!(), contexts: todo!() })) // return an error
+        Err(Err::Error(ErrorTree::Stack {
+            base: todo!(),
+            contexts: todo!(),
+        })) // return an error
     } else {
         Ok((i, Identifier { name: word }))
     }

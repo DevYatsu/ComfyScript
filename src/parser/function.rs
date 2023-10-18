@@ -8,13 +8,12 @@ use super::{
 };
 use crate::parser::ast::identifier::parse_identifier;
 use nom::{
-    bytes::complete::tag,
     character::complete::{char as parse_char, multispace0, multispace1},
     combinator::{map, opt},
     multi::separated_list1,
     IResult,
 };
-use nom_supreme::error::ErrorTree;
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 pub fn parse_function(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     let (input, _) = tag("fn")(input)?;

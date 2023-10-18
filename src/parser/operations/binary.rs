@@ -1,7 +1,7 @@
 use std::fmt;
 
-use nom::{branch::alt, bytes::complete::tag, IResult};
-use nom_supreme::error::ErrorTree;
+use nom::{branch::alt, IResult};
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 use crate::parser::Span;
 

@@ -3,10 +3,9 @@ use crate::parser::ast::Expression;
 use crate::parser::comment::jump_comments;
 use crate::parser::Span;
 use nom::branch::alt;
-use nom::bytes::complete::tag;
 use nom::multi::separated_list1;
 use nom::IResult;
-use nom_supreme::error::ErrorTree;
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 use super::function_call::parse_fn_call;
 use super::indexing::parse_indexing;
@@ -23,7 +22,10 @@ pub fn parse_member_expr(i: Span) -> IResult<Span, Expression, ErrorTree<Span>> 
     let property = Box::new(ids.pop().unwrap());
 
     if ids.len() == 0 {
-        return Err(nom::Err::Error(ErrorTree::Stack { base: todo!(), contexts: todo!() }));
+        return Err(nom::Err::Error(ErrorTree::Stack {
+            base: todo!(),
+            contexts: todo!(),
+        }));
     }
 
     let indexed = if ids.len() == 1 {

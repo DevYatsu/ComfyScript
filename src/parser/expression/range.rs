@@ -3,11 +3,10 @@ use crate::parser::ast::range::RangeType;
 use crate::parser::ast::Expression;
 use crate::parser::Span;
 use nom::branch::alt;
-use nom::bytes::complete::tag;
 use nom::character::complete::multispace0;
 use nom::combinator::map;
 use nom::IResult;
-use nom_supreme::error::ErrorTree;
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 use super::function_call::parse_fn_call;
 use super::indexing::parse_indexing;

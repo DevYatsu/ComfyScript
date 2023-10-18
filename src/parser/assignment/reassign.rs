@@ -1,6 +1,4 @@
-use nom::{
-    branch::alt, character::complete::multispace0, combinator::map, IResult,
-};
+use nom::{branch::alt, character::complete::multispace0, combinator::map, IResult};
 use nom_supreme::error::ErrorTree;
 
 use crate::parser::{

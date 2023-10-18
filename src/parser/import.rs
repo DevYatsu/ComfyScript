@@ -9,13 +9,12 @@ use super::{
     Span,
 };
 use nom::{
-    bytes::complete::tag,
     character::complete::{multispace0, multispace1},
     combinator::opt,
     multi::separated_list1,
     IResult,
 };
-use nom_supreme::error::ErrorTree;
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 pub fn parse_import(i: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     let (i, _) = tag("import")(i)?;

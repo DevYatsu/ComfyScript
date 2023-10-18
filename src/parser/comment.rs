@@ -3,14 +3,10 @@ use super::{
     Span,
 };
 use nom::{
-    branch::alt,
-    bytes::complete::{tag, take_until},
-    character::complete::multispace0,
-    multi::many0,
-    sequence::preceded,
-    IResult,
+    branch::alt, bytes::complete::take_until, character::complete::multispace0, multi::many0,
+    sequence::preceded, IResult,
 };
-use nom_supreme::error::ErrorTree;
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 pub fn parse_comment_statement(input: Span) -> IResult<Span, ASTNode, ErrorTree<Span>> {
     let (input, comment) = parse_comment(input)?;
