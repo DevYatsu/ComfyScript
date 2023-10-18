@@ -8,6 +8,7 @@ mod import;
 mod loop_for;
 mod loop_while;
 mod operations;
+mod errors;
 
 use self::{
     assignment::{initial::parse_var_init, reassign::parse_assignment},
@@ -19,11 +20,15 @@ use self::{
     loop_for::parse_for_statement,
     loop_while::parse_while_statement,
 };
-use crate::parser::import::parse_import;
-use nom::{branch::alt, bytes::complete::take_while1, combinator::opt, IResult};
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use crate::{parser::import::parse_import, expected};
+use nom::{branch::alt, bytes::complete::take_while1, combinator::opt, IResult, Parser};
+use nom_supreme::{error::ErrorTree, final_parser::final_parser, tag::complete::tag, ParserExt};
 
-pub fn parse_input<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
+pub fn parse_input(input: &str) -> Result<ASTNode, ErrorTree<&str>> {
+    final_parser(parse_code)(input)
+}
+
+fn parse_code<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
     let (mut input, _) = opt(parse_new_lines)(input)?;
 
     let mut statements = Vec::new();
@@ -43,8 +48,8 @@ pub fn parse_input<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'
     Ok((input, ASTNode::Program { body: statements }))
 }
 
-pub fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
-    let (input, _) = tag("{")(input)?;
+fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
+    let (input, _) = tag("{").context(expected!("{")).parse(input)?;
 
     let (input, _) = opt(parse_new_lines)(input)?;
 

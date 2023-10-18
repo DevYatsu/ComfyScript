@@ -12,14 +12,10 @@ pub fn minify_input(path: &Path) -> Result<(), Box<dyn Error>> {
         return Ok(generate_minified_file(path, &[])?);
     }
 
-    let (rest, program) = match parse_input(&content) {
+    let program = match parse_input(&content) {
         Ok(r) => r,
         Err(_) => return Err("An error occurred!".into()),
     };
-
-    if rest.len() != 0 {
-        return Err("Something went wrong! Input is not empty after parsing!".into());
-    }
 
     let mut buffer = String::new();
 

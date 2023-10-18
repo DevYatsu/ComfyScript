@@ -1,14 +1,14 @@
 use super::{
     ast::{ASTNode, Expression},
     expression::parse_expression,
-    parse_block,
+    parse_block, errors::{expected_space, expected_expression},
 };
 use nom::{
     character::complete::{multispace0, multispace1},
     combinator::{map, opt},
-    IResult,
+    IResult, Parser,
 };
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_if_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, (test, body)) = parse_if_block(input)?;
@@ -56,9 +56,9 @@ pub fn parse_if_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>
 
 fn parse_if_block(input: &str) -> IResult<&str, (Expression, Box<ASTNode>), ErrorTree<&str>> {
     let (input, _) = tag("if")(input)?;
-    let (input, _) = multispace1(input)?;
+    let (input, _) = multispace1.context(expected_space()).parse(input)?;
 
-    let (input, test) = parse_expression(input)?;
+    let (input, test) = parse_expression.context(expected_expression()).parse(input)?;
     let (input, _) = multispace0(input)?;
 
     let (input, body) = map(parse_block, |b| Box::new(b))(input)?;

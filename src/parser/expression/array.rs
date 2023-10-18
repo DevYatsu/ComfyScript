@@ -1,8 +1,5 @@
-use nom::{
-    bytes::complete::tag, character::complete::multispace0, combinator::opt,
-    multi::separated_list0, IResult,
-};
-use nom_supreme::error::ErrorTree;
+use nom::{character::complete::multispace0, combinator::opt, multi::separated_list0, IResult};
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 use crate::parser::ast::Expression;
 

@@ -1,5 +1,5 @@
-use nom::{branch::alt, character::complete::multispace0, combinator::map, IResult};
-use nom_supreme::error::ErrorTree;
+use nom::{branch::alt, character::complete::multispace0, combinator::map, IResult, Parser};
+use nom_supreme::{error::ErrorTree, ParserExt};
 
 use crate::parser::{
     ast::{identifier::parse_identifier_expression, ASTNode, Expression},
@@ -18,10 +18,14 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     )(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, op) = parse_assignment_operator(i)?;
+    let (i, op) = parse_assignment_operator
+        .context("Expected a valid assignment operator such as '=', '+=', '-='")
+        .parse(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, assigned) = parse_expression(i)?; //todo! parse expression
+    let (i, assigned) = parse_expression
+        .context("Expected a valid expression")
+        .parse(i)?; //todo! parse expression
 
     Ok((
         i,

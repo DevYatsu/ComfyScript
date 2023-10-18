@@ -1,8 +1,8 @@
 use std::fmt;
 
 use crate::reserved_keywords::RESERVED_KEYWORD;
-use nom::{branch::alt, bytes::complete::tag, character::complete::alphanumeric1, IResult};
-use nom_supreme::error::ErrorTree;
+use nom::{branch::alt, character::complete::alphanumeric1, IResult};
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 use super::Expression;
 

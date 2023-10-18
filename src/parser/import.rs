@@ -1,3 +1,5 @@
+use crate::expected_valid;
+
 use super::{
     ast::{
         identifier::{parse_identifier, Identifier},
@@ -5,15 +7,16 @@ use super::{
         literal_value::LiteralValue,
         ASTNode, Expression,
     },
-    expression::strings::parse_string,
+    expression::strings::parse_string, errors::{expected_expression, expected_space},
 };
 use nom::{
     character::complete::{multispace0, multispace1},
     combinator::opt,
     multi::separated_list1,
-    IResult,
+    sequence::preceded,
+    IResult, Parser,
 };
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (i, _) = tag("import")(i)?;
@@ -27,13 +30,12 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         let (i, comma) = opt(tag(","))(i)?;
 
         if comma.is_some() {
-            let (i, _) = multispace1(i)?;
+            let (i, _) = multispace1.context(expected_space()).parse(i)?;
             (i, specifiers)
         } else {
             (i, specifiers)
         }
     } else {
-        let (i, _) = multispace1(i)?;
         let (i, local) = opt_import_as(i)?;
         let (i, _) = multispace0(i)?;
 
@@ -60,10 +62,10 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         }
     };
 
-    let (i, _) = tag("from")(i)?;
-    let (i, _) = multispace1(i)?;
+    let (i, _) = tag("from").context(expected_valid!("import source")).parse(i)?;
+    let (i, _) = multispace1.context(expected_space()).parse(i)?;
 
-    let (i, source) = parse_string(i)?; // todo! add expression Literal support instead
+    let (i, source) = parse_string.context(expected_valid!("import source")).parse(i)?; 
 
     let source = match source {
         Expression::Literal { value, .. } => match value {
@@ -78,8 +80,9 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 
 fn parse_import_specifier(i: &str) -> IResult<&str, ImportSpecifier, ErrorTree<&str>> {
     let (i, _) = multispace0(i)?;
-    let (i, imported_name) = parse_identifier(i)?;
-    let (i, _) = multispace0(i)?;
+    let (i, imported_name) = parse_identifier
+        .context(expected_valid!("import identifier"))
+        .parse(i)?;
     let (i, local_name) = opt_import_as(i)?;
     let (i, _) = multispace0(i)?;
 
@@ -104,16 +107,17 @@ fn parse_import_specifier(i: &str) -> IResult<&str, ImportSpecifier, ErrorTree<&
 }
 
 fn opt_import_as(i: &str) -> IResult<&str, Option<Identifier>, ErrorTree<&str>> {
-    let (i, opt_val) = opt(tag("as"))(i)?;
+    let (i, opt_val) = opt(preceded(multispace1, tag("as")))(i)?;
 
     if opt_val.is_some() {
-        let (i, _) = multispace1(i)?;
-        let (i, local_name) = parse_identifier(i)?;
+        let (i, _) = multispace1.context(expected_space()).parse(i)?;
+        let (i, local_name) = parse_identifier
+            .context(expected_valid!("import identifer"))
+            .parse(i)?;
 
         return Ok((i, Some(local_name)));
     }
-
-    //todo!! add support for "as" keyword to rename import locally
+    let (i, _) = multispace0(i)?;
 
     Ok((i, None))
 }
