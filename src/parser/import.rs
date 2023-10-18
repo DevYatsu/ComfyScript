@@ -1,4 +1,4 @@
-use crate::expected_valid;
+use crate::{expected, expected_valid};
 
 use super::{
     ast::{
@@ -11,7 +11,7 @@ use super::{
     expression::strings::parse_string,
 };
 use nom::{
-    character::complete::{multispace0, multispace1},
+    character::complete::{char, multispace0, multispace1},
     combinator::opt,
     multi::separated_list1,
     sequence::preceded,
@@ -23,12 +23,14 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (i, _) = tag("import")(i)?;
     let (i, _) = multispace1(i)?;
 
-    let (i, asterisk) = opt(tag("*"))(i)?;
+    let (i, asterisk) = opt(char('*'))(i)?;
 
     let (i, specifiers) = if asterisk.is_none() {
-        let (i, specifiers) = separated_list1(tag(","), parse_import_specifier)(i)?;
+        let (i, specifiers) =
+            separated_list1(preceded(multispace0, char(',')), parse_import_specifier)(i)?;
+
         let (i, _) = multispace0(i)?;
-        let (i, comma) = opt(tag(","))(i)?;
+        let (i, comma) = opt(char(','))(i)?;
 
         if comma.is_some() {
             let (i, _) = multispace1.context(expected_space()).cut().parse(i)?;
@@ -37,7 +39,7 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
             (i, specifiers)
         }
     } else {
-        let (i, local) = opt_import_as(i)?;
+        let (i, local) = opt(opt_import_as)(i)?;
         let (i, _) = multispace0(i)?;
 
         let asterisk = Identifier {
@@ -64,7 +66,7 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     };
 
     let (i, _) = tag("from")
-        .context(expected_valid!("import source"))
+        .context(expected!("'from' keyword"))
         .cut()
         .parse(i)?;
     let (i, _) = multispace1.context(expected_space()).cut().parse(i)?;
@@ -88,11 +90,10 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 fn parse_import_specifier(i: &str) -> IResult<&str, ImportSpecifier, ErrorTree<&str>> {
     let (i, _) = multispace0(i)?;
     let (i, imported_name) = parse_identifier
-        .context(expected_valid!("import identifier"))
+        .context(expected!("an import identifier"))
         .cut()
         .parse(i)?;
-    let (i, local_name) = opt_import_as(i)?;
-    let (i, _) = multispace0(i)?;
+    let (i, local_name) = opt(opt_import_as)(i)?;
 
     match local_name {
         Some(local_name) => {
@@ -114,19 +115,15 @@ fn parse_import_specifier(i: &str) -> IResult<&str, ImportSpecifier, ErrorTree<&
     }
 }
 
-fn opt_import_as(i: &str) -> IResult<&str, Option<Identifier>, ErrorTree<&str>> {
-    let (i, opt_val) = opt(preceded(multispace1, tag("as")))(i)?;
+fn opt_import_as(i: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
+    let (i, _) = multispace1(i)?;
+    let (i, _) = tag("as")(i)?;
 
-    if opt_val.is_some() {
-        let (i, _) = multispace1.context(expected_space()).cut().parse(i)?;
-        let (i, local_name) = parse_identifier
-            .context(expected_valid!("import identifer"))
-            .cut()
-            .parse(i)?;
+    let (i, _) = multispace1.context(expected_space()).cut().parse(i)?;
+    let (i, local_name) = parse_identifier
+        .context(expected!("a local import identifer"))
+        .cut()
+        .parse(i)?;
 
-        return Ok((i, Some(local_name)));
-    }
-    let (i, _) = multispace0(i)?;
-
-    Ok((i, None))
+    return Ok((i, local_name));
 }

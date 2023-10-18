@@ -1,7 +1,7 @@
 import 
-    bar as foo, 
+    bar as foo,
     foo as bar,
-    boo as test
+    boo as test,
 from "test_package"
 
 import * from "math"
