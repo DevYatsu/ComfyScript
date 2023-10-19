@@ -38,7 +38,7 @@ pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
         let script = ComfyScript::new(file_path.to_string_lossy(), content);
         if let Err(err_data) = script.execute() {
             let mut errors_list = errors.lock().unwrap();
-            errors_list.push((err_data, file_path));
+            errors_list.push(err_data);
         } else {
             println!(
                 "\x1b[33m{}\x1b[32m successfully executed!\x1b[0m",
@@ -50,9 +50,8 @@ pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
     let errors = Arc::try_unwrap(errors).expect("Failed to unwrap errors Arc");
     let errors_list = errors.into_inner().unwrap();
 
-    for ((err, file), file_name) in errors_list {
-        let file = SimpleFile::new(file_name.to_string_lossy(), file.source());
-        err.print_error(file).unwrap();
+    for (err_data, file) in errors_list {
+        err_data.print_error(file).unwrap();
     }
     Ok(())
 }
