@@ -4,7 +4,6 @@ use std::{
     sync::{Arc, Mutex},
 };
 
-use codespan_reporting::files::SimpleFile;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::{get_file_content, script::ComfyScript};
