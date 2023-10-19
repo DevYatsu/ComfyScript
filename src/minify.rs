@@ -1,39 +1,6 @@
 use std::{error::Error, fs, path::Path};
 
-use crate::{
-    get_file_content,
-    parser::{ast, parse_input},
-};
-
-pub fn minify_input(path: &Path) -> Result<(), Box<dyn Error>> {
-    let content = get_file_content(&path)?;
-
-    if content.is_empty() {
-        return Ok(generate_minified_file(path, &[])?);
-    }
-
-    let program = match parse_input(&content) {
-        Ok(r) => r,
-        Err(_) => return Err("An error occurred!".into()),
-    };
-
-    let mut buffer = String::new();
-
-    let program = match program {
-        ast::ASTNode::Program { body } => body,
-        _ => unreachable!(),
-    };
-
-    for node in program {
-        buffer.push_str(&node.to_string())
-    }
-
-    generate_minified_file(path, buffer.as_bytes())?;
-
-    Ok(())
-}
-
-fn generate_minified_file(initial_path: &Path, content: &[u8]) -> Result<(), Box<dyn Error>> {
+pub fn generate_minified_file(initial_path: &Path, content: &[u8]) -> Result<(), Box<dyn Error>> {
     let file_name = initial_path
         .file_name()
         .ok_or("Invalid file path!")?

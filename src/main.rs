@@ -11,7 +11,7 @@ use test_files::parse_all_files;
 
 use crate::{
     command::{get_command, Command},
-    script::ComfyScript,
+    script::ComfyScript, minify::generate_minified_file,
 };
 
 use std::{
@@ -42,7 +42,9 @@ fn main() -> Result<(), Box<dyn Error>> {
             let content = get_file_content(&path)?;
             let script = ComfyScript::new(path.to_string_lossy(), content);
 
-            script.minify()?;
+            let minified_script = script.minify()?;
+
+            generate_minified_file(&path, minified_script.as_bytes())?;
         }
         Command::NotFound => {
             return Err("Command not found!".into());
