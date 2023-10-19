@@ -34,14 +34,13 @@ pub enum SyntaxError {
     #[diagnostic(code(comfy_error::io_error))]
     IoError(#[from] std::io::Error),
 
-    #[error("Expected a space")]
-    #[diagnostic(code(comfy_error::syntax_error::space))]
-    ExpectedSpace {
+    #[error("Expected a specifier")]
+    #[diagnostic(help("Add a specifier"))]
+    #[diagnostic(code(comfy_error::syntax_error::specifer))]
+    ExpectedSpecifier {
         #[source_code]
         input: String,
-        #[help]
-        advice: String,
-        #[label("add space here")]
+        #[label("specifier here ?")]
         span: SourceSpan,
     },
 

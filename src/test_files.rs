@@ -2,7 +2,7 @@ use std::{error::Error, fs};
 
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
-use crate::exec::exec_script;
+use crate::{exec::exec_script, get_file_content};
 
 pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
     let folder_path = "tests/";
@@ -16,7 +16,19 @@ pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
         .collect::<Vec<_>>();
 
     files.par_iter().for_each(|file_path| {
-        if let Err(e) = exec_script(file_path) {
+        let content = match get_file_content(file_path) {
+            Ok(c) => c,
+            Err(e) => {
+                eprintln!(
+                    "\x1b[31mError\x1b[33m{}\x1b[31m: {}\x1b[0m",
+                    file_path.display(),
+                    e
+                );
+                return;
+            }
+        };
+
+        if let Err(e) = exec_script(content) {
             eprintln!(
                 "\x1b[31mError executing script \x1b[33m{}\x1b[31m: {}\x1b[0m",
                 file_path.display(),

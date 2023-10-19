@@ -1,7 +1,7 @@
 mod assignment;
 pub mod ast;
 mod comment;
-mod errors;
+pub mod errors;
 mod expression;
 mod function;
 mod if_block;

@@ -7,7 +7,6 @@ mod parser;
 mod reserved_keywords;
 mod test_files;
 
-use errors::ComfyScriptError;
 use miette::Context;
 use minify::minify_input;
 use test_files::parse_all_files;
@@ -31,7 +30,9 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     match command {
         Command::RunFile(path) => {
-            exec_script(&path).wrap_err("Syntax Error")?;
+            let content = get_file_content(&path)?;
+
+            exec_script(content).wrap_err("Syntax Error")?;
         }
         Command::MinifyFile(path) => {
             minify_input(&path)?;
@@ -54,7 +55,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-fn get_file_content(file_path: &Path) -> Result<String, ComfyScriptError> {
+fn get_file_content(file_path: &Path) -> Result<String, Box<dyn Error>> {
     let file_metadata = fs::metadata(&file_path)?;
 
     if file_metadata.len() == 0 {

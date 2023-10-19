@@ -1,16 +1,11 @@
-use std::path::Path;
-
 use nom_supreme::final_parser::Location;
 
 use crate::{
     errors::ComfyScriptError,
-    get_file_content,
-    parser::{ast, parse_input},
+    parser::{ast, errors::SyntaxError, parse_input},
 };
 
-pub fn exec_script(path: &Path) -> Result<(), ComfyScriptError> {
-    let content = get_file_content(&path)?;
-
+pub fn exec_script(content: String) -> Result<(), SyntaxError> {
     if content.is_empty() {
         return Ok(());
     }
@@ -27,12 +22,17 @@ pub fn exec_script(path: &Path) -> Result<(), ComfyScriptError> {
                 match ctx {
                     nom_supreme::error::StackContext::Context(msg) => {
                         let error = ComfyScriptError::ParsingFailed {
-                            input: content,
+                            input: content.clone(),
                             advice: msg.to_string(),
                             message: (location.line, location.column + 5).into(),
                         };
 
-                        return Err(error);
+                        let specifierErr = SyntaxError::ExpectedSpecifier {
+                            input: content,
+                            span: (location.line, location.column + 5).into(),
+                        };
+
+                        return Err(specifierErr);
                     }
                     _ => unreachable!(),
                 }
