@@ -22,12 +22,14 @@ pub fn exec_script(path: &Path) -> Result<(), ComfyScriptError> {
                 let ctx = contexts[0].1;
                 let location = Location::locate_tail(&content, &contexts[0].0);
 
+                // let content: String = content.lines().enumerate().filter(|(i, _)| i>= &(location.line-1) && i <= &(location.line+1)).map(|(_, l)| l).collect();
+
                 match ctx {
                     nom_supreme::error::StackContext::Context(msg) => {
                         let error = ComfyScriptError::ParsingFailed {
-                            input: content.to_owned(),
+                            input: content,
                             advice: msg.to_string(),
-                            message: (location.line, location.column).into(),
+                            message: (location.line, location.column + 5).into(),
                         };
 
                         return Err(error);

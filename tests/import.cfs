@@ -7,3 +7,5 @@ import calc as c, draw as d from "draw"
 import * from "utils"
 
 import * as math from "math"
+
+import a,b,c asx,d from "several"

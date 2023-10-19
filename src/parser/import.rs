@@ -112,7 +112,7 @@ fn opt_import_as(i: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
     let (i, _) = multispace1(i)?;
     let (i, _) = tag("as")(i)?;
 
-    let (i, _) = multispace1.context(expected_space()).cut().parse(i)?;
+    let (i, _) = multispace1.context(expected!("a local import identifer")).cut().parse(i)?;
     let (i, local_name) = parse_identifier
         .context(expected!("a local import identifer"))
         .cut()
