@@ -14,7 +14,7 @@ use nom::{
     character::complete::{char, multispace0, multispace1},
     combinator::opt,
     multi::separated_list1,
-    sequence::preceded,
+    sequence::{delimited, preceded},
     IResult, Parser,
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
@@ -26,18 +26,15 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (i, asterisk) = opt(char('*'))(i)?;
 
     let (i, specifiers) = if asterisk.is_none() {
-        let (i, specifiers) =
-            separated_list1(preceded(multispace0, char(',')), parse_import_specifier)(i)?;
+        let (i, specifiers) = separated_list1(
+            delimited(multispace0, char(','), multispace0),
+            parse_import_specifier,
+        )(i)?;
 
-        let (i, _) = multispace0(i)?;
-        let (i, comma) = opt(char(','))(i)?;
+        let (i, _) = opt(preceded(multispace0, char(',')))(i)?;
+        let (i, _) = multispace1.context(expected_space()).cut().parse(i)?;
 
-        if comma.is_some() {
-            let (i, _) = multispace1.context(expected_space()).cut().parse(i)?;
-            (i, specifiers)
-        } else {
-            (i, specifiers)
-        }
+        (i, specifiers)
     } else {
         let (i, local) = opt(opt_import_as)(i)?;
         let (i, _) = multispace0(i)?;
@@ -88,11 +85,7 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 }
 
 fn parse_import_specifier(i: &str) -> IResult<&str, ImportSpecifier, ErrorTree<&str>> {
-    let (i, _) = multispace0(i)?;
-    let (i, imported_name) = parse_identifier
-        .context(expected!("an import identifier"))
-        .cut()
-        .parse(i)?;
+    let (i, imported_name) = parse_identifier.parse(i)?;
     let (i, local_name) = opt(opt_import_as)(i)?;
 
     match local_name {
