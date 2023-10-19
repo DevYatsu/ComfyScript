@@ -25,7 +25,7 @@ macro_rules! expected {
     };
 }
 
-use std::{error::Error, fs, path::Path};
+use std::error::Error;
 
 use codespan_reporting::{
     diagnostic::{Diagnostic, Label},
@@ -35,18 +35,6 @@ use codespan_reporting::{
         termcolor::{ColorChoice, StandardStream},
     },
 };
-
-pub fn generate_files_list(folder_path: &Path) -> Result<(), Box<dyn Error>> {
-    let files_path = fs::read_dir(folder_path)
-        .map_err(|e| {
-            eprintln!("Error reading directory: {}", e);
-            Box::new(e) as Box<dyn Error>
-        })?
-        .filter_map(|entry| entry.ok().map(|e| e.path()))
-        .collect::<Vec<_>>();
-
-    Ok(())
-}
 
 #[derive(Debug)]
 pub struct SyntaxError<FileId> {
@@ -110,8 +98,7 @@ impl<FileId> SyntaxError<FileId> {
             labels: Vec::new(),
             notes: vec![format!(
                 "expected identifier
-    found `{found}`
-            "
+    found `{found}`"
             )],
         }
     }
@@ -122,8 +109,7 @@ impl<FileId> SyntaxError<FileId> {
             labels: Vec::new(),
             notes: vec![format!(
                 "expected expression
-    found `{found}`
-            "
+    found `{found}`"
             )],
         }
     }
@@ -134,8 +120,7 @@ impl<FileId> SyntaxError<FileId> {
             labels: Vec::new(),
             notes: vec![format!(
                 "expected `{keyword}`
-    found `{found}`
-            "
+    found `{found}`"
             )],
         }
     }
@@ -155,8 +140,7 @@ impl<FileId> SyntaxError<FileId> {
             labels: Vec::new(),
             notes: vec![format!(
                 "expected `{tag}`
-    found `{found}`
-            "
+    found `{found}`"
             )],
         }
     }

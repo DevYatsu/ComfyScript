@@ -7,8 +7,6 @@ mod parser;
 mod reserved_keywords;
 mod test_files;
 
-use codespan_reporting::diagnostic;
-use miette::Context;
 use minify::minify_input;
 use test_files::parse_all_files;
 
