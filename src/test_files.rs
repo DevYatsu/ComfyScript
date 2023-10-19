@@ -28,12 +28,8 @@ pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
             }
         };
 
-        if let Err(e) = exec_script(content) {
-            eprintln!(
-                "\x1b[31mError executing script \x1b[33m{}\x1b[31m: {}\x1b[0m",
-                file_path.display(),
-                e
-            )
+        if let Err((e, file)) = exec_script(content) {
+            e.print_error(file).unwrap();
         } else {
             println!(
                 "\x1b[33m{}\x1b[32m successfully executed!\x1b[0m",

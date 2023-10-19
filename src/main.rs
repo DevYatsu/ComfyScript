@@ -7,6 +7,7 @@ mod parser;
 mod reserved_keywords;
 mod test_files;
 
+use codespan_reporting::diagnostic;
 use miette::Context;
 use minify::minify_input;
 use test_files::parse_all_files;
@@ -32,7 +33,12 @@ fn main() -> Result<(), Box<dyn Error>> {
         Command::RunFile(path) => {
             let content = get_file_content(&path)?;
 
-            exec_script(content).wrap_err("Syntax Error")?;
+            match exec_script(content) {
+                Ok(_) => (),
+                Err((err, file)) => {
+                    err.print_error(file).unwrap();
+                }
+            };
         }
         Command::MinifyFile(path) => {
             minify_input(&path)?;

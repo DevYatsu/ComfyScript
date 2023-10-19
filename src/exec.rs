@@ -1,11 +1,12 @@
-use nom_supreme::final_parser::Location;
+use codespan_reporting::{diagnostic::Label, files::SimpleFile};
+use nom::{character::complete::alphanumeric1, combinator::map, error::{VerboseError, Error}, Err};
+use nom_supreme::{final_parser::Location, error::GenericErrorTree};
 
-use crate::{
-    errors::ComfyScriptError,
-    parser::{ast, errors::SyntaxError, parse_input},
-};
+use crate::parser::{ast, errors::SyntaxError, parse_input};
 
-pub fn exec_script(content: String) -> Result<(), SyntaxError> {
+pub fn exec_script(
+    content: String,
+) -> Result<(), (SyntaxError<()>, SimpleFile<&'static str, String>)> {
     if content.is_empty() {
         return Ok(());
     }
@@ -16,23 +17,19 @@ pub fn exec_script(content: String) -> Result<(), SyntaxError> {
             nom_supreme::error::GenericErrorTree::Stack { contexts, .. } => {
                 let ctx = contexts[0].1;
                 let location = Location::locate_tail(&content, &contexts[0].0);
-
-                // let content: String = content.lines().enumerate().filter(|(i, _)| i>= &(location.line-1) && i <= &(location.line+1)).map(|(_, l)| l).collect();
-
+                
                 match ctx {
                     nom_supreme::error::StackContext::Context(msg) => {
-                        let error = ComfyScriptError::ParsingFailed {
-                            input: content.clone(),
-                            advice: msg.to_string(),
-                            message: (location.line, location.column + 5).into(),
-                        };
+                        let file = SimpleFile::new("Test.cfs", content.to_owned());
+                        let error_place = content.len() - contexts[0].0.len();
+                        let error_length = alphanumeric1::<&str, Error<&str>>(contexts[0].0).and_then(|(_, w)| Ok(w.len()) ).unwrap_or(1);
+                        
+                        let found = &contexts[0].0[0..error_length];
+                        
+                        let mut err = SyntaxError::identifier(found);
+                        err.add_label(Label::primary((), error_place..error_place + error_length));
 
-                        let specifierErr = SyntaxError::ExpectedSpecifier {
-                            input: content,
-                            span: (location.line, location.column + 5).into(),
-                        };
-
-                        return Err(specifierErr);
+                        return Err((err, file));
                     }
                     _ => unreachable!(),
                 }

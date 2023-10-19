@@ -25,87 +25,154 @@ macro_rules! expected {
     };
 }
 
-use miette::{Diagnostic, SourceSpan};
-use thiserror::Error;
+use std::{error::Error, fs, path::Path};
 
-#[derive(Debug, Error, Diagnostic)]
-pub enum SyntaxError {
-    #[error(transparent)]
-    #[diagnostic(code(comfy_error::io_error))]
-    IoError(#[from] std::io::Error),
-
-    #[error("Expected a specifier")]
-    #[diagnostic(help("Add a specifier"))]
-    #[diagnostic(code(comfy_error::syntax_error::specifer))]
-    ExpectedSpecifier {
-        #[source_code]
-        input: String,
-        #[label("specifier here ?")]
-        span: SourceSpan,
+use codespan_reporting::{
+    diagnostic::{Diagnostic, Label},
+    files::SimpleFile,
+    term::{
+        self,
+        termcolor::{ColorChoice, StandardStream},
     },
+};
 
-    #[error("Expected a valid expression")]
-    #[diagnostic(code(comfy_error::syntax_error::expression))]
-    ExpectedExpression {
-        #[source_code]
-        input: String,
-        #[help]
-        advice: String,
-        #[label("expression")]
-        span: SourceSpan,
-    },
+pub fn generate_files_list(folder_path: &Path) -> Result<(), Box<dyn Error>> {
+    let files_path = fs::read_dir(folder_path)
+        .map_err(|e| {
+            eprintln!("Error reading directory: {}", e);
+            Box::new(e) as Box<dyn Error>
+        })?
+        .filter_map(|entry| entry.ok().map(|e| e.path()))
+        .collect::<Vec<_>>();
 
-    #[error("Expected a valid keyword")]
-    #[diagnostic(code(comfy_error::syntax_error::keyword))]
-    ExpectedKeyword {
-        #[source_code]
-        input: String,
-        #[help]
-        advice: String,
-        #[label("expression")]
-        span: SourceSpan,
-    },
-
-    #[error("Unexpected character")]
-    #[diagnostic(code(comfy_error::syntax_error::unexpected))]
-    UnexpectedChar {
-        #[source_code]
-        input: String,
-        #[help]
-        advice: String,
-        #[label("char here")]
-        span: SourceSpan,
-    },
-
-    #[error("Expected a closing tag")]
-    #[diagnostic(code(comfy_error::syntax_error::closing_tag))]
-    ExpectedClosingTag {
-        #[source_code]
-        input: String,
-        #[help]
-        advice: String,
-        #[label("missing closing tag")]
-        span: SourceSpan,
-    },
+    Ok(())
 }
 
 #[derive(Debug)]
-pub enum ErrorType {
-    Space,
-    Expression,
-    Keyword(String),
-    UnexpectedChar(char),
-    ExpectedClosingTag(String),
+pub struct SyntaxError<FileId> {
+    /// the error message
+    pub message: String,
+    /// the error status code
+    pub code: ErrorCode,
+    /// error labels
+    pub labels: Vec<Label<FileId>>,
+    /// additional notes
+    pub notes: Vec<String>,
 }
 
-impl ToString for ErrorType {
-    fn to_string(&self) -> String {
-        match self {
-            ErrorType::Space => "space".to_owned(),
-            ErrorType::Expression => "expression".to_owned(),
-            ErrorType::Keyword(keyword) => format!("keyword {keyword}"),
-            ErrorType::UnexpectedChar(c) => format!("char {c}"),
-            ErrorType::ExpectedClosingTag(t) => format!("closing {t}"),
+impl SyntaxError<()> {
+    pub fn print_error<S: AsRef<str>>(
+        self,
+        file: SimpleFile<&str, S>,
+    ) -> Result<(), Box<dyn Error>> {
+        let diagnostic = self.generate_diagnostic();
+        let writer = StandardStream::stderr(ColorChoice::Always);
+        let config = codespan_reporting::term::Config::default();
+
+        term::emit(&mut writer.lock(), &config, &file, &diagnostic)?;
+        Ok(())
+    }
+}
+
+impl<FileId> SyntaxError<FileId> {
+    pub fn new(
+        message: String,
+        code: usize,
+        labels: Vec<Label<FileId>>,
+        notes: Vec<String>,
+    ) -> Self {
+        let code = code.into();
+
+        SyntaxError {
+            message,
+            code,
+            labels,
+            notes,
         }
+    }
+    pub fn generate_diagnostic(self) -> Diagnostic<FileId> {
+        Diagnostic::error()
+            .with_message(self.message)
+            .with_code(self.code.to_string())
+            .with_labels(self.labels)
+            .with_notes(self.notes)
+    }
+    pub fn add_label(&mut self, label: Label<FileId>) {
+        self.labels.push(label);
+    }
+    pub fn add_note(&mut self, note: String) {
+        self.notes.push(note);
+    }
+    pub fn identifier(found: &str) -> Self {
+        SyntaxError {
+            message: "expected a valid identifier".to_owned(),
+            code: 1.into(),
+            labels: Vec::new(),
+            notes: vec![format!(
+                "expected identifier
+    found `{found}`
+            "
+            )],
+        }
+    }
+    pub fn expression(found: &str) -> Self {
+        SyntaxError {
+            message: "expected a valid expression".to_owned(),
+            code: 2.into(),
+            labels: Vec::new(),
+            notes: vec![format!(
+                "expected expression
+    found `{found}`
+            "
+            )],
+        }
+    }
+    pub fn keyword(keyword: &'static str, found: &str) -> Self {
+        SyntaxError {
+            message: format!("expected keyword '{}'", keyword),
+            code: 3.into(),
+            labels: Vec::new(),
+            notes: vec![format!(
+                "expected `{keyword}`
+    found `{found}`
+            "
+            )],
+        }
+    }
+    pub fn space() -> Self {
+        SyntaxError {
+            message: "expected a valid expression".to_owned(),
+            code: 4.into(),
+            labels: Vec::new(),
+            notes: Vec::new(),
+        }
+    }
+
+    pub fn expected_closing_tag(tag: &'static str, found: &str) -> Self {
+        SyntaxError {
+            message: format!("expected closing tag for '{}'", tag),
+            code: 5.into(),
+            labels: Vec::new(),
+            notes: vec![format!(
+                "expected `{tag}`
+    found `{found}`
+            "
+            )],
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct ErrorCode(usize);
+
+impl ToString for ErrorCode {
+    fn to_string(&self) -> String {
+        format!("E00{}", self.0)
+    }
+}
+
+impl From<usize> for ErrorCode {
+    fn from(value: usize) -> Self {
+        ErrorCode(value)
     }
 }
