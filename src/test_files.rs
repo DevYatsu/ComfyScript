@@ -1,8 +1,13 @@
-use std::{error::Error, fs};
+use std::{
+    error::Error,
+    fs,
+    sync::{Arc, Mutex},
+};
 
+use codespan_reporting::files::SimpleFile;
 use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
-use crate::{exec::exec_script, get_file_content};
+use crate::{get_file_content, script::ComfyScript};
 
 pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
     let folder_path = "tests/";
@@ -14,6 +19,8 @@ pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
         })?
         .filter_map(|entry| entry.ok().map(|e| e.path()))
         .collect::<Vec<_>>();
+
+    let errors = Arc::new(Mutex::new(vec![]));
 
     files.par_iter().for_each(|file_path| {
         let content = match get_file_content(file_path) {
@@ -28,8 +35,10 @@ pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
             }
         };
 
-        if let Err((e, file)) = exec_script(content) {
-            e.print_error(file).unwrap();
+        let script = ComfyScript::new(file_path.to_string_lossy(), content);
+        if let Err(err_data) = script.execute() {
+            let mut errors_list = errors.lock().unwrap();
+            errors_list.push((err_data, file_path));
         } else {
             println!(
                 "\x1b[33m{}\x1b[32m successfully executed!\x1b[0m",
@@ -38,5 +47,12 @@ pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
         }
     });
 
+    let errors = Arc::try_unwrap(errors).expect("Failed to unwrap errors Arc");
+    let errors_list = errors.into_inner().unwrap();
+
+    for ((err, file), file_name) in errors_list {
+        let file = SimpleFile::new(file_name.to_string_lossy(), file.source());
+        err.print_error(file).unwrap();
+    }
     Ok(())
 }

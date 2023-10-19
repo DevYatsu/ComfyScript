@@ -14,6 +14,7 @@ use self::{
     assignment::{initial::parse_var_init, reassign::parse_assignment},
     ast::ASTNode,
     comment::parse_comment_statement,
+    errors::SyntaxError,
     expression::parse_expression_statement,
     function::{parse_function, return_expression::parse_return_statement},
     if_block::parse_if_statement,
@@ -21,9 +22,14 @@ use self::{
     loop_while::parse_while_statement,
 };
 use crate::{expected, parser::import::parse_import};
+use codespan_reporting::{diagnostic::Label, files::SimpleFile};
 use nom::{
-    branch::alt, bytes::complete::take_while1, character::complete::char, combinator::opt, IResult,
-    Parser,
+    branch::alt,
+    bytes::complete::take_while1,
+    character::complete::{alphanumeric1, char},
+    combinator::opt,
+    error::Error,
+    IResult, Parser,
 };
 use nom_supreme::{error::ErrorTree, final_parser::final_parser, ParserExt};
 

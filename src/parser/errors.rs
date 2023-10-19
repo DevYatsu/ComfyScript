@@ -25,7 +25,7 @@ macro_rules! expected {
     };
 }
 
-use std::error::Error;
+use std::{error::Error, fmt::Display};
 
 use codespan_reporting::{
     diagnostic::{Diagnostic, Label},
@@ -49,9 +49,9 @@ pub struct SyntaxError<FileId> {
 }
 
 impl SyntaxError<()> {
-    pub fn print_error<S: AsRef<str>>(
+    pub fn print_error<Name: Display + AsRef<str> + Clone, Content: AsRef<str>>(
         self,
-        file: SimpleFile<&str, S>,
+        file: SimpleFile<Name, Content>,
     ) -> Result<(), Box<dyn Error>> {
         let diagnostic = self.generate_diagnostic();
         let writer = StandardStream::stderr(ColorChoice::Always);
@@ -124,12 +124,15 @@ impl<FileId> SyntaxError<FileId> {
             )],
         }
     }
-    pub fn space() -> Self {
+    pub fn space(found: &str) -> Self {
         SyntaxError {
-            message: "expected a valid expression".to_owned(),
+            message: "expected space".to_owned(),
             code: 4.into(),
             labels: Vec::new(),
-            notes: Vec::new(),
+            notes: vec![format!(
+                "expected space
+    found `{found}`"
+            )],
         }
     }
 

@@ -1,18 +1,17 @@
 mod comfy;
 mod command;
 mod errors;
-mod exec;
 mod minify;
 mod parser;
 mod reserved_keywords;
+mod script;
 mod test_files;
 
-use minify::minify_input;
 use test_files::parse_all_files;
 
 use crate::{
     command::{get_command, Command},
-    exec::exec_script,
+    script::ComfyScript,
 };
 
 use std::{
@@ -30,8 +29,9 @@ fn main() -> Result<(), Box<dyn Error>> {
     match command {
         Command::RunFile(path) => {
             let content = get_file_content(&path)?;
+            let script = ComfyScript::new(path.to_string_lossy(), content);
 
-            match exec_script(content) {
+            match script.execute() {
                 Ok(_) => (),
                 Err((err, file)) => {
                     err.print_error(file).unwrap();
@@ -39,7 +39,10 @@ fn main() -> Result<(), Box<dyn Error>> {
             };
         }
         Command::MinifyFile(path) => {
-            minify_input(&path)?;
+            let content = get_file_content(&path)?;
+            let script = ComfyScript::new(path.to_string_lossy(), content);
+
+            script.minify()?;
         }
         Command::NotFound => {
             return Err("Command not found!".into());
