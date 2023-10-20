@@ -7,7 +7,6 @@ use crate::parser::{
 use nom::{
     branch::alt,
     character::complete::{multispace0, multispace1},
-    combinator::{cut, map, verify},
     multi::separated_list1,
     IResult, Parser,
 };
@@ -49,7 +48,8 @@ pub fn parse_var_init(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator, ErrorTree<&str>> {
     let (input, _) = multispace0(input)?;
 
-    let (input, id) = verify(parse_identifier, |id| id.name.parse::<i32>().is_err())
+    let (input, id) = parse_identifier
+        .verify(|id| id.name.parse::<i32>().is_err())
         .context("Expected a valid variable name")
         .cut()
         .parse(input)?;
@@ -70,7 +70,7 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
 
 fn parse_variable_keyword(i: &str) -> IResult<&str, VariableKeyword, ErrorTree<&str>> {
     alt((
-        map(tag("let"), |_| VariableKeyword::Let),
-        map(tag("var"), |_| VariableKeyword::Var),
+        tag("let").map(|_| VariableKeyword::Let),
+        tag("var").map(|_| VariableKeyword::Var),
     ))(i)
 }

@@ -1,4 +1,4 @@
-use nom::{branch::alt, character::complete::multispace0, combinator::map, IResult, Parser};
+use nom::{branch::alt, character::complete::multispace0, IResult, Parser};
 use nom_supreme::{error::ErrorTree, ParserExt};
 
 use crate::parser::{
@@ -8,14 +8,13 @@ use crate::parser::{
 };
 
 pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
-    let (i, id) = map(
-        alt((
-            parse_indexing,
-            parse_member_expr,
-            parse_identifier_expression,
-        )),
-        |e| Box::new(e),
-    )(i)?;
+    let (i, id) = alt((
+        parse_indexing,
+        parse_member_expr,
+        parse_identifier_expression,
+    ))
+    .map(|e| Box::new(e))
+    .parse(i)?;
     let (i, _) = multispace0(i)?;
 
     let (i, op) = parse_assignment_operator.parse(i)?;

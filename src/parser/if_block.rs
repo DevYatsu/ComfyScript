@@ -6,7 +6,6 @@ use super::{
 };
 use nom::{
     character::complete::{multispace0, multispace1},
-    combinator::{map, opt},
     IResult, Parser,
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
@@ -15,7 +14,7 @@ pub fn parse_if_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>
     let (input, (test, body)) = parse_if_block(input)?;
 
     let (else_input, _) = multispace0(input)?;
-    let (else_input, else_word) = opt(tag("else"))(else_input)?;
+    let (else_input, else_word) = tag("else").opt().parse(else_input)?;
 
     if else_word.is_none() {
         let node = ASTNode::IfStatement {
@@ -28,10 +27,10 @@ pub fn parse_if_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>
     }
 
     let (else_input, _) = multispace0(else_input)?;
-    let (_, other_if) = opt(tag("if"))(else_input)?;
+    let (_, other_if) = tag("if").opt().parse(else_input)?;
 
     if other_if.is_none() {
-        let (else_input, alternate) = map(parse_block, |s| Some(Box::new(s)))(else_input)?;
+        let (else_input, alternate) = parse_block.map(|s| Some(Box::new(s))).parse(else_input)?;
 
         let node = ASTNode::IfStatement {
             test,
@@ -44,7 +43,9 @@ pub fn parse_if_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>
 
     let (else_input, _) = multispace0(else_input)?;
 
-    let (input, alternate) = map(parse_if_statement, |s| Some(Box::new(s)))(else_input)?;
+    let (input, alternate) = parse_if_statement
+        .map(|s| Some(Box::new(s)))
+        .parse(else_input)?;
 
     let node = ASTNode::IfStatement {
         test,
@@ -65,7 +66,7 @@ fn parse_if_block(input: &str) -> IResult<&str, (Expression, Box<ASTNode>), Erro
         .parse(input)?;
     let (input, _) = multispace0(input)?;
 
-    let (input, body) = map(parse_block, |b| Box::new(b))(input)?;
+    let (input, body) = parse_block.map(|b| Box::new(b)).parse(input)?;
 
     Ok((input, (test, body)))
 }

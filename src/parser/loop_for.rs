@@ -1,15 +1,14 @@
 use super::{
     assignment::initial::VariableKeyword,
     ast::{identifier::Identifier, ASTNode},
-    errors::{expected_expression, expected_space},
+    errors::{expected_expression, expected_identifier, expected_space},
     expression::parse_expression,
     parse_block,
 };
-use crate::{expected_keyword, expected_valid, parser::ast::identifier::parse_identifier};
+use crate::parser::ast::identifier::parse_identifier;
 use nom::{
     branch::alt,
     character::complete::{multispace0, multispace1},
-    combinator::{map, opt},
     multi::separated_list1,
     IResult, Parser,
 };
@@ -22,13 +21,10 @@ pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
     let (input, kind) = parse_for_var_keyword(input)?;
 
     let (input, identifiers) = separated_list1(tag(","), parse_for_identifier)(input)?;
-    let (input, _) = opt(tag(","))(input)?;
+    let (input, _) = tag(",").opt().parse(input)?;
     let (input, _) = multispace1.context(expected_space()).cut().parse(input)?;
 
-    let (input, _) = tag("in")
-        .context(expected_keyword!("in"))
-        .cut()
-        .parse(input)?;
+    let (input, _) = tag("in").context("E004:in").cut().parse(input)?;
     let (input, _) = multispace1.context(expected_space()).cut().parse(input)?;
 
     let (input, indexed) = parse_expression
@@ -37,7 +33,7 @@ pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
 
     let (input, _) = multispace0(input)?;
 
-    let (input, body) = map(parse_block, |b| Box::new(b))(input)?;
+    let (input, body) = parse_block.map(|b| Box::new(b)).parse(input)?;
 
     let node = ASTNode::ForStatement {
         kind,
@@ -53,17 +49,19 @@ fn parse_for_identifier(input: &str) -> IResult<&str, Identifier, ErrorTree<&str
     let (input, _) = multispace0(input)?;
 
     let (input, id) = parse_identifier
-        .context(expected_valid!("identifier"))
+        .context(expected_identifier())
         .parse(input)?;
 
     Ok((input, id))
 }
 
 fn parse_for_var_keyword(input: &str) -> IResult<&str, VariableKeyword, ErrorTree<&str>> {
-    let (input, var_keyword) = opt(alt((
-        map(tag("let"), |_| VariableKeyword::Let),
-        map(tag("var"), |_| VariableKeyword::Var),
-    )))(input)?;
+    let (input, var_keyword) = alt((
+        tag("let").map(|_| VariableKeyword::Let),
+        tag("var").map(|_| VariableKeyword::Var),
+    ))
+    .opt()
+    .parse(input)?;
 
     let input = if var_keyword.is_some() {
         multispace1(input)?.0

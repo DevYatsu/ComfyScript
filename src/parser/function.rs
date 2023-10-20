@@ -4,13 +4,12 @@ use self::return_expression::parse_return_statement;
 
 use super::{
     ast::{identifier::Identifier, ASTNode, Expression},
-    errors::expected_space,
+    errors::{expected, expected_identifier, expected_space},
     parse_block,
 };
-use crate::{expected, expected_valid, parser::ast::identifier::parse_identifier};
+use crate::parser::ast::identifier::parse_identifier;
 use nom::{
     character::complete::{char as parse_char, multispace0, multispace1},
-    combinator::{map, opt},
     multi::separated_list1,
     IResult, Parser,
 };
@@ -21,20 +20,20 @@ pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = multispace1.context(expected_space()).cut().parse(input)?;
 
     let (input, id) = parse_identifier
-        .context(expected_valid!("function name"))
+        .context(expected_identifier())
         .parse(input)?;
 
     let (input, _) = multispace0(input)?;
-    let (input, _) = parse_char('(').context(expected!('(')).cut().parse(input)?;
+    let (input, _) = parse_char('(').context(expected("(")).cut().parse(input)?;
     let (input, _) = multispace0(input)?;
 
     let (input, params) = parse_fn_params(input)?;
 
     let (input, _) = multispace0(input)?;
-    let (input, _) = parse_char(')').context(expected!(')')).cut().parse(input)?;
+    let (input, _) = parse_char(')').context(expected(")")).cut().parse(input)?;
     let (input, _) = multispace0(input)?;
 
-    let (input, (body, is_shortcut)) = map(parse_fn_body, |(b, s)| (Box::new(b), s))(input)?;
+    let (input, (body, is_shortcut)) = parse_fn_body.map(|(b, s)| (Box::new(b), s)).parse(input)?;
 
     let node = ASTNode::FunctionDeclaration {
         id,
@@ -52,11 +51,11 @@ pub fn parse_fn_expression(input: &str) -> IResult<&str, Expression, ErrorTree<&
     let (input, params) = parse_fn_params(input)?;
 
     let (input, _) = multispace0(input)?;
-    let (input, _) = tag("|").context(expected!("|")).cut().parse(input)?;
+    let (input, _) = tag("|").context(expected("|")).cut().parse(input)?;
 
     let (input, _) = multispace0(input)?;
 
-    let (input, (body, is_shortcut)) = map(parse_fn_body, |(b, s)| (Box::new(b), s))(input)?;
+    let (input, (body, is_shortcut)) = parse_fn_body.map(|(b, s)| (Box::new(b), s)).parse(input)?;
 
     let node = Expression::FnExpression {
         params,
@@ -68,14 +67,16 @@ pub fn parse_fn_expression(input: &str) -> IResult<&str, Expression, ErrorTree<&
 }
 
 fn parse_fn_params(input: &str) -> IResult<&str, Vec<Identifier>, ErrorTree<&str>> {
-    let (input, params) = opt(separated_list1(tag(","), parse_fn_param))(input)?;
+    let (input, params) = separated_list1(tag(","), parse_fn_param)
+        .opt()
+        .parse(input)?;
     let params = params.unwrap_or_else(|| vec![]);
 
     Ok((input, params))
 }
 
 fn parse_fn_body(input: &str) -> IResult<&str, (ASTNode, bool), ErrorTree<&str>> {
-    let (input, return_statement) = opt(parse_return_statement)(input)?;
+    let (input, return_statement) = parse_return_statement.opt().parse(input)?;
 
     if let Some(return_statement) = return_statement {
         return Ok((input, (return_statement, true)));
@@ -90,7 +91,7 @@ fn parse_fn_param(input: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
     let (input, _) = multispace0(input)?;
 
     let (input, id) = parse_identifier
-        .context(expected_valid!("function parameter"))
+        .context(expected_identifier())
         .parse(input)?;
 
     Ok((input, id))

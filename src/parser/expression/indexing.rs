@@ -3,12 +3,9 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, ParserExt};
 
-use crate::{
-    expected,
-    parser::{
-        ast::{identifier::parse_identifier_expression, Expression},
-        errors::expected_expression,
-    },
+use crate::parser::{
+    ast::{identifier::parse_identifier_expression, Expression},
+    errors::{expected_closing_tag, expected_expression},
 };
 
 use super::{parenthesized::parse_parenthesized, parse_expression, parse_expression_with};
@@ -23,7 +20,7 @@ pub fn parse_indexing(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, elements) = parse_expression.context(expected_expression()).parse(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, _) = char(']').context(expected!(']')).parse(i)?;
+    let (i, _) = char(']').context(expected_closing_tag("]")).parse(i)?;
 
     Ok((
         i,

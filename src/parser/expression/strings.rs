@@ -4,16 +4,16 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, ParserExt};
 
-use crate::{
-    expected,
-    parser::ast::{literal_value::LiteralValue, Expression},
+use crate::parser::{
+    ast::{literal_value::LiteralValue, Expression},
+    errors::expected,
 };
 
 pub fn parse_string(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, quote) = parse_quote(i)?;
 
     let (i, result) = take_until1(&*quote.to_string())
-        .context(expected!("an ending quote"))
+        .context(expected("'"))
         .cut()
         .parse(i)?;
     let (i, c) = char(quote)(i)?;
