@@ -1,7 +1,7 @@
 use crate::parser::{ast, errors::SyntaxError, parse_input};
 use codespan_reporting::{diagnostic::Label, files::SimpleFile};
 use nom::{character::complete::alphanumeric1, error::Error as NomError};
-use std::{error::Error, fmt::Display, process};
+use std::{error::Error, fmt::Display};
 
 #[derive(Debug)]
 pub struct ComfyScript<Name: Display + Clone> {
@@ -28,31 +28,55 @@ impl<Name: Display + Clone> ComfyScript<Name> {
             Err(e) => match e {
                 nom_supreme::error::GenericErrorTree::Stack { contexts, .. } => {
                     let ctx = contexts[0].1;
-
+                    println!("ctx {:?}", ctx);
                     match ctx {
                         nom_supreme::error::StackContext::Context(_msg) => {
                             let file = SimpleFile::new(self.name.to_owned(), content.to_owned());
-                            let error_place = content.len() - contexts[0].0.len();
-                            let error_length = alphanumeric1::<&str, NomError<&str>>(contexts[0].0)
-                                .and_then(|(_, w)| Ok(w.len()))
-                                .unwrap_or(1);
-
-                            let found = &contexts[0].0[0..error_length];
+                            let (place, length, found) = self.get_error_data(contexts[0].0);
 
                             let mut err = SyntaxError::space(found);
-                            err.add_label(Label::primary(
-                                (),
-                                error_place..error_place + error_length,
-                            ));
+                            err.add_label(Label::primary((), place..place + length));
 
                             return Err((err, file));
                         }
                         _ => unreachable!(),
                     }
                 }
-                e => {
-                    println!("{:?}", e);
-                    process::exit(1)
+                nom_supreme::error::GenericErrorTree::Base { location, kind } => {
+                    println!("kind {:?}", kind);
+                    let file = SimpleFile::new(self.name.to_owned(), content.to_owned());
+                    let (place, length, found) = self.get_error_data(location);
+
+                    let mut err = match kind {
+                        nom_supreme::error::BaseErrorKind::Expected(expec) => match expec {
+                            nom_supreme::error::Expectation::Tag(expected_token) => {
+                                SyntaxError::expected(expected_token, found)
+                            }
+                            nom_supreme::error::Expectation::Char(expected_token) => {
+                                SyntaxError::closing_tag(expected_token.to_string(), found)
+                            }
+                            nom_supreme::error::Expectation::Alpha => todo!(),
+                            nom_supreme::error::Expectation::Digit => todo!(),
+                            nom_supreme::error::Expectation::HexDigit => todo!(),
+                            nom_supreme::error::Expectation::OctDigit => todo!(),
+                            nom_supreme::error::Expectation::AlphaNumeric => todo!(),
+                            nom_supreme::error::Expectation::Space => todo!(),
+                            nom_supreme::error::Expectation::Multispace => todo!(),
+                            nom_supreme::error::Expectation::CrLf => todo!(),
+                            nom_supreme::error::Expectation::Eof => todo!(),
+                            nom_supreme::error::Expectation::Something => todo!(),
+                            _ => todo!(),
+                        },
+                        _ => unreachable!(),
+                    };
+                    err.add_label(Label::primary((), place..place + length));
+
+                    return Err((err, file));
+                }
+                nom_supreme::error::GenericErrorTree::Alt(alt) => {
+                    println!("{:?}", alt);
+
+                    std::process::exit(1)
                 }
             },
         };
@@ -67,6 +91,17 @@ impl<Name: Display + Clone> ComfyScript<Name> {
         }
 
         Ok(())
+    }
+
+    fn get_error_data<'a>(&self, error_content: &'a str) -> (usize, usize, &'a str) {
+        let error_place = self.content.len() - error_content.len();
+        let error_length = alphanumeric1::<&str, NomError<&str>>(error_content)
+            .and_then(|(_, w)| Ok(w.len()))
+            .unwrap_or(1);
+
+        let found = &error_content[0..error_length];
+
+        (error_place, error_length, found)
     }
 
     pub fn minify(&self) -> Result<String, Box<dyn Error>> {

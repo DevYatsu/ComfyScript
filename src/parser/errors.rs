@@ -73,7 +73,7 @@ impl<FileId> SyntaxError<FileId> {
             ErrorCode(2) => SyntaxError::expression(found),
             ErrorCode(3) => SyntaxError::space(found),
             ErrorCode(4) => SyntaxError::keyword(val.expect("Expected a keyword passed as argument when trying to convert a code into an error"), found),
-            ErrorCode(5) => SyntaxError::closing_tag(val.expect("Expected a closing tag passed as argument"), found),
+            ErrorCode(5) => SyntaxError::closing_tag(val.expect("Expected a closing tag passed as argument").to_owned(), found),
             ErrorCode(6) => SyntaxError::expected(val.expect("Expected a tag passed as argument"), found),
             ErrorCode(7) => SyntaxError::import_source(found),
             ErrorCode(_) => unreachable!(),
@@ -127,7 +127,7 @@ impl<FileId> SyntaxError<FileId> {
             )],
         }
     }
-    pub fn closing_tag(tag: &'static str, found: &str) -> Self {
+    pub fn closing_tag(tag: String, found: &str) -> Self {
         SyntaxError {
             message: format!("expected closing tag for '{}'", tag),
             code: 5.into(),
@@ -160,6 +160,8 @@ impl<FileId> SyntaxError<FileId> {
             )],
         }
     }
+
+    pub fn extract_error_kind() {}
 }
 
 #[derive(Debug, Clone, Copy)]

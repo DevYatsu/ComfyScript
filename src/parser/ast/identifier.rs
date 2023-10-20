@@ -1,8 +1,10 @@
 use std::fmt;
 
 use crate::reserved_keywords::RESERVED_KEYWORD;
-use nom::{branch::alt, character::complete::alphanumeric1, IResult};
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use nom::{
+    character::complete::alphanumeric1, multi::separated_list0, IResult, Parser,
+};
+use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 use super::Expression;
 
@@ -12,35 +14,14 @@ pub struct Identifier {
 }
 
 pub fn parse_identifier(i: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
-    let (mut i, word) = alt((alphanumeric1, tag("_")))(i)?;
-    let mut word = word.to_owned();
+    let (i, name) = separated_list0(alphanumeric1, tag("_"))
+        .map(|list| list.join(""))
+        .verify(|word| !RESERVED_KEYWORD.contains(&word.as_str()))
+        .parse(i)?;
 
-    loop {
-        match alt((alphanumeric1::<&str, ErrorTree<&str>>, tag("_")))(i) {
-            Ok((input, s)) => {
-                word.push_str(s);
+    let identifier = Identifier {name};
 
-                match alt((alphanumeric1::<&str, ErrorTree<&str>>, tag("_")))(input) {
-                    Ok((input, w)) => {
-                        word.push_str(w);
-                        i = input;
-                    }
-                    Err(_) => {
-                        i = input;
-                        break;
-                    }
-                };
-            }
-            Err(_) => break,
-        }
-    }
-
-    if RESERVED_KEYWORD.contains(&word.as_str()) {
-        Err(nom::Err::Error(ErrorTree::Alt(vec![])))
-        // return an error
-    } else {
-        Ok((i, Identifier { name: word }))
-    }
+    Ok((i, identifier))
 }
 
 pub fn parse_identifier_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {

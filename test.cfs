@@ -4,9 +4,9 @@ import
     boo as test,
 from "test_package"
 
-import * shhhapagnan from "math"
+import * from "math"
 
-var t = "s",
+var let x= "s",
     dude = -1, 
     boolValue = true,
     _nil_value_ = nil
