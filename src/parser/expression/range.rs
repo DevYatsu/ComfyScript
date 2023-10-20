@@ -21,8 +21,8 @@ pub fn parse_range(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     )(i)?;
     let (i, _) = multispace0(i)?;
 
+    // be aware of cases when a number is before the range: the float parser may take the . with the parsing
     let (i, limits) = parse_range_type(i)?;
-// be aware of cases when a number is before the range: the float parser may take the . with the parsing
 
     let (i, _) = multispace0(i)?;
 
