@@ -154,7 +154,8 @@ pub struct ErrorCode(usize);
 
 impl ToString for ErrorCode {
     fn to_string(&self) -> String {
-        format!("E00{}", self.0)
+        
+        format!("E{:03}", self.0)
     }
 }
 
