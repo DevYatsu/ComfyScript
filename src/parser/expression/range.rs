@@ -12,16 +12,16 @@ use super::function_call::parse_fn_call;
 use super::indexing::parse_indexing;
 use super::member_expr::parse_member_expr;
 use super::parenthesized::parse_parenthesized;
-use super::{parse_composite_value, parse_expression_with, parse_primitive_value};
+use super::{parse_expression_with, parse_primitive_value};
 
 pub fn parse_range(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, from) = map(
         parse_expression_with(parse_expression_except_range),
         |expr| Box::new(expr),
     )(i)?;
+    println!("test: {}", i);
     let (i, _) = multispace0(i)?;
 
-    // be aware of cases when a number is before the range: the float parser may take the . with the parsing
     let (i, limits) = parse_range_type(i)?;
 
     let (i, _) = multispace0(i)?;
@@ -29,7 +29,9 @@ pub fn parse_range(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, to) = map(
         parse_expression_with(parse_expression_except_range),
         |expr| Box::new(expr),
-    ).cut().parse(i)?;
+    )
+    .cut()
+    .parse(i)?;
 
     Ok((i, Expression::Range { from, limits, to }))
 }
@@ -37,12 +39,11 @@ pub fn parse_range(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
 fn parse_expression_except_range(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     // to avoid recursive calls to range parser
     alt((
+        parse_member_expr,
         parse_indexing,
         parse_fn_call,
-        parse_composite_value,
         parse_primitive_value,
         parse_parenthesized,
-        parse_member_expr,
         parse_identifier_expression,
     ))(i)
 }

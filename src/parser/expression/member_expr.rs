@@ -3,7 +3,7 @@ use crate::parser::ast::Expression;
 use crate::parser::comment::jump_comments;
 use nom::branch::alt;
 use nom::multi::separated_list1;
-use nom::IResult;
+use nom::{IResult, Parser};
 use nom_supreme::error::ErrorTree;
 use nom_supreme::tag::complete::tag;
 
@@ -65,7 +65,7 @@ fn parse_expression_except_member_expr(i: &str) -> IResult<&str, Expression, Err
         parse_fn_call,
         parse_identifier_expression,
         // avoid adding to many parser here
-    ))(i)?;
+    )).parse(i)?;
 
     Ok((i, expr))
 }
