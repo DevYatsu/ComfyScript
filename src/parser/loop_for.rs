@@ -15,18 +15,21 @@ use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = tag("for")(input)?;
-    let (input, _) = multispace1.cut().parse(input)?;
+    let (input, _) = multispace1.parse(input)?;
 
     let (input, kind) = parse_for_var_keyword(input)?;
 
     let (input, identifiers) = separated_list1(tag(","), parse_for_identifier)(input)?;
+    println!("workiung");
+
     let (input, _) = tag(",").opt().parse(input)?;
     let (input, _) = multispace1.cut().parse(input)?;
 
-    let (input, _) = tag("in").context("E004:in").cut().parse(input)?;
+    let (input, _) = tag("in").cut().parse(input)?;
+
     let (input, _) = multispace1.cut().parse(input)?;
 
-    let (input, indexed) = parse_expression.parse(input)?;
+    let (input, indexed) = parse_expression(input)?;
 
     let (input, _) = multispace0(input)?;
 
@@ -45,7 +48,7 @@ pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
 fn parse_for_identifier(input: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
     let (input, _) = multispace0(input)?;
 
-    let (input, id) = parse_identifier.parse(input)?;
+    let (input, id) = parse_identifier(input)?;
 
     Ok((input, id))
 }

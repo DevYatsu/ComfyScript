@@ -5,7 +5,7 @@ import
 from "test_package"
 
 import * from "math"
-/*
+/**/
 var x= "s",
     dude = -1, 
     boolValue = true,

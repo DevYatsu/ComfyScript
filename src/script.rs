@@ -106,7 +106,12 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                                         &self.content[place - 1..place]
                                     };
                                     let closing_tag = get_closing_tag(opening_tag);
-                                    let found = location.trim_start_matches("\n").replace("\n", "..").replace("\t", "")[0.. 40].to_owned() + "...";
+                                    let found = location
+                                        .trim_start_matches("\n")
+                                        .replace("\n", "..")
+                                        .replace("\t", "")[0..40]
+                                        .to_owned()
+                                        + "...";
 
                                     let mut err = SyntaxError::closing_tag(
                                         opening_tag.to_owned(),
