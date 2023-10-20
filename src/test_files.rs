@@ -50,7 +50,7 @@ pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
     let errors_list = errors.into_inner().unwrap();
 
     for (err_data, file) in errors_list {
-        err_data.print_error(file).unwrap();
+        err_data.print(file).unwrap();
     }
     Ok(())
 }

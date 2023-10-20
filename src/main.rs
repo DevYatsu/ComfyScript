@@ -11,7 +11,8 @@ use test_files::parse_all_files;
 
 use crate::{
     command::{get_command, Command},
-    script::ComfyScript, minify::generate_minified_file,
+    minify::generate_minified_file,
+    script::ComfyScript,
 };
 
 use std::{
@@ -34,7 +35,7 @@ fn main() -> Result<(), Box<dyn Error>> {
             match script.execute() {
                 Ok(_) => (),
                 Err((err, file)) => {
-                    err.print_error(file).unwrap();
+                    err.print(file).unwrap();
                 }
             };
         }

@@ -49,7 +49,7 @@ pub struct SyntaxError<FileId> {
 }
 
 impl SyntaxError<()> {
-    pub fn print_error<Name: Display + AsRef<str> + Clone, Content: AsRef<str>>(
+    pub fn print<Name: Display + AsRef<str> + Clone, Content: AsRef<str>>(
         self,
         file: SimpleFile<Name, Content>,
     ) -> Result<(), Box<dyn Error>> {
