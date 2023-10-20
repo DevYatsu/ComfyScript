@@ -1,4 +1,8 @@
-use crate::parser::{ast, errors::SyntaxError, parse_input};
+use crate::parser::{
+    ast,
+    errors::{get_closing_tag, SyntaxError},
+    parse_input,
+};
 use codespan_reporting::{diagnostic::Label, files::SimpleFile};
 use nom::{character::complete::alphanumeric1, error::Error as NomError};
 use std::{error::Error, fmt::Display};
@@ -44,16 +48,27 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                 }
                 nom_supreme::error::GenericErrorTree::Base { location, kind } => {
                     println!("kind {:?}", kind);
+                    println!("loc {:?}", location);
                     let file = SimpleFile::new(self.name.to_owned(), content.to_owned());
                     let (place, length, found) = self.get_error_data(location);
 
-                    let mut err = match kind {
+                    let err = match kind {
                         nom_supreme::error::BaseErrorKind::Expected(expec) => match expec {
                             nom_supreme::error::Expectation::Tag(expected_token) => {
-                                SyntaxError::expected(expected_token, found)
+                                let mut err = SyntaxError::expected(expected_token, found);
+
+                                err.add_label(Label::primary((), place..place + length));
+                                err
                             }
                             nom_supreme::error::Expectation::Char(expected_token) => {
-                                SyntaxError::closing_tag(expected_token.to_string(), found)
+                                let opening_tag = expected_token.to_string();
+                                let closing_tag = get_closing_tag(&opening_tag).to_owned();
+
+                                let mut err =
+                                    SyntaxError::closing_tag(opening_tag, closing_tag, found);
+
+                                err.add_label(Label::primary((), place..place + length));
+                                err
                             }
                             nom_supreme::error::Expectation::Alpha => todo!(),
                             nom_supreme::error::Expectation::Digit => todo!(),
@@ -61,15 +76,60 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             nom_supreme::error::Expectation::OctDigit => todo!(),
                             nom_supreme::error::Expectation::AlphaNumeric => todo!(),
                             nom_supreme::error::Expectation::Space => todo!(),
-                            nom_supreme::error::Expectation::Multispace => todo!(),
+                            nom_supreme::error::Expectation::Multispace => {
+                                let mut err = SyntaxError::expected("", found);
+
+                                err.add_label(Label::primary((), place..place + length));
+                                err
+                            }
                             nom_supreme::error::Expectation::CrLf => todo!(),
                             nom_supreme::error::Expectation::Eof => todo!(),
                             nom_supreme::error::Expectation::Something => todo!(),
-                            _ => todo!(),
+                            x => {
+                                println!("{:?}", x);
+
+                                todo!()
+                            }
                         },
-                        _ => unreachable!(),
+                        nom_supreme::error::BaseErrorKind::Kind(kind) => {
+                            println!("{:?}", kind);
+
+                            match kind {
+                                nom::error::ErrorKind::Tag => todo!(),
+                                nom::error::ErrorKind::Alt => todo!(),
+                                nom::error::ErrorKind::TakeUntil => {
+                                    let opening_tag = if &self.content[place - 2..place - 1] == "/"
+                                    {
+                                        // it means the opening tag is /*
+                                        &self.content[place - 2..place]
+                                    } else {
+                                        &self.content[place - 1..place]
+                                    };
+                                    let closing_tag = get_closing_tag(opening_tag);
+                                    let found = location.trim_start_matches("\n").replace("\n", "..").replace("\t", "")[0.. 40].to_owned() + "...";
+
+                                    let mut err = SyntaxError::closing_tag(
+                                        opening_tag.to_owned(),
+                                        closing_tag.to_owned(),
+                                        &found,
+                                    );
+
+                                    err.add_label(Label::primary((), place..place));
+
+                                    err
+                                }
+                                nom::error::ErrorKind::AlphaNumeric => todo!(),
+                                nom::error::ErrorKind::Space => todo!(),
+                                nom::error::ErrorKind::MultiSpace => todo!(),
+                                nom::error::ErrorKind::Char => todo!(),
+                                nom::error::ErrorKind::CrLf => todo!(),
+                                nom::error::ErrorKind::Verify => todo!(),
+                                nom::error::ErrorKind::Float => todo!(),
+                                _ => unreachable!(),
+                            }
+                        }
+                        nom_supreme::error::BaseErrorKind::External(_) => todo!(),
                     };
-                    err.add_label(Label::primary((), place..place + length));
 
                     return Err((err, file));
                 }

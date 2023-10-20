@@ -1,9 +1,7 @@
 use std::fmt;
 
 use crate::reserved_keywords::RESERVED_KEYWORD;
-use nom::{
-    character::complete::alphanumeric1, multi::separated_list0, IResult, Parser,
-};
+use nom::{branch::alt, character::complete::alphanumeric1, multi::many0, IResult, Parser};
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 use super::Expression;
@@ -14,12 +12,12 @@ pub struct Identifier {
 }
 
 pub fn parse_identifier(i: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
-    let (i, name) = separated_list0(alphanumeric1, tag("_"))
+    let (i, name) = many0(alt((tag("_"), alphanumeric1)))
         .map(|list| list.join(""))
         .verify(|word| !RESERVED_KEYWORD.contains(&word.as_str()))
         .parse(i)?;
 
-    let identifier = Identifier {name};
+    let identifier = Identifier { name };
 
     Ok((i, identifier))
 }

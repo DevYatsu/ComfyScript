@@ -6,7 +6,7 @@ use codespan_reporting::{
         termcolor::{ColorChoice, StandardStream},
     },
 };
-use std::{error::Error, fmt::Display, str::FromStr};
+use std::{error::Error, fmt::Display};
 
 #[derive(Debug)]
 pub struct SyntaxError<FileId> {
@@ -65,23 +65,6 @@ impl<FileId> SyntaxError<FileId> {
         self.notes.push(note);
     }
 
-    /// build an error from a code, an optional expected value, and a found value
-    /// may panic if no expected value is given for errors that need one
-    pub fn from_err_code(err_code: ErrorCode, val: Option<&'static str>, found: &str) -> Self {
-        match err_code {
-            ErrorCode(1) => SyntaxError::<()>::identifier(found),
-            ErrorCode(2) => SyntaxError::expression(found),
-            ErrorCode(3) => SyntaxError::space(found),
-            ErrorCode(4) => SyntaxError::keyword(val.expect("Expected a keyword passed as argument when trying to convert a code into an error"), found),
-            ErrorCode(5) => SyntaxError::closing_tag(val.expect("Expected a closing tag passed as argument").to_owned(), found),
-            ErrorCode(6) => SyntaxError::expected(val.expect("Expected a tag passed as argument"), found),
-            ErrorCode(7) => SyntaxError::import_source(found),
-            ErrorCode(_) => unreachable!(),
-        };
-
-        todo!()
-    }
-
     pub fn identifier(found: &str) -> Self {
         SyntaxError {
             message: "expected a valid identifier".to_owned(),
@@ -127,13 +110,13 @@ impl<FileId> SyntaxError<FileId> {
             )],
         }
     }
-    pub fn closing_tag(tag: String, found: &str) -> Self {
+    pub fn closing_tag(opening_tag: String, closing_tag: String, found: &str) -> Self {
         SyntaxError {
-            message: format!("expected closing tag for '{}'", tag),
+            message: format!("expected closing tag for '{}'", opening_tag),
             code: 5.into(),
             labels: Vec::new(),
             notes: vec![format!(
-                "expected `{tag}`
+                "expected `{closing_tag}`
     found `{found}`"
             )],
         }
@@ -164,26 +147,23 @@ impl<FileId> SyntaxError<FileId> {
     pub fn extract_error_kind() {}
 }
 
+pub fn get_closing_tag(opening_tag: &str) -> &str {
+    match opening_tag {
+        "[" => "]",
+        "{" => "}",
+        "(" => ")",
+        "/*" => "*/",
+        "|" => "|",
+        x => x,
+    }
+}
+
 #[derive(Debug, Clone, Copy)]
 pub struct ErrorCode(usize);
 
 impl ToString for ErrorCode {
     fn to_string(&self) -> String {
         format!("E{:03}", self.0)
-    }
-}
-impl FromStr for ErrorCode {
-    type Err = std::num::ParseIntError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        // Remove the 'E' prefix if present
-        let s = s.trim_start_matches('E');
-
-        // Parse the remaining string as an integer
-        let code = s.parse::<usize>()?;
-
-        // Create an ErrorCode from the parsed integer
-        Ok(ErrorCode(code))
     }
 }
 

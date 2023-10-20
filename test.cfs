@@ -5,8 +5,8 @@ import
 from "test_package"
 
 import * from "math"
-
-var let x= "s",
+/*
+var x= "s",
     dude = -1, 
     boolValue = true,
     _nil_value_ = nil
