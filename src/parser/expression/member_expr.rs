@@ -65,7 +65,8 @@ fn parse_expression_except_member_expr(i: &str) -> IResult<&str, Expression, Err
         parse_fn_call,
         parse_identifier_expression,
         // avoid adding to many parser here
-    )).parse(i)?;
+    ))
+    .parse(i)?;
 
     Ok((i, expr))
 }

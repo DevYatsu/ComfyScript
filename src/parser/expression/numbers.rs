@@ -11,8 +11,8 @@ pub fn parse_number(initial_i: &str) -> IResult<&str, Expression, ErrorTree<&str
 
     let (i, num) = float(base_input)?;
     let (_, other_dot) = opt(char('.'))(i)?;
-        
-// check in case a range is following
+
+    // check in case a range is following
     let (i, num) = if other_dot.is_some() {
         let (i, num_string) = take_until1(".")(base_input)?;
         (i, num_string.parse::<f32>().unwrap())

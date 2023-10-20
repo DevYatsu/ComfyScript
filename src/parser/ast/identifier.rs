@@ -1,7 +1,12 @@
 use std::fmt;
 
 use crate::reserved_keywords::RESERVED_KEYWORD;
-use nom::{branch::alt, character::complete::alphanumeric1, multi::{many0, many1}, IResult, Parser};
+use nom::{
+    branch::alt,
+    character::complete::alphanumeric1,
+    multi::{many0, many1},
+    IResult, Parser,
+};
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 use super::Expression;
