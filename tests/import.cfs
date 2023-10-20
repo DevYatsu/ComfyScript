@@ -8,4 +8,4 @@ import * from "utils"
 
 import * as math from "math"
 
-import a,b,c asx,d from "several"
+import a,b,c as x,d from "several"

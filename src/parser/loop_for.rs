@@ -22,17 +22,14 @@ pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
     let (input, identifiers) = separated_list1(tag(","), parse_for_identifier)(input)?;
 
     let (input, _) = tag(",").preceded_by(multispace0).opt().parse(input)?;
-    println!("workiung");
 
     let (input, _) = multispace1.cut().parse(input)?;
 
     let (input, _) = tag("in").cut().parse(input)?;
-    println!("workiung");
 
     let (input, _) = multispace1.cut().parse(input)?;
 
     let (input, indexed) = parse_expression(input)?;
-    println!("{:?}", indexed);
 
     let (input, _) = multispace0(input)?;
 

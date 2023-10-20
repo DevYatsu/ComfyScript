@@ -77,7 +77,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             nom_supreme::error::Expectation::AlphaNumeric => todo!(),
                             nom_supreme::error::Expectation::Space => todo!(),
                             nom_supreme::error::Expectation::Multispace => {
-                                let mut err = SyntaxError::expected("", found);
+                                let mut err = SyntaxError::space(found);
 
                                 err.add_label(Label::primary((), place..place + length));
                                 err
