@@ -4,7 +4,6 @@ use self::return_expression::parse_return_statement;
 
 use super::{
     ast::{identifier::Identifier, ASTNode, Expression},
-    errors::{expected, expected_identifier, expected_space},
     parse_block,
 };
 use crate::parser::ast::identifier::parse_identifier;
@@ -17,20 +16,18 @@ use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = tag("fn")(input)?;
-    let (input, _) = multispace1.context(expected_space()).cut().parse(input)?;
+    let (input, _) = multispace1.cut().parse(input)?;
 
-    let (input, id) = parse_identifier
-        .context(expected_identifier())
-        .parse(input)?;
+    let (input, id) = parse_identifier.parse(input)?;
 
     let (input, _) = multispace0(input)?;
-    let (input, _) = parse_char('(').context(expected("(")).cut().parse(input)?;
+    let (input, _) = parse_char('(').cut().parse(input)?;
     let (input, _) = multispace0(input)?;
 
     let (input, params) = parse_fn_params(input)?;
 
     let (input, _) = multispace0(input)?;
-    let (input, _) = parse_char(')').context(expected(")")).cut().parse(input)?;
+    let (input, _) = parse_char(')').cut().parse(input)?;
     let (input, _) = multispace0(input)?;
 
     let (input, (body, is_shortcut)) = parse_fn_body.map(|(b, s)| (Box::new(b), s)).parse(input)?;
@@ -51,7 +48,7 @@ pub fn parse_fn_expression(input: &str) -> IResult<&str, Expression, ErrorTree<&
     let (input, params) = parse_fn_params(input)?;
 
     let (input, _) = multispace0(input)?;
-    let (input, _) = tag("|").context(expected("|")).cut().parse(input)?;
+    let (input, _) = tag("|").cut().parse(input)?;
 
     let (input, _) = multispace0(input)?;
 
@@ -90,9 +87,7 @@ fn parse_fn_body(input: &str) -> IResult<&str, (ASTNode, bool), ErrorTree<&str>>
 fn parse_fn_param(input: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
     let (input, _) = multispace0(input)?;
 
-    let (input, id) = parse_identifier
-        .context(expected_identifier())
-        .parse(input)?;
+    let (input, id) = parse_identifier.parse(input)?;
 
     Ok((input, id))
 }

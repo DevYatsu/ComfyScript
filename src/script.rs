@@ -1,7 +1,7 @@
 use crate::parser::{ast, errors::SyntaxError, parse_input};
 use codespan_reporting::{diagnostic::Label, files::SimpleFile};
 use nom::{character::complete::alphanumeric1, error::Error as NomError};
-use std::{error::Error, fmt::Display};
+use std::{error::Error, fmt::Display, process};
 
 #[derive(Debug)]
 pub struct ComfyScript<Name: Display + Clone> {
@@ -50,7 +50,10 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                         _ => unreachable!(),
                     }
                 }
-                _ => unreachable!(),
+                e => {
+                    println!("{:?}", e);
+                    process::exit(1)
+                }
             },
         };
 

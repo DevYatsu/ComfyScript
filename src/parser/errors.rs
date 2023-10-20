@@ -8,28 +8,6 @@ use codespan_reporting::{
 };
 use std::{error::Error, fmt::Display, str::FromStr};
 
-pub fn expected_identifier() -> &'static str {
-    "E001:"
-}
-pub fn expected_expression() -> &'static str {
-    "E002:"
-}
-pub fn expected_space() -> &'static str {
-    "E003:"
-}
-pub fn expected_keyword(keyword: &'static str) -> &'static str {
-    "E004:"
-}
-pub fn expected_closing_tag(tag: &'static str) -> &'static str {
-    "E005:"
-}
-pub fn expected(tag: &'static str) -> &'static str {
-    "E006:"
-}
-pub fn expected_import_source() -> &'static str {
-    "E007:"
-}
-
 #[derive(Debug)]
 pub struct SyntaxError<FileId> {
     /// the error message
@@ -210,27 +188,5 @@ impl FromStr for ErrorCode {
 impl From<usize> for ErrorCode {
     fn from(value: usize) -> Self {
         ErrorCode(value)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ErrorDynamicData(ErrorCode, String);
-
-impl ToString for ErrorDynamicData {
-    fn to_string(&self) -> String {
-        format!("{}:{}", self.0.to_string(), self.1)
-    }
-}
-impl FromStr for ErrorDynamicData {
-    type Err = std::num::ParseIntError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (code, err_content) = s
-            .split_once(':')
-            .expect("Expected a good ErrorDynamicData ToString implementation");
-        let code = ErrorCode::from_str(code).expect("Invalid Error code");
-
-        // Create an ErrorCode from the parsed integer
-        Ok(ErrorDynamicData(code, err_content.to_owned()))
     }
 }

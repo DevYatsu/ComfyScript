@@ -5,7 +5,6 @@ use super::{
         literal_value::LiteralValue,
         ASTNode, Expression,
     },
-    errors::{expected_identifier, expected_import_source, expected_keyword, expected_space},
     expression::strings::parse_string,
 };
 use nom::{
@@ -29,11 +28,11 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         )(i)?;
 
         let (i, _) = preceded(multispace0, char(',')).opt().parse(i)?;
-        let (i, _) = multispace1.context(expected_space()).cut().parse(i)?;
+        let (i, _) = multispace1.cut().parse(i)?;
 
         (i, specifiers)
     } else {
-        let (i, local) = opt_import_as.opt().parse(i)?;
+        let (i, local) = import_as.opt().parse(i)?;
         let (i, _) = multispace0(i)?;
 
         let asterisk = Identifier {
@@ -60,15 +59,12 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     };
 
     let (i, _) = tag("from")
-        .context(expected_keyword("from"))
+        // .context(expected_keyword("from"))
         .cut()
         .parse(i)?;
-    let (i, _) = multispace1.context(expected_space()).cut().parse(i)?;
+    let (i, _) = multispace1.cut().parse(i)?;
 
-    let (i, source) = parse_string
-        .context(expected_import_source())
-        .cut()
-        .parse(i)?;
+    let (i, source) = parse_string.cut().parse(i)?;
 
     let source = match source {
         Expression::Literal { value, .. } => match value {
@@ -83,7 +79,7 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 
 fn parse_import_specifier(i: &str) -> IResult<&str, ImportSpecifier, ErrorTree<&str>> {
     let (i, imported_name) = parse_identifier.parse(i)?;
-    let (i, local_name) = opt_import_as.opt().parse(i)?;
+    let (i, local_name) = import_as.opt().parse(i)?;
 
     match local_name {
         Some(local_name) => {
@@ -105,15 +101,12 @@ fn parse_import_specifier(i: &str) -> IResult<&str, ImportSpecifier, ErrorTree<&
     }
 }
 
-fn opt_import_as(i: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
+fn import_as(i: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
     let (i, _) = multispace1(i)?;
     let (i, _) = tag("as")(i)?;
 
-    let (i, _) = multispace1.context(expected_identifier()).cut().parse(i)?;
-    let (i, local_name) = parse_identifier
-        .context(expected_identifier())
-        .cut()
-        .parse(i)?;
+    let (i, _) = multispace1.cut().parse(i)?;
+    let (i, local_name) = parse_identifier.cut().parse(i)?;
 
     return Ok((i, local_name));
 }
