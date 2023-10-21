@@ -33,7 +33,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                 println!("ctx {:?}", e);
                 match e {
                     nom_supreme::error::GenericErrorTree::Stack { contexts, .. } => {
-                        let ctx = contexts[contexts.len() -1].1;
+                        let ctx = contexts[contexts.len() - 1].1;
 
                         match ctx {
                             nom_supreme::error::StackContext::Context(msg) => {
@@ -43,9 +43,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                                         // it means base has kind: Kind(Verify)
                                         SyntaxError::identifier(found)
                                     }
-                                    "import source" => {
-                                        SyntaxError::import_source(found)
-                                    }
+                                    "import source" => SyntaxError::import_source(found),
                                     _ => unreachable!(),
                                 };
 

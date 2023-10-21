@@ -25,7 +25,8 @@ pub fn parse_identifier(i: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
 
 pub fn parse_unchecked_id(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
     let (i, s) = many1(alt((tag("_"), alphanumeric1)))
-        .map(|list| list.join("")).parse(i)?;
+        .map(|list| list.join(""))
+        .parse(i)?;
 
     Ok((i, s))
 }
