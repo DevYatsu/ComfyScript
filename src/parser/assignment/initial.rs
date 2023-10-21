@@ -4,11 +4,10 @@ use crate::parser::{
     ast::{identifier::parse_identifier, vars::VariableDeclarator, ASTNode},
     comment::jump_comments,
     expression::parse_expression,
-    parse_new_lines,
 };
 use nom::{
     branch::alt,
-    character::complete::{multispace0, multispace1},
+    character::complete::{char, multispace1},
     multi::separated_list1,
     IResult, Parser,
 };
@@ -61,7 +60,7 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
 
     let (input, _) = jump_comments(input)?;
 
-    let (input, _) = tag("=").cut().parse(input)?;
+    let (input, _) = char('=').cut().parse(input)?;
     let (input, _) = jump_comments(input)?;
 
     let (input, value) = parse_expression.parse(input)?;
@@ -80,7 +79,7 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
 
 fn parse_variable_keyword(i: &str) -> IResult<&str, VariableKeyword, ErrorTree<&str>> {
     alt((
-        tag("let").map(|_| VariableKeyword::Let),
-        tag("var").map(|_| VariableKeyword::Var),
+        tag("let").complete().map(|_| VariableKeyword::Let),
+        tag("var").complete().map(|_| VariableKeyword::Var),
     ))(i)
 }

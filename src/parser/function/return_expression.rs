@@ -4,7 +4,7 @@ use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 use crate::parser::{ast::ASTNode, expression::parse_expression};
 
 pub fn parse_return_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
-    let (i, return_keyword) = alt((tag(">>"), tag("return"))).parse(i)?;
+    let (i, return_keyword) = alt((tag(">>").complete(), tag("return").complete())).parse(i)?;
     let is_shortcut = return_keyword.to_string().as_str() == ">>";
 
     let (i, _) = multispace0(i)?;

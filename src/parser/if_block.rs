@@ -56,7 +56,7 @@ pub fn parse_if_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>
 }
 
 fn parse_if_block(input: &str) -> IResult<&str, (Expression, Box<ASTNode>), ErrorTree<&str>> {
-    let (input, _) = tag("if")(input)?;
+    let (input, _) = tag("if").complete().parse(input)?;
     let (input, _) = multispace1.cut().parse(input)?;
 
     let (input, test) = parse_expression.cut().parse(input)?;

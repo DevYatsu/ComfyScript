@@ -16,7 +16,7 @@ use nom::{
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
-    let (i, _) = tag("import")(i)?;
+    let (i, _) = tag("import").complete().parse(i)?;
     let (i, _) = multispace1(i)?;
 
     let (i, asterisk) = char('*').opt().parse(i)?;
@@ -61,7 +61,8 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     };
 
     let (i, _) = tag("from")
-        // .context(expected_keyword("from"))
+        .complete()
+        .context("keyword from")
         .cut()
         .parse(i)?;
     let (i, _) = multispace1.cut().parse(i)?;
@@ -105,7 +106,7 @@ fn parse_import_specifier(i: &str) -> IResult<&str, ImportSpecifier, ErrorTree<&
 
 fn import_as(i: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
     let (i, _) = multispace1(i)?;
-    let (i, _) = tag("as")(i)?;
+    let (i, _) = tag("as").complete().parse(i)?;
 
     let (i, _) = multispace1.cut().parse(i)?;
     let (i, local_name) = parse_identifier.cut().parse(i)?;

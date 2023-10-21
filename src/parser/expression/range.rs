@@ -50,8 +50,8 @@ fn parse_expression_except_range(i: &str) -> IResult<&str, Expression, ErrorTree
 
 fn parse_range_type(i: &str) -> IResult<&str, RangeType, ErrorTree<&str>> {
     let (i, range) = alt((
-        tag("..=").map(|_| RangeType::DotEqual),
-        tag("..").map(|_| RangeType::Dot),
+        tag("..=").complete().map(|_| RangeType::DotEqual),
+        tag("..").complete().map(|_| RangeType::Dot),
     ))
     .parse(i)?;
 

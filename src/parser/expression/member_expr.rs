@@ -2,6 +2,7 @@ use crate::parser::ast::identifier::parse_identifier_expression;
 use crate::parser::ast::Expression;
 use crate::parser::comment::jump_comments;
 use nom::branch::alt;
+use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::{IResult, Parser};
 use nom_supreme::error::ErrorTree;
@@ -14,7 +15,7 @@ use super::parse_expression_with;
 
 pub fn parse_member_expr(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, mut ids) = separated_list1(
-        tag("."),
+        char('.'),
         parse_expression_with(parse_expression_except_member_expr),
     )(i)?;
     // we are sure that ids length is >= 2 here

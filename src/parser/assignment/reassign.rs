@@ -6,7 +6,6 @@ use crate::parser::{
     comment::jump_comments,
     expression::{indexing::parse_indexing, member_expr::parse_member_expr, parse_expression},
     operations::assignment::parse_assignment_operator,
-    parse_new_lines,
 };
 
 pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
@@ -17,6 +16,7 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     ))
     .map(|e| Box::new(e))
     .parse(i)?;
+
     let (i, _) = jump_comments(i)?;
 
     let (i, op) = parse_assignment_operator.parse(i)?;
