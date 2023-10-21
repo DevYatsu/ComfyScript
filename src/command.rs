@@ -24,7 +24,6 @@ pub fn get_command() -> Command {
                 }
             }
             file_name => {
-
                 return Command::RunFile(file_name.into());
             }
         }
