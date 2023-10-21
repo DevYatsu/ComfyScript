@@ -5,8 +5,8 @@ use crate::parser::{
 };
 
 use nom::{
-    branch::alt, character::complete::char, character::complete::multispace0, combinator::opt,
-    multi::separated_list1, IResult,
+    branch::alt, character::complete::char, character::complete::multispace0,
+    multi::separated_list0, IResult, Parser,
 };
 use nom_supreme::error::ErrorTree;
 
@@ -16,9 +16,7 @@ pub fn parse_fn_call(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> 
     let (input, id) = parse_expression_with(parse_expression_except_fn_call)(input)?;
 
     let (input, _) = char('(')(input)?;
-    let (input, args) = opt(separated_list1(char(','), parse_expression))(input)?;
-
-    let args = args.unwrap_or_else(|| vec![]);
+    let (input, args) = separated_list0(char(','), parse_expression).parse(input)?;
 
     let (input, _) = multispace0(input)?;
     let (input, _) = char(')')(input)?;

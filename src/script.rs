@@ -31,8 +31,6 @@ impl<Name: Display + Clone> ComfyScript<Name> {
         let program = match parse_input(&content) {
             Ok(r) => r,
             Err(e) => {
-                println!("ctx {:?}", e);
-
                 return Err((self.match_error(&e), file));
             }
         };
@@ -56,6 +54,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
         match e {
             nom_supreme::error::GenericErrorTree::Stack { contexts, .. } => {
                 let ctx = contexts[contexts.len() - 1].1;
+                println!("error {:?}", ctx);
 
                 match ctx {
                     nom_supreme::error::StackContext::Context(msg) => {
@@ -67,6 +66,10 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             }
                             "import source" => SyntaxError::import_source(found),
                             "expression" => SyntaxError::expression(found),
+                            "unexpected" => SyntaxError::unexpected(found),
+                            "fncallexpression" => {
+                                todo!()
+                            }
                             _ => unreachable!(),
                         };
 

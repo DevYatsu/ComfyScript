@@ -143,8 +143,17 @@ impl<FileId> SyntaxError<FileId> {
             )],
         }
     }
-
-    pub fn extract_error_kind() {}
+    pub fn unexpected(found: &str) -> Self {
+        SyntaxError {
+            message: "Unexpected token".to_owned(),
+            code: 8.into(),
+            labels: Vec::new(),
+            notes: vec![format!(
+                "Unexpected token `{found}`
+    Did you intend to do something else ?"
+            )],
+        }
+    }
 }
 
 pub fn get_closing_tag(opening_tag: &str) -> &str {

@@ -22,10 +22,7 @@ use super::{
     operations::{binary::parse_binary_operator, build_binary_expression},
 };
 use crate::parser::ast::Expression;
-use nom::{
-    branch::alt, character::complete::multispace0, multi::many0, sequence::separated_pair, IResult,
-    Parser,
-};
+use nom::{branch::alt, multi::many0, sequence::separated_pair, IResult, Parser};
 use nom_supreme::{error::ErrorTree, ParserExt};
 
 pub fn parse_expression_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
@@ -53,8 +50,6 @@ where
 
         let mut expr_vec = vec![expr];
         let mut operators_vec = Vec::with_capacity(3);
-
-        let (i, _) = multispace0(i)?;
 
         // Check for binary expr
         let (i, rest) = many0(separated_pair(

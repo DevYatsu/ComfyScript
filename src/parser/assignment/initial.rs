@@ -4,8 +4,14 @@ use crate::parser::{
     ast::{identifier::parse_identifier, vars::VariableDeclarator, ASTNode},
     comment::jump_comments,
     expression::parse_expression,
+    parse_new_lines,
 };
-use nom::{branch::alt, character::complete::multispace1, multi::separated_list1, IResult, Parser};
+use nom::{
+    branch::alt,
+    character::complete::{multispace0, multispace1},
+    multi::separated_list1,
+    IResult, Parser,
+};
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -59,6 +65,14 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
     let (input, _) = jump_comments(input)?;
 
     let (input, value) = parse_expression.parse(input)?;
+
+    // if there is a an expr or sth that has nothing to do here return an error
+    // let (input, _) = alt((parse_new_lines, tag(",").preceded_by(multispace0)))
+    //     .peek()
+    //     .cut()
+    //     .context("unexpected")
+    //     .parse(input)?;
+
     let declarator = VariableDeclarator { id, init: value };
 
     Ok((input, declarator))

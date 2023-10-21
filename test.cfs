@@ -6,7 +6,7 @@ from "test_package"
 
 import x from "math"
 
-var x= "s",
+var x="s",
     dude = -1, // trying comments in here 
     boolValue = true,
     _nil_value_ = nil
@@ -18,3 +18,7 @@ dude // dude comment
 let 1n = [0,1,2,3,4,5]
 
 let y = {1:1,2:2,3:3,4:4,5:5,}
+
+let x = "str"a
+
+test("Str"a)
