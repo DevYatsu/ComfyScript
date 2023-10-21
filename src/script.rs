@@ -69,9 +69,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             "import source" => SyntaxError::import_source(found),
                             "expression" => SyntaxError::expression(found),
                             "unexpected" => SyntaxError::unexpected(found),
-                            _x if msg.starts_with("keyword ") => {
-                                todo!()
-                            }
+
                             _ => unreachable!(),
                         };
 

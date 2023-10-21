@@ -60,11 +60,7 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         }
     };
 
-    let (i, _) = tag("from")
-        .complete()
-        .context("keyword from")
-        .cut()
-        .parse(i)?;
+    let (i, _) = tag("from").complete().cut().parse(i)?;
     let (i, _) = multispace1.cut().parse(i)?;
 
     let (i, source) = parse_string.cut().context("import source").parse(i)?;
