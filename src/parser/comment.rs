@@ -22,6 +22,7 @@ pub fn parse_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> 
 }
 
 pub fn jump_comments(input: &str) -> IResult<&str, String, ErrorTree<&str>> {
+    let (input, _) = multispace0(input)?;
     let (input, comments) =
         many0(alt((parse_line_comment, parse_multiline_comment)).preceded_by(multispace0))(input)?;
     let (input, _) = multispace0(input)?;

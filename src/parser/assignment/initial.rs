@@ -2,14 +2,10 @@ use std::fmt;
 
 use crate::parser::{
     ast::{identifier::parse_identifier, vars::VariableDeclarator, ASTNode},
+    comment::jump_comments,
     expression::parse_expression,
 };
-use nom::{
-    branch::alt,
-    character::complete::{multispace0, multispace1},
-    multi::separated_list1,
-    IResult, Parser,
-};
+use nom::{branch::alt, character::complete::multispace1, multi::separated_list1, IResult, Parser};
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 #[derive(Debug, Eq, PartialEq, Clone)]
@@ -32,7 +28,10 @@ pub fn parse_var_init(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 
     let (input, _) = multispace1(input)?;
 
-    let (input, declarations) = separated_list1(tag(","), parse_single_declaration)(input)?;
+    let (input, declarations) = separated_list1(
+        tag(",").delimited_by(jump_comments),
+        parse_single_declaration,
+    )(input)?;
 
     let result = (
         input,
@@ -46,7 +45,7 @@ pub fn parse_var_init(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 }
 
 pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator, ErrorTree<&str>> {
-    let (input, _) = multispace0(input)?;
+    let (input, _) = jump_comments(input)?;
 
     let (input, id) = parse_identifier
         .verify(|id| id.name.parse::<i32>().is_err())
@@ -54,10 +53,10 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
         .context("identifier")
         .parse(input)?;
 
-    let (input, _) = multispace0(input)?;
+    let (input, _) = jump_comments(input)?;
 
     let (input, _) = tag("=").cut().parse(input)?;
-    let (input, _) = multispace0(input)?;
+    let (input, _) = jump_comments(input)?;
 
     let (input, value) = parse_expression.parse(input)?;
     let declarator = VariableDeclarator { id, init: value };

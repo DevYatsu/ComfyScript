@@ -5,13 +5,15 @@ import
 from "test_package"
 
 import x from "math"
-/**/
-var x=e"s",
-    dude = -1, 
+
+var x= "s",
+    dude = -1, // trying comments in here 
     boolValue = true,
     _nil_value_ = nil
 
-dude *= 2
+dude // dude comment
+*= 
+2
 
 let 1n = [0,1,2,3,4,5]
 
