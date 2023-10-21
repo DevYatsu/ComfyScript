@@ -23,13 +23,10 @@ use super::{
 };
 use crate::parser::ast::Expression;
 use nom::{
-    branch::alt,
-    character::complete::multispace0,
-    multi::many0,
-    sequence::{preceded, separated_pair},
-    IResult, Parser,
+    branch::alt, character::complete::multispace0, multi::many0, sequence::separated_pair, IResult,
+    Parser,
 };
-use nom_supreme::error::ErrorTree;
+use nom_supreme::{error::ErrorTree, ParserExt};
 
 pub fn parse_expression_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, expr) = parse_expression(i)?;
@@ -52,7 +49,7 @@ where
     move |input| {
         let parser_closure = |i| parser(i);
 
-        let (i, expr) = parser_closure(input)?;
+        let (i, expr) = parser_closure.context("expression").parse(input)?;
 
         let mut expr_vec = vec![expr];
         let mut operators_vec = Vec::with_capacity(3);
@@ -61,10 +58,12 @@ where
 
         // Check for binary expr
         let (i, rest) = many0(separated_pair(
-            preceded(multispace0, parse_binary_operator),
-            multispace0,
-            &parser_closure,
-        ))(i)?;
+            parse_binary_operator.preceded_by(jump_comments),
+            jump_comments,
+            parser_closure.context("expression"),
+        ))
+        .cut()
+        .parse(i)?;
 
         for (op, expr) in rest {
             operators_vec.push(op);

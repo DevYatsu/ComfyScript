@@ -1,7 +1,7 @@
 use super::ast::{ASTNode, Expression};
 use nom::{
     branch::alt, bytes::complete::take_until, character::complete::multispace0, multi::many0,
-    sequence::preceded, IResult, Parser,
+    IResult, Parser,
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
@@ -22,10 +22,8 @@ pub fn parse_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> 
 }
 
 pub fn jump_comments(input: &str) -> IResult<&str, String, ErrorTree<&str>> {
-    let (input, comments) = many0(preceded(
-        multispace0,
-        alt((parse_line_comment, parse_multiline_comment)),
-    ))(input)?;
+    let (input, comments) =
+        many0(alt((parse_line_comment, parse_multiline_comment)).preceded_by(multispace0))(input)?;
     let (input, _) = multispace0(input)?;
 
     let comments_str: String = comments.into_iter().map(|com| com.to_string()).collect();

@@ -6,7 +6,7 @@ from "test_package"
 
 import x from "math"
 /**/
-var x =e"s",
+var x=e"s",
     dude = -1, 
     boolValue = true,
     _nil_value_ = nil

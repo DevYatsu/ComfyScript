@@ -59,7 +59,7 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
     let (input, _) = tag("=").cut().parse(input)?;
     let (input, _) = multispace0(input)?;
 
-    let (input, value) = parse_expression.context("expression").cut().parse(input)?;
+    let (input, value) = parse_expression.parse(input)?;
     let declarator = VariableDeclarator { id, init: value };
 
     Ok((input, declarator))

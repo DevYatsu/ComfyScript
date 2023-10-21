@@ -33,13 +33,13 @@ pub fn parse_object(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
 
 fn parse_property(i: &str) -> IResult<&str, Property, ErrorTree<&str>> {
     let (i, _) = multispace0(i)?;
-    let (i, id) = parse_identifier(i)?;
+    let (i, id) = parse_identifier.parse(i)?;
 
     let (i, _) = multispace0(i)?;
     let (i, _) = char(':')(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, expr) = parse_expression(i)?;
+    let (i, expr) = parse_expression.cut().context("expression").parse(i)?;
 
     let is_method = match expr {
         Expression::FnExpression { .. } => true,

@@ -20,7 +20,7 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (i, op) = parse_assignment_operator.parse(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, assigned) = parse_expression.cut().parse(i)?;
+    let (i, assigned) = parse_expression.cut().context("expression").parse(i)?;
 
     Ok((
         i,

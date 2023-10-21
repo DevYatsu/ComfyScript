@@ -7,6 +7,6 @@ let test = {
 
 let x = test.init() + test
 
-let arr = [test, test]
+let arr = [test, test, at]
 
 let inited_arr = arr.map(|element| >> element.init()).filter(|x| >> typeof(x) == "object")

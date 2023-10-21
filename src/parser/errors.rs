@@ -121,7 +121,7 @@ impl<FileId> SyntaxError<FileId> {
             )],
         }
     }
-    pub fn expected(sth: &'static str, found: &str) -> Self {
+    pub fn expected(sth: String, found: &str) -> Self {
         SyntaxError {
             message: format!("expected '{}'", sth),
             code: 6.into(),

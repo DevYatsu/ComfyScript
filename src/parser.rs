@@ -65,7 +65,7 @@ fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a st
     }
 
     while !input.is_empty() {
-        let (new_input, statement) = parse_statement(input)?;
+        let (new_input, statement) = parse_statement.parse(input)?;
         statements.push(statement);
 
         let (new_input, _) = opt(parse_new_lines)(new_input)?;
@@ -92,7 +92,8 @@ fn parse_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         parse_return_statement,
         parse_comment_statement,
         parse_expression_statement,
-    ))(input)
+    ))
+    .parse(input)
 }
 
 fn parse_new_lines(i: &str) -> IResult<&str, &str, ErrorTree<&str>> {
