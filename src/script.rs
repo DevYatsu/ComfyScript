@@ -44,6 +44,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                                         SyntaxError::identifier(found)
                                     }
                                     "import source" => SyntaxError::import_source(found),
+                                    "expression" => SyntaxError::expression(found),
                                     _ => unreachable!(),
                                 };
 

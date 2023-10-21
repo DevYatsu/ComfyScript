@@ -27,7 +27,7 @@ use nom::{
     character::complete::multispace0,
     multi::many0,
     sequence::{preceded, separated_pair},
-    IResult,
+    IResult, Parser,
 };
 use nom_supreme::error::ErrorTree;
 
@@ -40,7 +40,7 @@ pub fn parse_expression_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&
 }
 
 pub fn parse_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    parse_expression_with(parse_basic_expression)(i)
+    parse_expression_with(parse_basic_expression).parse(i)
 }
 
 pub fn parse_expression_with<'a, F>(
@@ -91,7 +91,8 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
         parse_parenthesized,
         parse_identifier_expression,
         parse_fn_expression,
-    ))(i)?;
+    ))
+    .parse(i)?;
 
     Ok((i, expr))
 }

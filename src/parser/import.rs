@@ -25,7 +25,9 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         let (i, specifiers) = separated_list1(
             delimited(multispace0, char(','), multispace0),
             parse_import_specifier,
-        )(i)?;
+        )
+        .cut()
+        .parse(i)?;
 
         let (i, _) = preceded(multispace0, char(',')).opt().parse(i)?;
         let (i, _) = multispace1.cut().parse(i)?;

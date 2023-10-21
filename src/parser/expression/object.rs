@@ -1,8 +1,8 @@
 use nom::{
     character::complete::char, character::complete::multispace0, combinator::opt,
-    multi::separated_list0, IResult,
+    multi::separated_list0, IResult, Parser,
 };
-use nom_supreme::error::ErrorTree;
+use nom_supreme::{error::ErrorTree, ParserExt};
 
 use crate::parser::ast::{
     identifier::parse_identifier,
@@ -16,7 +16,7 @@ pub fn parse_object(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, _) = char('{')(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, elements) = separated_list0(char(','), parse_property)(i)?;
+    let (i, elements) = separated_list0(char(','), parse_property).cut().parse(i)?;
     let (i, _) = multispace0(i)?;
     let (i, _) = opt(char(','))(i)?;
     let (i, _) = multispace0(i)?;

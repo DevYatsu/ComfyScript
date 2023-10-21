@@ -19,7 +19,9 @@ pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
 
     let (input, kind) = parse_for_var_keyword(input)?;
 
-    let (input, identifiers) = separated_list1(tag(","), parse_for_identifier)(input)?;
+    let (input, identifiers) = separated_list1(tag(","), parse_for_identifier)
+        .cut()
+        .parse(input)?;
 
     let (input, _) = tag(",").preceded_by(multispace0).opt().parse(input)?;
 

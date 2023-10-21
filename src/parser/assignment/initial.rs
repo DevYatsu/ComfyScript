@@ -51,6 +51,7 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
     let (input, id) = parse_identifier
         .verify(|id| id.name.parse::<i32>().is_err())
         .cut()
+        .context("identifier")
         .parse(input)?;
 
     let (input, _) = multispace0(input)?;
@@ -58,7 +59,7 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
     let (input, _) = tag("=").cut().parse(input)?;
     let (input, _) = multispace0(input)?;
 
-    let (input, value) = parse_expression.cut().parse(input)?;
+    let (input, value) = parse_expression.context("expression").cut().parse(input)?;
     let declarator = VariableDeclarator { id, init: value };
 
     Ok((input, declarator))
