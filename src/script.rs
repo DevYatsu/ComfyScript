@@ -1,9 +1,11 @@
 use crate::parser::{
     ast::{self, identifier::parse_unchecked_id},
     errors::{get_closing_tag, SyntaxError},
+    expression::strings::parse_unchecked_string,
     parse_input,
 };
 use codespan_reporting::{diagnostic::Label, files::SimpleFile};
+use nom::branch::alt;
 use nom_supreme::error::GenericErrorTree;
 use std::{error::Error, fmt::Display};
 
@@ -166,13 +168,14 @@ impl<Name: Display + Clone> ComfyScript<Name> {
             }
             nom_supreme::error::GenericErrorTree::Alt(alt) => {
                 let x = &alt[0];
+                println!("alt {:?}", alt);
                 self.match_error(x)
             }
         }
     }
     fn get_error_data<'a>(&self, error_content: &'a str) -> (usize, usize, &'a str) {
         let error_place = self.content.len() - error_content.len();
-        let error_length = parse_unchecked_id(error_content)
+        let error_length = alt((parse_unchecked_id, parse_unchecked_string))(error_content)
             .and_then(|(_, w)| Ok(w.len()))
             .unwrap_or(1);
 

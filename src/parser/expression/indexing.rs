@@ -1,7 +1,7 @@
 use nom::{
     branch::alt, character::complete::char, character::complete::multispace0, IResult, Parser,
 };
-use nom_supreme::error::ErrorTree;
+use nom_supreme::{error::ErrorTree, ParserExt};
 
 use crate::parser::ast::{identifier::parse_identifier_expression, Expression};
 
@@ -17,7 +17,7 @@ pub fn parse_indexing(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, elements) = parse_expression.parse(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, _) = char(']').parse(i)?;
+    let (i, _) = char(']').context("unexpected").cut().parse(i)?;
 
     Ok((
         i,

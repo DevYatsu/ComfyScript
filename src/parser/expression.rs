@@ -46,7 +46,7 @@ where
     move |input| {
         let parser_closure = |i| parser(i);
 
-        let (i, expr) = parser_closure.context("expression").parse(input)?;
+        let (i, expr) = parser_closure(input)?;
 
         let mut expr_vec = vec![expr];
         let mut operators_vec = Vec::with_capacity(3);
@@ -55,7 +55,7 @@ where
         let (i, rest) = many0(separated_pair(
             parse_binary_operator.preceded_by(jump_comments),
             jump_comments,
-            parser_closure.context("expression"),
+            parser_closure,
         ))
         .cut()
         .parse(i)?;

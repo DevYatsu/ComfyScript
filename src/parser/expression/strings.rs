@@ -1,5 +1,5 @@
 use nom::{
-    branch::alt, bytes::complete::take_until1, character::complete::char, combinator::map, IResult,
+    branch::alt, bytes::complete::take_until, character::complete::char, combinator::map, IResult,
     Parser,
 };
 use nom_supreme::{error::ErrorTree, ParserExt};
@@ -9,7 +9,7 @@ use crate::parser::ast::{literal_value::LiteralValue, Expression};
 pub fn parse_string(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, quote) = parse_quote(i)?;
 
-    let (i, result) = take_until1(&*quote.to_string()).cut().parse(i)?;
+    let (i, result) = take_until(&*quote.to_string()).cut().parse(i)?;
     let (i, c) = char(quote)(i)?;
 
     return Ok((
@@ -19,6 +19,15 @@ pub fn parse_string(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
             raw: c.to_string() + result + &c.to_string(),
         },
     ));
+}
+
+pub fn parse_unchecked_string(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
+    let (i, quote) = parse_quote(i)?;
+
+    let (i, result) = take_until(&*quote.to_string()).cut().parse(i)?;
+    let (i, c) = char(quote)(i)?;
+
+    return Ok((i, c.to_string() + result + &c.to_string()));
 }
 
 fn parse_quote(i: &str) -> IResult<&str, char, ErrorTree<&str>> {

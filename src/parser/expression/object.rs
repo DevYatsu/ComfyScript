@@ -21,7 +21,7 @@ pub fn parse_object(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, _) = opt(char(','))(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, _) = char('}')(i)?;
+    let (i, _) = char('}').context("unexpected").cut().parse(i)?;
 
     Ok((
         i,
