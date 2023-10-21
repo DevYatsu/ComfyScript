@@ -6,7 +6,6 @@ use nom::character::complete::char;
 use nom::multi::separated_list1;
 use nom::{IResult, Parser};
 use nom_supreme::error::ErrorTree;
-use nom_supreme::tag::complete::tag;
 
 use super::function_call::parse_fn_call;
 use super::indexing::parse_indexing;
