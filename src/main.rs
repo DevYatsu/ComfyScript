@@ -58,10 +58,7 @@ fn main() -> Result<(), Box<dyn Error>> {
     }
 
     let elapsed_time = start_time.elapsed();
-    println!(
-        "Execution time: {} microseconds",
-        elapsed_time.as_micros(),
-    );
+    println!("Execution time: {} microseconds", elapsed_time.as_micros(),);
     Ok(())
 }
 

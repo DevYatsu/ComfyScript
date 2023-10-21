@@ -2,7 +2,7 @@ import
     bar as foo,
     foo as bar,
     boo as test,
-from "test_package"
+from test_package"
 
 import * from "math"
 /**/

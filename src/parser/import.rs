@@ -64,7 +64,7 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         .parse(i)?;
     let (i, _) = multispace1.cut().parse(i)?;
 
-    let (i, source) = parse_string.cut().parse(i)?;
+    let (i, source) = parse_string.cut().context("import source").parse(i)?;
 
     let source = match source {
         Expression::Literal { value, .. } => match value {
