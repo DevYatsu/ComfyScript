@@ -6,7 +6,6 @@ pub enum Command {
     MinifyFile(PathBuf),
     NotFound,
     MissingFileName,
-    TestFiles,
 }
 
 pub fn get_command() -> Command {
@@ -17,13 +16,6 @@ pub fn get_command() -> Command {
 
     if let Some(name) = command_name {
         match name.as_str() {
-            "run" => {
-                if let Some(file_name) = args.next() {
-                    return Command::RunFile(file_name.into());
-                } else {
-                    return Command::MissingFileName;
-                }
-            }
             "minify" => {
                 if let Some(file_name) = args.next() {
                     return Command::MinifyFile(file_name.into());
@@ -31,8 +23,10 @@ pub fn get_command() -> Command {
                     return Command::MissingFileName;
                 }
             }
-            "test" => return Command::TestFiles,
-            _ => (),
+            file_name => {
+
+                return Command::RunFile(file_name.into());
+            }
         }
     }
 

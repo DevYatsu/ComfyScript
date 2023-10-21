@@ -1,13 +1,11 @@
 mod comfy;
 mod command;
 mod errors;
+mod execute_folder;
 mod minify;
 mod parser;
 mod reserved_keywords;
 mod script;
-mod test_files;
-
-use test_files::parse_all_files;
 
 use crate::{
     command::{get_command, Command},
@@ -29,15 +27,19 @@ fn main() -> Result<(), Box<dyn Error>> {
 
     match command {
         Command::RunFile(path) => {
-            let content = get_file_content(&path)?;
-            let script = ComfyScript::new(path.to_string_lossy(), content);
+            if path.is_dir() {
+                execute_folder::execute_folder(&path)?;
+            } else {
+                let content = get_file_content(&path)?;
+                let script = ComfyScript::new(path.to_string_lossy(), content);
 
-            match script.execute() {
-                Ok(_) => (),
-                Err((err, file)) => {
-                    err.print(file).unwrap();
-                }
-            };
+                match script.execute() {
+                    Ok(_) => (),
+                    Err((err, file)) => {
+                        err.print(file).unwrap();
+                    }
+                };
+            }
         }
         Command::MinifyFile(path) => {
             let content = get_file_content(&path)?;
@@ -53,7 +55,6 @@ fn main() -> Result<(), Box<dyn Error>> {
         Command::MissingFileName => {
             return Err("Missing a valid file name!".into());
         }
-        Command::TestFiles => parse_all_files()?,
     }
 
     let elapsed_time = start_time.elapsed();

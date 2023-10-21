@@ -1,6 +1,7 @@
 use std::{
     error::Error,
     fs,
+    path::Path,
     sync::{Arc, Mutex},
 };
 
@@ -8,9 +9,7 @@ use rayon::prelude::{IntoParallelRefIterator, ParallelIterator};
 
 use crate::{get_file_content, script::ComfyScript};
 
-pub fn parse_all_files() -> Result<(), Box<dyn Error>> {
-    let folder_path = "tests/";
-
+pub fn execute_folder(folder_path: &Path) -> Result<(), Box<dyn Error>> {
     let files = fs::read_dir(folder_path)
         .map_err(|e| {
             eprintln!("Error reading directory: {}", e);
