@@ -110,17 +110,12 @@ impl<FileId> SyntaxError<FileId> {
             )],
         }
     }
-    pub fn closing_tag(opening_tag: String, closing_tag: String, found: &str) -> Self {
-        let found = found.replace("\n", "");
-
+    pub fn closing_tag(opening_tag: String, closing_tag: String) -> Self {
         SyntaxError {
             message: format!("expected closing tag for '{}'", opening_tag),
             code: 5.into(),
             labels: Vec::new(),
-            notes: vec![format!(
-                "expected `{closing_tag}`
-    found `{found}`"
-            )],
+            notes: vec![format!("expected `{closing_tag}`")],
         }
     }
     pub fn expected(sth: String, found: &str) -> Self {

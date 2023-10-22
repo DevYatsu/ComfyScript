@@ -62,7 +62,7 @@ fn parse_if_block(input: &str) -> IResult<&str, (Expression, Box<ASTNode>), Erro
     let (input, test) = parse_expression.cut().parse(input)?;
     let (input, _) = multispace0(input)?;
 
-    let (input, body) = parse_block.map(|b| Box::new(b)).parse(input)?;
+    let (input, body) = parse_block.cut().map(|b| Box::new(b)).parse(input)?;
 
     Ok((input, (test, body)))
 }

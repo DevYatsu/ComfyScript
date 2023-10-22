@@ -8,10 +8,11 @@ use super::{
     expression::strings::parse_string,
 };
 use nom::{
+    branch::alt,
     character::complete::{char, multispace0, multispace1, space0},
     multi::separated_list1,
     sequence::{delimited, preceded},
-    IResult, Parser, branch::alt,
+    IResult, Parser,
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
@@ -65,14 +66,6 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 
     let (i, source) = parse_string.cut().context("import source").parse(i)?;
 
-    let (i, _) = space0(i)?;
-    let (i, _) = alt((char('\n'), char(';')))
-        .peek()
-        .context("unexpected")
-        .cut()
-        .parse(i)?;
-
-    
     let source = match source {
         Expression::Literal { value, .. } => match value {
             LiteralValue::Str(value) => ImportSource { value },
@@ -81,7 +74,19 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         _ => unreachable!(),
     };
 
-    Ok((i, ASTNode::ImportDeclaration { specifiers, source }))
+    let import_declaration = ASTNode::ImportDeclaration { specifiers, source };
+    if i.is_empty() {
+        return Ok((i, import_declaration));
+    }
+
+    let (i, _) = space0(i)?;
+    let (i, _) = alt((char('\n'), char(';')))
+        .peek()
+        .context("unexpected")
+        .cut()
+        .parse(i)?;
+
+    Ok((i, import_declaration))
 }
 
 fn parse_import_specifier(i: &str) -> IResult<&str, ImportSpecifier, ErrorTree<&str>> {

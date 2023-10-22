@@ -35,7 +35,7 @@ pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
 
     let (input, _) = multispace0(input)?;
 
-    let (input, body) = parse_block.map(|b| Box::new(b)).parse(input)?;
+    let (input, body) = parse_block.cut().map(|b| Box::new(b)).parse(input)?;
 
     let node = ASTNode::ForStatement {
         kind,

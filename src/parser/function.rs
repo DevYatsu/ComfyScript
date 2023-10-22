@@ -33,7 +33,10 @@ pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = parse_char(')').cut().parse(input)?;
     let (input, _) = multispace0(input)?;
 
-    let (input, (body, is_shortcut)) = parse_fn_body.map(|(b, s)| (Box::new(b), s)).parse(input)?;
+    let (input, (body, is_shortcut)) = parse_fn_body
+        .cut()
+        .map(|(b, s)| (Box::new(b), s))
+        .parse(input)?;
 
     let node = ASTNode::FunctionDeclaration {
         id,

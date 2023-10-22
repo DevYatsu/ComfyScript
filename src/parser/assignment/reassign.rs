@@ -27,6 +27,19 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (i, _) = jump_comments(i)?;
 
     let (i, assigned) = parse_expression.parse(i)?;
+
+    let expr_statement = ASTNode::ExpressionStatement {
+        expression: Expression::AssignmentExpression {
+            operator: op,
+            id,
+            assigned: Box::new(assigned),
+        },
+    };
+
+    if i.is_empty() {
+        return Ok((i, expr_statement));
+    }
+
     let (i, _) = space0(i)?;
     let (i, _) = alt((char('\n'), char(';')))
         .peek()
@@ -34,14 +47,5 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         .cut()
         .parse(i)?;
 
-    Ok((
-        i,
-        ASTNode::ExpressionStatement {
-            expression: Expression::AssignmentExpression {
-                operator: op,
-                id,
-                assigned: Box::new(assigned),
-            },
-        },
-    ))
+    Ok((i, expr_statement))
 }

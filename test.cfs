@@ -20,7 +20,18 @@ let y = {1:1,2:2,3:3,4:4,5:5,}
 let x = {s: "str"}
 
 fn x (x) {
-    x
+    >> x
 } 
 
 x(x) 
+
+if x == ef {
+print(
+" efefef
+efef"
+)
+
+}
+
+if x {}
+import x from "str"

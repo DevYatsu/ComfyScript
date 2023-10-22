@@ -13,7 +13,7 @@ mod operations;
 use self::{
     assignment::{initial::parse_var_init, reassign::parse_assignment},
     ast::ASTNode,
-    comment::parse_comment_statement,
+    comment::{jump_comments, parse_comment_statement},
     expression::parse_expression_statement,
     function::{parse_function, return_expression::parse_return_statement},
     if_block::parse_if_statement,
@@ -48,18 +48,15 @@ fn parse_code<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str
 }
 
 fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
-    let (input, statements) = separated_list0(parse_new_lines.opt(), parse_statement)
-        .preceded_by(
-            char('{')
-                .terminated(parse_new_lines.opt())
-                .cut()
-                .context("block"),
-        )
+    let (input, _) = char('{')
+        .preceded_by(jump_comments)
         .cut()
+        .context("block")
+        .terminated(jump_comments)
         .parse(input)?;
 
-    let (input, _) = char('}')
-        .preceded_by(parse_new_lines.opt())
+    let (input, statements) = separated_list0(parse_new_lines.opt(), parse_statement)
+        .terminated(char('}').preceded_by(jump_comments).cut())
         .cut()
         .parse(input)?;
 

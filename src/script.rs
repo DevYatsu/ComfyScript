@@ -87,12 +87,12 @@ impl<Name: Display + Clone> ComfyScript<Name> {
             nom_supreme::error::GenericErrorTree::Base { location, kind } => {
                 println!("kind {:?}", kind);
                 println!("loc {:?}", location);
-                let (place, length, found) = self.get_error_data(location);
 
                 let err = match kind {
                     nom_supreme::error::BaseErrorKind::Expected(expec) => match expec {
                         nom_supreme::error::Expectation::Tag(expected_token) => {
                             let token = expected_token.to_string();
+                            let (place, length, found) = self.get_error_data(location);
 
                             let mut err = SyntaxError::expected(token, found);
 
@@ -103,7 +103,9 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             let closing_tag = expected_token.to_string();
                             let opening_tag = get_opening_tag(&closing_tag).to_owned();
 
-                            let mut err = SyntaxError::closing_tag(opening_tag, closing_tag, found);
+                            let (place, length, _) = self.get_error_data(location);
+
+                            let mut err = SyntaxError::closing_tag(opening_tag, closing_tag);
 
                             err.add_label(Label::primary((), place..place + length));
                             err
@@ -115,6 +117,8 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                         nom_supreme::error::Expectation::AlphaNumeric => todo!(),
                         nom_supreme::error::Expectation::Space => todo!(),
                         nom_supreme::error::Expectation::Multispace => {
+                            let (place, length, found) = self.get_error_data(location);
+
                             let mut err = SyntaxError::space(found);
 
                             err.add_label(Label::primary((), place..place + length));
@@ -124,6 +128,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                     },
                     nom_supreme::error::BaseErrorKind::Kind(kind) => {
                         println!("{:?}", kind);
+                        let (place, length, found) = self.get_error_data(location);
 
                         match kind {
                             nom::error::ErrorKind::Tag => todo!(),
@@ -136,17 +141,10 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                                     &self.content[place - 1..place]
                                 };
                                 let closing_tag = get_opening_tag(opening_tag);
-                                let found = location
-                                    .trim_start_matches("\n")
-                                    .replace("\n", "..")
-                                    .replace("\t", "")[0..40]
-                                    .to_owned()
-                                    + "...";
 
                                 let mut err = SyntaxError::closing_tag(
                                     opening_tag.to_owned(),
                                     closing_tag.to_owned(),
-                                    &found,
                                 );
 
                                 err.add_label(Label::primary((), place..place));
