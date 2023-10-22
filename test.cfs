@@ -12,7 +12,7 @@ var x="s",
     _nil_value_ = nil
 
 dude // dude comment
-*= 2
+dude *= 2
 
 let 1n = [0,1,2,3,4,5]
 

@@ -22,11 +22,10 @@ pub fn parse_fn_call(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> 
         parse_expression.preceded_by(jump_comments),
     )
     .parse(input)?;
-    println!("{:?}", input);
+
     let (input, _) = char(',').preceded_by(jump_comments).opt().parse(input)?;
-    println!("{:?}", input);
-    let (input, _) = char(')').cut().parse(input)?;
-    println!("{:?}", input);
+
+    let (input, _) = char(')').preceded_by(jump_comments).cut().parse(input)?;
 
     let expr = Expression::CallExpression {
         callee: Box::new(id),

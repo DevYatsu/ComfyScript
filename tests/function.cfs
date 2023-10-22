@@ -13,7 +13,7 @@ fn x (test) {
 
 fn test (value) >> value
 
-let test = test("str"
+let test = test("str")
 
 test(
 1
