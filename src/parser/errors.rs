@@ -154,6 +154,18 @@ impl<FileId> SyntaxError<FileId> {
             )],
         }
     }
+    pub fn number(found: &str) -> Self {
+        SyntaxError {
+            message: "expected a valid number expression".to_owned(),
+            code: 9.into(),
+            labels: Vec::new(),
+            notes: vec![format!(
+                "expected a valid number
+    found `{}`",
+                found
+            )],
+        }
+    }
 }
 
 pub fn get_closing_tag(opening_tag: &str) -> &str {

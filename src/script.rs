@@ -155,7 +155,12 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             nom::error::ErrorKind::Char => todo!(),
                             nom::error::ErrorKind::CrLf => todo!(),
                             nom::error::ErrorKind::Verify => todo!(),
-                            nom::error::ErrorKind::Float => todo!(),
+                            nom::error::ErrorKind::Float => {
+                                let mut err = SyntaxError::number(found);
+
+                                err.add_label(Label::primary((), place..place + length));
+                                err
+                            }
                             _ => unreachable!(),
                         }
                     }

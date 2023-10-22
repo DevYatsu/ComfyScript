@@ -31,7 +31,7 @@ pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
 
     let (input, _) = multispace1.cut().parse(input)?;
 
-    let (input, indexed) = parse_expression(input)?;
+    let (input, indexed) = parse_expression.context("expresson").cut().parse(input)?;
 
     let (input, _) = multispace0(input)?;
 
