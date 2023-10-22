@@ -16,12 +16,12 @@ use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = tag("fn").complete().parse(input)?;
-    let (input, _) = multispace1.cut().parse(input)?;
+    let (input, _) = multispace1.parse(input)?;
 
-    let (input, id) = parse_identifier.parse(input)?;
+    let (input, id) = parse_identifier.cut().context("identifier").parse(input)?;
 
     let (input, _) = multispace0(input)?;
-    let (input, _) = parse_char('(').cut().parse(input)?;
+    let (input, _) = parse_char('(').cut().context("open parenthesis").parse(input)?;
     let (input, _) = multispace0(input)?;
 
     let (input, params) = parse_fn_params(input)?;
