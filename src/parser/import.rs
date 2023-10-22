@@ -75,11 +75,12 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     };
 
     let import_declaration = ASTNode::ImportDeclaration { specifiers, source };
+    let (i, _) = space0(i)?;
+
     if i.is_empty() {
         return Ok((i, import_declaration));
     }
 
-    let (i, _) = space0(i)?;
     let (i, _) = alt((char('\n'), char(';')))
         .peek()
         .context("unexpected")

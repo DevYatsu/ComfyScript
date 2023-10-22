@@ -67,12 +67,12 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
     let (input, value) = parse_expression.parse(input)?;
 
     let declarator = VariableDeclarator { id, init: value };
+    let (input, _) = space0(input)?;
 
     if input.is_empty() {
         return Ok((input, declarator));
     }
 
-    let (input, _) = space0(input)?;
     let (input, _) = alt((char('\n'), char(','), char(';')))
         .peek()
         .context("unexpected")

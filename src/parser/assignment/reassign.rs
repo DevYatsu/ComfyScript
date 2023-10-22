@@ -35,12 +35,12 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
             assigned: Box::new(assigned),
         },
     };
+    let (i, _) = space0(i)?;
 
     if i.is_empty() {
         return Ok((i, expr_statement));
     }
 
-    let (i, _) = space0(i)?;
     let (i, _) = alt((char('\n'), char(';')))
         .peek()
         .context("unexpected")

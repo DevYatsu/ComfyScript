@@ -26,12 +26,8 @@ fn x (x) {
 x(x) 
 
 if x == ef {
-print(
-" efefef
-efef"
-)
-
+    print(" test testtt")
 }
 
 if x {}
-import x from "str"
+import x from "str"  
