@@ -22,7 +22,10 @@ use super::{
     operations::{binary::parse_binary_operator, build_binary_expression},
 };
 use crate::parser::ast::Expression;
-use nom::{branch::alt, multi::many0, sequence::separated_pair, IResult, Parser};
+use nom::{
+    branch::alt, character::complete::space0, multi::many0, sequence::separated_pair, IResult,
+    Parser,
+};
 use nom_supreme::{error::ErrorTree, ParserExt};
 
 pub fn parse_expression_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
@@ -34,7 +37,9 @@ pub fn parse_expression_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&
 }
 
 pub fn parse_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    parse_expression_with(parse_basic_expression).parse(i)
+    let (i, result) = parse_expression_with(parse_basic_expression).parse(i)?;
+
+    Ok((i, result))
 }
 
 pub fn parse_expression_with<'a, F>(
@@ -73,8 +78,6 @@ where
 }
 
 fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    let (i, _) = jump_comments(i)?;
-
     let (i, expr) = alt((
         parse_member_expr,
         parse_indexing,

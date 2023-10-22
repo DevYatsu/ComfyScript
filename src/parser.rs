@@ -1,6 +1,6 @@
 mod assignment;
 pub mod ast;
-mod comment;
+pub mod comment;
 pub mod errors;
 pub mod expression;
 mod function;

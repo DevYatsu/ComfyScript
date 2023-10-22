@@ -7,7 +7,7 @@ use crate::parser::{
 };
 use nom::{
     branch::alt,
-    character::complete::{char, multispace1},
+    character::complete::{char, multispace1, space0},
     multi::separated_list1,
     IResult, Parser,
 };
@@ -36,7 +36,8 @@ pub fn parse_var_init(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, declarations) = separated_list1(
         tag(",").delimited_by(jump_comments),
         parse_single_declaration,
-    )(input)?;
+    )
+    .parse(input)?;
 
     let result = (
         input,
@@ -64,6 +65,13 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
     let (input, _) = jump_comments(input)?;
 
     let (input, value) = parse_expression.parse(input)?;
+    println!("4 {}", value);
+    let (input, _) = space0(input)?;
+    let (input, _) = alt((tag("\n"), tag(",")))
+        .peek()
+        .context("unexpected")
+        .cut()
+        .parse(input)?;
 
     // if there is a an expr or sth that has nothing to do here return an error
     // let (input, _) = alt((parse_new_lines, tag(",").preceded_by(multispace0)))

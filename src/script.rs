@@ -1,11 +1,12 @@
 use crate::parser::{
     ast::{self, identifier::parse_unchecked_id},
+    comment::jump_comments,
     errors::{get_closing_tag, SyntaxError},
     expression::strings::parse_unchecked_string,
     parse_input,
 };
 use codespan_reporting::{diagnostic::Label, files::SimpleFile};
-use nom::branch::alt;
+use nom::{branch::alt, Parser};
 use nom_supreme::error::GenericErrorTree;
 use std::{error::Error, fmt::Display};
 
@@ -56,11 +57,11 @@ impl<Name: Display + Clone> ComfyScript<Name> {
         match e {
             nom_supreme::error::GenericErrorTree::Stack { contexts, .. } => {
                 let ctx = contexts[contexts.len() - 1].1;
+                let (place, length, found) = self.get_error_data(contexts[0].0);
                 println!("error {:?}", ctx);
 
                 match ctx {
                     nom_supreme::error::StackContext::Context(msg) => {
-                        let (place, length, found) = self.get_error_data(contexts[0].0);
                         let mut err = match msg {
                             "identifier" => {
                                 // it means base has kind: Kind(Verify)
@@ -68,7 +69,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             }
                             "import source" => SyntaxError::import_source(found),
                             "expression" => SyntaxError::expression(found),
-                            "unexpected" => SyntaxError::unexpected(found),
+                            "unexpected" => SyntaxError::unexpected(&found[0..1]),
 
                             _ => unreachable!(),
                         };
@@ -178,13 +179,22 @@ impl<Name: Display + Clone> ComfyScript<Name> {
     }
     fn get_error_data<'a>(&self, error_content: &'a str) -> (usize, usize, &'a str) {
         let error_place = self.content.len() - error_content.len();
-        let error_length = alt((parse_unchecked_id, parse_unchecked_string))(error_content)
+
+        let new_error_content = jump_comments(error_content)
+            .and_then(|(i, _)| Ok(i))
+            .unwrap_or(error_content);
+
+        let error_length = alt((parse_unchecked_id, parse_unchecked_string))
+            .parse(&new_error_content)
             .and_then(|(_, w)| Ok(w.len()))
             .unwrap_or(1);
+        let found = &new_error_content[0..error_length];
 
-        let found = &error_content[0..error_length];
-
-        (error_place, error_length, found)
+        (
+            error_place,
+            (error_content.len() - new_error_content.len()) + error_length,
+            found,
+        )
     }
 
     pub fn minify(&self) -> Result<String, Box<dyn Error>> {

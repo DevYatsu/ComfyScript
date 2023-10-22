@@ -111,6 +111,8 @@ impl<FileId> SyntaxError<FileId> {
         }
     }
     pub fn closing_tag(opening_tag: String, closing_tag: String, found: &str) -> Self {
+        let found = found.replace("\n", "");
+
         SyntaxError {
             message: format!("expected closing tag for '{}'", opening_tag),
             code: 5.into(),
@@ -148,10 +150,7 @@ impl<FileId> SyntaxError<FileId> {
             message: "Unexpected token".to_owned(),
             code: 8.into(),
             labels: Vec::new(),
-            notes: vec![format!(
-                "Unexpected token `{found}`
-    Did you intend to do something else ?"
-            )],
+            notes: vec![format!("Unexpected token `{found}`")],
         }
     }
     pub fn number(found: &str) -> Self {

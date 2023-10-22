@@ -4,17 +4,16 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, ParserExt};
 
-use crate::parser::ast::Expression;
+use crate::parser::{ast::Expression, comment::jump_comments};
 
 use super::parse_expression;
 
 pub fn parse_array(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, _) = char('[')(i)?;
-    let (i, _) = multispace0(i)?;
 
-    let (i, elements) = separated_list0(char(','), parse_expression).parse(i)?;
+    let (i, elements) =
+        separated_list0(char(','), parse_expression.delimited_by(jump_comments)).parse(i)?;
 
-    let (i, _) = multispace0(i)?;
     let (i, _) = char(',').terminated(multispace0).opt().parse(i)?;
     let (i, _) = char(']').context("unexpected").cut().parse(i)?;
 

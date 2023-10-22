@@ -12,10 +12,7 @@ pub fn parse_number(initial_i: &str) -> IResult<&str, Expression, ErrorTree<&str
     let (base_input, sign) = opt(alt((char('+'), char('-'))))(initial_i)?;
 
     // is normal to avoid having things such as Infinity considered numbers
-    let (i, num) = float
-        .verify(|num| num.is_normal())
-        .context("number")
-        .parse(base_input)?;
+    let (i, num) = float.verify(|num| num.is_normal()).parse(base_input)?;
     let (_, other_dot) = opt(char('.'))(i)?;
 
     // check in case a range is following

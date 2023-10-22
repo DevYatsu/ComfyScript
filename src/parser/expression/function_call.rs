@@ -17,11 +17,16 @@ pub fn parse_fn_call(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> 
     let (input, _) = multispace0(input)?;
 
     let (input, _) = char('(')(input)?;
-    let (input, args) = separated_list0(char(','), parse_expression).parse(input)?;
-
-    let (input, _) = multispace0(input)?;
-    let (input, _) = char(',').terminated(multispace0).opt().parse(input)?;
-    let (input, _) = char(')').cut().context("unexpected").parse(input)?;
+    let (input, args) = separated_list0(
+        char(',').preceded_by(jump_comments),
+        parse_expression.preceded_by(jump_comments),
+    )
+    .parse(input)?;
+    println!("{:?}", input);
+    let (input, _) = char(',').preceded_by(jump_comments).opt().parse(input)?;
+    println!("{:?}", input);
+    let (input, _) = char(')').cut().parse(input)?;
+    println!("{:?}", input);
 
     let expr = Expression::CallExpression {
         callee: Box::new(id),
