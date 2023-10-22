@@ -31,7 +31,7 @@ pub fn jump_comments(input: &str) -> IResult<&str, String, ErrorTree<&str>> {
     Ok((input, comments_str))
 }
 
-fn parse_line_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
+pub fn parse_line_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (input, comment_opening) = tag("//").complete().parse(input)?;
     let (input, comment_value) = take_until("\n")(input)?;
     let (input, comment_closing) = tag("\n").complete().parse(input)?;
@@ -44,7 +44,7 @@ fn parse_line_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&str>>
     Ok((input, comment_expr))
 }
 
-fn parse_multiline_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
+pub fn parse_multiline_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (input, comment_opening) = tag("/*").complete().parse(input)?;
     let (input, comment_value) = take_until("*/").cut().parse(input)?;
     let (input, comment_closing) = tag("*/").complete().parse(input)?;

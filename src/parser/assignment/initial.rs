@@ -73,7 +73,7 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
         return Ok((input, declarator));
     }
 
-    let (input, _) = alt((char('\n'), char(','), char(';')))
+    let (input, _) = alt((tag("\n"), tag(","), tag(";"), tag("//").complete()))
         .peek()
         .context("unexpected")
         .cut()

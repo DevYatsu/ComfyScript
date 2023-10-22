@@ -49,14 +49,14 @@ fn parse_code<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str
 
 fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
     let (input, _) = char('{')
-        .preceded_by(jump_comments)
+        .preceded_by(parse_new_lines.opt())
         .cut()
         .context("block")
-        .terminated(jump_comments)
+        .terminated(parse_new_lines.opt())
         .parse(input)?;
 
     let (input, statements) = separated_list0(parse_new_lines.opt(), parse_statement)
-        .terminated(char('}').preceded_by(jump_comments).cut())
+        .terminated(char('}').preceded_by(parse_new_lines.opt()).cut())
         .cut()
         .parse(input)?;
 

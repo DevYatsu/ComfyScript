@@ -81,7 +81,7 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         return Ok((i, import_declaration));
     }
 
-    let (i, _) = alt((char('\n'), char(';')))
+    let (i, _) = alt((tag("\n"), tag(","), tag(";"), tag("//").complete()))
         .peek()
         .context("unexpected")
         .cut()
