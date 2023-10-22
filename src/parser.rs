@@ -25,7 +25,6 @@ use nom::{
     branch::alt,
     bytes::complete::take_while1,
     character::complete::char,
-    combinator::opt,
     multi::{many0, separated_list0},
     IResult, Parser,
 };

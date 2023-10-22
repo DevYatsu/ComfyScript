@@ -178,12 +178,12 @@ impl<FileId> SyntaxError<FileId> {
     }
 }
 
-pub fn get_closing_tag(opening_tag: &str) -> &str {
+pub fn get_opening_tag(opening_tag: &str) -> &str {
     match opening_tag {
-        "[" => "]",
-        "{" => "}",
-        "(" => ")",
-        "/*" => "*/",
+        "]" => "[",
+        "}" => "{",
+        ")" => "(",
+        "*/" => "/*",
         "|" => "|",
         x => x,
     }

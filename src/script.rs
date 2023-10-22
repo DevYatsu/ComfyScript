@@ -1,7 +1,7 @@
 use crate::parser::{
     ast::{self, identifier::parse_unchecked_id},
     comment::jump_comments,
-    errors::{get_closing_tag, SyntaxError},
+    errors::{get_opening_tag, SyntaxError},
     expression::strings::parse_unchecked_string,
     parse_input,
 };
@@ -100,8 +100,8 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             err
                         }
                         nom_supreme::error::Expectation::Char(expected_token) => {
-                            let opening_tag = expected_token.to_string();
-                            let closing_tag = get_closing_tag(&opening_tag).to_owned();
+                            let closing_tag = expected_token.to_string();
+                            let opening_tag = get_opening_tag(&closing_tag).to_owned();
 
                             let mut err = SyntaxError::closing_tag(opening_tag, closing_tag, found);
 
@@ -135,7 +135,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                                 } else {
                                     &self.content[place - 1..place]
                                 };
-                                let closing_tag = get_closing_tag(opening_tag);
+                                let closing_tag = get_opening_tag(opening_tag);
                                 let found = location
                                     .trim_start_matches("\n")
                                     .replace("\n", "..")
