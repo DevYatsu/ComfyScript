@@ -165,6 +165,17 @@ impl<FileId> SyntaxError<FileId> {
             )],
         }
     }
+    pub fn block(found: &str) -> Self {
+        SyntaxError {
+            message: "expected block".to_owned(),
+            code: 10.into(),
+            labels: Vec::new(),
+            notes: vec![format!(
+                "expected `{{`
+    found `{found}`"
+            )],
+        }
+    }
 }
 
 pub fn get_closing_tag(opening_tag: &str) -> &str {

@@ -70,7 +70,10 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             "import source" => SyntaxError::import_source(found),
                             "expression" => SyntaxError::expression(found),
                             "unexpected" => SyntaxError::unexpected(&found[0..1]),
-                            "open parenthesis" => SyntaxError::expected("(".to_owned(), &found[0..1]),
+                            "open parenthesis" => {
+                                SyntaxError::expected("(".to_owned(), &found[0..1])
+                            }
+                            "block" => SyntaxError::block(&found[0..1]),
                             _ => unreachable!(),
                         };
 

@@ -22,60 +22,47 @@ use self::{
 };
 use crate::parser::import::parse_import;
 use nom::{
-    branch::alt, bytes::complete::take_while1, character::complete::char, combinator::opt, IResult,
-    Parser,
+    branch::alt,
+    bytes::complete::take_while1,
+    character::complete::char,
+    combinator::opt,
+    multi::{many0, separated_list0},
+    IResult, Parser,
 };
-use nom_supreme::{error::ErrorTree, final_parser::final_parser};
+use nom_supreme::{error::ErrorTree, final_parser::final_parser, ParserExt};
 
 pub fn parse_input(input: &str) -> Result<ASTNode, ErrorTree<&str>> {
     final_parser(parse_code)(input)
 }
 
 fn parse_code<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
-    let (mut input, _) = opt(parse_new_lines)(input)?;
-
-    let mut statements = Vec::new();
-
-    while !input.is_empty() {
-        let (new_input, statement) = parse_statement(input)?;
-        statements.push(statement);
-
-        let (new_input, _) = opt(parse_new_lines)(new_input)?;
-        input = new_input;
-
-        if new_input.len() == 0 {
-            break;
-        }
-    }
+    let (input, statements) = many0(
+        parse_statement
+            .preceded_by(parse_new_lines.opt())
+            .terminated(parse_new_lines.opt()),
+    )
+    .cut()
+    .all_consuming()
+    .parse(input)?;
 
     Ok((input, ASTNode::Program { body: statements }))
 }
 
 fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
-    let (input, _) = char('{').parse(input)?;
+    let (input, statements) = separated_list0(parse_new_lines.opt(), parse_statement)
+        .preceded_by(
+            char('{')
+                .terminated(parse_new_lines.opt())
+                .cut()
+                .context("block"),
+        )
+        .cut()
+        .parse(input)?;
 
-    let (input, _) = opt(parse_new_lines)(input)?;
-
-    let mut statements = Vec::new();
-
-    let (mut input, limit) = opt(char('}'))(input)?;
-
-    if limit.is_some() {
-        return Ok((input, ASTNode::BlockStatement { body: statements }));
-    }
-
-    while !input.is_empty() {
-        let (new_input, statement) = parse_statement.parse(input)?;
-        statements.push(statement);
-
-        let (new_input, _) = opt(parse_new_lines)(new_input)?;
-        let (new_input, limit) = opt(char('}'))(new_input)?;
-
-        input = new_input;
-        if limit.is_some() {
-            break;
-        }
-    }
+    let (input, _) = char('}')
+        .preceded_by(parse_new_lines.opt())
+        .cut()
+        .parse(input)?;
 
     Ok((input, ASTNode::BlockStatement { body: statements }))
 }
