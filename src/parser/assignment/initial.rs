@@ -65,9 +65,9 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
     let (input, _) = jump_comments(input)?;
 
     let (input, value) = parse_expression.parse(input)?;
-    println!("4 {}", value);
+
     let (input, _) = space0(input)?;
-    let (input, _) = alt((tag("\n"), tag(",")))
+    let (input, _) = alt((char('\n'), char(','), char(';')))
         .peek()
         .context("unexpected")
         .cut()
