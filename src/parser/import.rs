@@ -8,10 +8,10 @@ use super::{
     expression::strings::parse_string,
 };
 use nom::{
-    character::complete::{char, multispace0, multispace1},
+    character::complete::{char, multispace0, multispace1, space0},
     multi::separated_list1,
     sequence::{delimited, preceded},
-    IResult, Parser,
+    IResult, Parser, branch::alt,
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
@@ -65,6 +65,14 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 
     let (i, source) = parse_string.cut().context("import source").parse(i)?;
 
+    let (i, _) = space0(i)?;
+    let (i, _) = alt((char('\n'), char(';')))
+        .peek()
+        .context("unexpected")
+        .cut()
+        .parse(i)?;
+
+    
     let source = match source {
         Expression::Literal { value, .. } => match value {
             LiteralValue::Str(value) => ImportSource { value },

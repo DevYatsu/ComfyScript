@@ -73,13 +73,6 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
         .cut()
         .parse(input)?;
 
-    // if there is a an expr or sth that has nothing to do here return an error
-    // let (input, _) = alt((parse_new_lines, tag(",").preceded_by(multispace0)))
-    //     .peek()
-    //     .cut()
-    //     .context("unexpected")
-    //     .parse(input)?;
-
     let declarator = VariableDeclarator { id, init: value };
 
     Ok((input, declarator))

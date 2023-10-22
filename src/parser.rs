@@ -24,7 +24,7 @@ use crate::parser::import::parse_import;
 use nom::{
     branch::alt,
     bytes::complete::take_while1,
-    character::complete::char,
+    character::complete::{char, space0},
     multi::{many0, separated_list0},
     IResult, Parser,
 };
@@ -83,7 +83,8 @@ fn parse_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 }
 
 fn parse_new_lines(i: &str) -> IResult<&str, &str, ErrorTree<&str>> {
-    let (i, removed) = take_while1(|c: char| c == ';' || c.is_ascii_whitespace())(i)?;
+    let (i, _) = space0(i)?;
+    let (i, removed) = take_while1(|c: char| c == ';' || c.is_ascii_whitespace()).parse(i)?;
 
     Ok((i, removed))
 }

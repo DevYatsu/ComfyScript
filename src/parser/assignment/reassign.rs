@@ -1,4 +1,8 @@
-use nom::{branch::alt, IResult, Parser};
+use nom::{
+    branch::alt,
+    character::complete::{char, space0},
+    IResult, Parser,
+};
 use nom_supreme::{error::ErrorTree, ParserExt};
 
 use crate::parser::{
@@ -22,7 +26,13 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (i, op) = parse_assignment_operator.parse(i)?;
     let (i, _) = jump_comments(i)?;
 
-    let (i, assigned) = parse_expression.cut().parse(i)?;
+    let (i, assigned) = parse_expression.parse(i)?;
+    let (i, _) = space0(i)?;
+    let (i, _) = alt((char('\n'), char(';')))
+        .peek()
+        .context("unexpected")
+        .cut()
+        .parse(i)?;
 
     Ok((
         i,

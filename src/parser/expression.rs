@@ -23,13 +23,20 @@ use super::{
 };
 use crate::parser::ast::Expression;
 use nom::{
-    branch::alt, character::complete::space0, multi::many0, sequence::separated_pair, IResult,
+    branch::alt, character::complete::{space0, char}, multi::many0, sequence::separated_pair, IResult,
     Parser,
 };
 use nom_supreme::{error::ErrorTree, ParserExt};
 
-pub fn parse_expression_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
-    let (input, expr) = parse_expression(i)?;
+pub fn parse_expression_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
+    let (input, expr) = parse_expression(input)?;
+    
+    let (input, _) = space0(input)?;
+    let (input, _) = alt((char('\n'), char(';')))
+        .peek()
+        .context("unexpected")
+        .cut()
+        .parse(input)?;
 
     let expr_statement = ASTNode::ExpressionStatement { expression: expr };
 
