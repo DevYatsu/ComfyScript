@@ -5,8 +5,10 @@ fn test() {
 }
 
 fn x (test) {
-    let test = test + /* hey dude how r u ? */ "efef" + // comment
+    let test = test +  "efef" + 
      3
+/* hey dude how r u ? */
+// comment
 
     >> test + "str"
 }

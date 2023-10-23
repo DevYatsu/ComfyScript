@@ -96,7 +96,6 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
         alt((
             tag("\""),
             tag("'"),
-            tag("("),
             tag("{"),
             tag("["),
             tag("|"),
@@ -111,7 +110,6 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
         "\"" | "'" => parse_string(i)?,
         "[" => parse_array(i)?,
         "{" => parse_object(i)?,
-        "(" => parse_parenthesized(i)?,
         "|" => parse_fn_expression(i)?,
         "true" | "false" => parse_bool(i)?,
         "nil" => parse_nil(i)?,
@@ -122,6 +120,7 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
             parse_fn_call,
             parse_range,
             parse_number, // all numbers are not covered up there, only basic ones: not 1e15 for example
+            parse_parenthesized,
             parse_identifier_expression,
         ))
         .parse(i)?,

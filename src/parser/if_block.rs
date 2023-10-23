@@ -26,7 +26,7 @@ pub fn parse_if_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>
     }
 
     let (else_input, _) = multispace0(else_input)?;
-    let (input, other_if) = tag("if").complete().opt().parse(input)?;
+    let (input, other_if) = tag("if").complete().opt().parse(else_input)?;
 
     if other_if.is_none() {
         let (else_input, alternate) = parse_block.map(|s| Some(Box::new(s))).parse(else_input)?;
