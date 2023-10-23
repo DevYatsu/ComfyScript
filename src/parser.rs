@@ -35,14 +35,12 @@ pub fn parse_input(input: &str) -> Result<ASTNode, ErrorTree<&str>> {
 }
 
 fn parse_code<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
-    let (input, statements) = many0(
-        parse_statement
-            .preceded_by(parse_new_lines.opt())
-            .terminated(parse_new_lines.opt()),
-    )
-    .cut()
-    .all_consuming()
-    .parse(input)?;
+    let (input, _) = parse_new_lines.opt().parse(input)?;
+
+    let (input, statements) = many0(parse_statement.terminated(parse_new_lines.opt()))
+        .cut()
+        .all_consuming()
+        .parse(input)?;
 
     Ok((input, ASTNode::Program { body: statements }))
 }

@@ -9,7 +9,7 @@ use super::{
 use crate::parser::ast::identifier::parse_identifier;
 use nom::{
     character::complete::{char as parse_char, multispace0, multispace1},
-    multi::separated_list1,
+    multi::separated_list0,
     IResult, Parser,
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
@@ -70,10 +70,7 @@ pub fn parse_fn_expression(input: &str) -> IResult<&str, Expression, ErrorTree<&
 }
 
 fn parse_fn_params(input: &str) -> IResult<&str, Vec<Identifier>, ErrorTree<&str>> {
-    let (input, params) = separated_list1(tag(","), parse_fn_param)
-        .opt()
-        .parse(input)?;
-    let params = params.unwrap_or_else(|| vec![]);
+    let (input, params) = separated_list0(tag(","), parse_fn_param).parse(input)?;
 
     Ok((input, params))
 }
@@ -85,7 +82,7 @@ fn parse_fn_body(input: &str) -> IResult<&str, (ASTNode, bool), ErrorTree<&str>>
         return Ok((input, (return_statement, true)));
     }
 
-    let (input, body) = parse_block(input)?;
+    let (input, body) = parse_block.cut().parse(input)?;
 
     Ok((input, (body, false)))
 }

@@ -19,12 +19,11 @@ let 1n = [0,1,2,3,4,5]
 let y = {1:1,2:2,3:3,4:4,5:5,}  
 let x = {s: "str"}
 
-fn x (x) {
-    >> x
-} 
+fn x (x) >> x
+
 
 x(x)
-( 
+
 
 if x == ef {
     print(" test testtt")
