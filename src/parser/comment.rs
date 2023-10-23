@@ -17,6 +17,23 @@ pub fn jump_comments(input: &str) -> IResult<&str, String, ErrorTree<&str>> {
     let comments_str: String = comments.into_iter().map(|com| com.to_string()).collect();
     Ok((input, comments_str))
 }
+pub fn multispace0comments(input: &str) -> IResult<&str, String, ErrorTree<&str>> {
+    // to update to parse both multispaces and comments
+    let (input, _) = multispace0(input)?;
+
+    let (input, comments) = many0(
+        alt((
+            tag("//").complete().and_then(parse_line_comment),
+            tag("/*").complete().and_then(parse_multiline_comment),
+        ))
+        .preceded_by(multispace0),
+    )(input)?;
+
+    let (input, _) = multispace0(input)?;
+
+    let comments_str: String = comments.into_iter().map(|com| com.to_string()).collect();
+    Ok((input, comments_str))
+}
 
 pub fn parse_line_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     if !input.contains("\n") {

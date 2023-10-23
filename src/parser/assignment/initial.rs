@@ -2,6 +2,7 @@ use std::fmt;
 
 use crate::parser::{
     ast::{identifier::parse_identifier, vars::VariableDeclarator},
+    comment::multispace0comments,
     expression::parse_expression,
 };
 use nom::{
@@ -57,13 +58,22 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
         return Ok((input, declarator));
     }
 
-    let (input, _) = alt((tag("\n"), tag(","), tag(";"), tag("//").complete()))
+    let (input, tag) = alt((tag("\n"), tag(","), tag(";"), tag("//").complete()))
         .peek()
         .context("unexpected")
         .cut()
         .parse(input)?;
 
-    let (input, _) = multispace0(input)?;
+    match tag {
+        "," => {
+            let (input, _) = multispace0comments(input)?;
 
-    Ok((input, declarator))
+            Ok((input, declarator))
+        }
+        _ => {
+            let (input, _) = multispace0(input)?;
+
+            Ok((input, declarator))
+        }
+    }
 }
