@@ -35,21 +35,6 @@ impl SyntaxError<()> {
 }
 
 impl<FileId> SyntaxError<FileId> {
-    pub fn new(
-        message: String,
-        code: usize,
-        labels: Vec<Label<FileId>>,
-        notes: Vec<String>,
-    ) -> Self {
-        let code = code.into();
-
-        SyntaxError {
-            message,
-            code,
-            labels,
-            notes,
-        }
-    }
     pub fn generate_diagnostic(self) -> Diagnostic<FileId> {
         Diagnostic::error()
             .with_message(self.message)

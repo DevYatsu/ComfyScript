@@ -24,11 +24,11 @@ use crate::parser::import::parse_import;
 use nom::{
     branch::alt,
     bytes::complete::take_while1,
-    character::complete::{char, space0},
+    character::complete::{alphanumeric0, char, space0},
     multi::many0,
     IResult, Parser,
 };
-use nom_supreme::{error::ErrorTree, final_parser::final_parser, ParserExt};
+use nom_supreme::{error::ErrorTree, final_parser::final_parser, tag::complete::tag, ParserExt};
 
 pub fn parse_input(input: &str) -> Result<ASTNode, ErrorTree<&str>> {
     final_parser(parse_code)(input)
@@ -68,19 +68,30 @@ fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a st
 }
 
 fn parse_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
-    alt((
-        parse_var_init,
-        parse_assignment,
-        parse_import,
-        parse_for_statement,
-        parse_while_statement,
-        parse_if_statement,
-        parse_function,
-        parse_return_statement,
-        parse_comment_statement,
-        parse_expression_statement,
+    let (input, found) = alt((
+        alt((
+            tag("//").complete(),
+            tag("/*").complete(),
+            tag(">>").complete(),
+        )),
+        alphanumeric0,
     ))
-    .parse(input)
+    .peek()
+    .parse(input)?;
+
+    let (input, statement) = match found {
+        "let" | "var" => parse_var_init(input)?,
+        "import" => parse_import(input)?,
+        "fn" => parse_function(input)?,
+        "if" => parse_if_statement(input)?,
+        "for" => parse_for_statement(input)?,
+        "while" => parse_while_statement(input)?,
+        "return" | ">>" => parse_return_statement(input)?,
+        "//" | "/*" => parse_comment_statement(input)?,
+        _ => alt((parse_assignment, parse_expression_statement))(input)?,
+    };
+
+    Ok((input, statement))
 }
 
 fn parse_new_lines(i: &str) -> IResult<&str, &str, ErrorTree<&str>> {
