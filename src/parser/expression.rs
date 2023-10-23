@@ -51,9 +51,8 @@ pub fn parse_expression_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&
 }
 
 pub fn parse_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    println!("before expr: {:?}", i);
     let (i, result) = parse_expression_with(parse_basic_expression).parse(i)?;
-    println!("after expr: {:?}", i);
+
     Ok((i, result))
 }
 
@@ -107,9 +106,6 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
     ))
     .peek()
     .parse(i)?;
-
-    println!("expr_start {}", found);
-    println!("expr_start {:?}", i);
 
     let (i, expr) = match found {
         "\"" | "'" => parse_string(i)?,

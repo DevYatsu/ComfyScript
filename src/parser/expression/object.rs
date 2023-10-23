@@ -19,13 +19,11 @@ pub fn parse_object(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, elements) = separated_list0(char(','), parse_property.delimited_by(multispace0))
         .cut()
         .parse(i)?;
-    println!("1 {:?}", i);
 
     let (i, _) = char(',').preceded_by(multispace0).opt().parse(i)?;
     let (i, _) = multispace0(i)?;
-    println!("2 {:?}", i);
+
     let (i, _) = char('}').context("unexpected").cut().parse(i)?;
-    println!("3 {:?}", i);
 
     Ok((
         i,

@@ -56,12 +56,10 @@ fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a st
         .parse(input)?;
 
     let (input, _) = parse_new_lines.opt().parse(input)?;
-    println!("block {}", input);
 
     let (input, statements) = many0(parse_statement.delimited_by(parse_new_lines.opt()))
         .cut()
         .parse(input)?;
-    println!("afterblock {}", input);
 
     let (input, _) = char('}')
         .opt_preceded_by(parse_new_lines)
@@ -82,7 +80,6 @@ fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
         )),
     ))
     .parse(initial_input)?;
-    println!("input {:?}", found);
 
     let (input, statement) = match found {
         "let" | "var" => {
@@ -90,10 +87,8 @@ fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
                 "let" => VariableKeyword::Let,
                 _ => VariableKeyword::Var,
             };
-            println!("working");
 
             let (input, declarations) = parse_var_init(input)?;
-            println!("working");
 
             (input, ASTNode::VariableDeclaration { declarations, kind })
         }
@@ -126,15 +121,11 @@ fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
             (input, ASTNode::ExpressionStatement { expression })
         }
         "/*" => {
-            println!("mutliline input {:?}", input);
-
             let (input, expression) = parse_multiline_comment(input)?;
 
             (input, ASTNode::ExpressionStatement { expression })
         }
         _ => {
-            println!("expr_statement {:?}", initial_input);
-
             alt((parse_assignment, parse_expression_statement))(initial_input)?
         }
     };

@@ -47,10 +47,8 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
     let (input, _) = char('=').cut().parse(input)?;
 
     let (input, _) = multispace0(input)?;
-    println!("working until now {:?}", input);
 
     let (input, value) = parse_expression.parse(input)?;
-    println!("working until now {:?}", input);
 
     let declarator = VariableDeclarator { id, init: value };
     let (input, _) = space0(input)?;

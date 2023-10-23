@@ -13,7 +13,7 @@ pub fn parse_array(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
 
     let (i, elements) =
         separated_list0(char(','), parse_expression.delimited_by(multispace0)).parse(i)?;
-    println!("{:?}", i);
+
     let (i, _) = char(',').terminated(multispace0).opt().parse(i)?;
     let (i, _) = char(']').context("unexpected").cut().parse(i)?;
 

@@ -43,9 +43,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
             _ => unreachable!(),
         };
 
-        for node in program {
-            println!("{:?}", node);
-        }
+        // program.iter().for_each(|node| println!("{:?}", node));
 
         Ok(())
     }
