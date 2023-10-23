@@ -11,7 +11,7 @@ pub fn parse_parenthesized(i: &str) -> IResult<&str, Expression, ErrorTree<&str>
     let (i, _) = char('(')(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, expr) = parse_expression.cut().parse(i)?;
+    let (i, expr) = parse_expression.cut().context("expression").parse(i)?;
 
     let (i, _) = multispace0(i)?;
     let (i, _) = char(')').cut().parse(i)?;
