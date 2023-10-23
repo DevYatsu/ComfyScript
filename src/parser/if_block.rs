@@ -13,7 +13,7 @@ pub fn parse_if_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>
     let (input, (test, body)) = parse_if_block(input)?;
 
     let (else_input, _) = multispace0(input)?;
-    let (else_input, else_word) = tag("else").opt().parse(else_input)?;
+    let (else_input, else_word) = tag("else").complete().opt().parse(else_input)?;
 
     if else_word.is_none() {
         let node = ASTNode::IfStatement {
@@ -26,7 +26,7 @@ pub fn parse_if_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>
     }
 
     let (else_input, _) = multispace0(else_input)?;
-    let (_, other_if) = tag("if").opt().parse(else_input)?;
+    let (input, other_if) = tag("if").complete().opt().parse(input)?;
 
     if other_if.is_none() {
         let (else_input, alternate) = parse_block.map(|s| Some(Box::new(s))).parse(else_input)?;
@@ -40,11 +40,7 @@ pub fn parse_if_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>
         return Ok((else_input, node));
     }
 
-    let (else_input, _) = multispace0(else_input)?;
-
-    let (input, alternate) = parse_if_statement
-        .map(|s| Some(Box::new(s)))
-        .parse(else_input)?;
+    let (input, alternate) = parse_if_statement.map(|s| Some(Box::new(s))).parse(input)?;
 
     let node = ASTNode::IfStatement {
         test,
@@ -56,7 +52,6 @@ pub fn parse_if_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>
 }
 
 fn parse_if_block(input: &str) -> IResult<&str, (Expression, Box<ASTNode>), ErrorTree<&str>> {
-    let (input, _) = tag("if").complete().parse(input)?;
     let (input, _) = multispace1.cut().parse(input)?;
 
     let (input, test) = parse_expression.cut().parse(input)?;

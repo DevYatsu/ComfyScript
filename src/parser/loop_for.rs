@@ -14,7 +14,6 @@ use nom::{
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
-    let (input, _) = tag("for").complete().parse(input)?;
     let (input, _) = multispace1.parse(input)?;
 
     let (input, kind) = parse_for_var_keyword(input)?;

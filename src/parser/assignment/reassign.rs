@@ -1,9 +1,12 @@
-use nom::{branch::alt, character::complete::space0, IResult, Parser};
+use nom::{
+    branch::alt,
+    character::complete::{multispace0, space0},
+    IResult, Parser,
+};
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 use crate::parser::{
     ast::{identifier::parse_identifier_expression, ASTNode, Expression},
-    comment::jump_comments,
     expression::{indexing::parse_indexing, member_expr::parse_member_expr, parse_expression},
     operations::assignment::parse_assignment_operator,
 };
@@ -17,10 +20,10 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     .map(|e| Box::new(e))
     .parse(i)?;
 
-    let (i, _) = jump_comments(i)?;
+    let (i, _) = multispace0(i)?;
 
     let (i, op) = parse_assignment_operator.parse(i)?;
-    let (i, _) = jump_comments(i)?;
+    let (i, _) = multispace0(i)?;
 
     let (i, assigned) = parse_expression.parse(i)?;
 

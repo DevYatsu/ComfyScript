@@ -17,14 +17,13 @@ use self::{
 };
 use super::{
     ast::{identifier::parse_identifier_expression, ASTNode},
-    comment::jump_comments,
     function::parse_fn_expression,
     operations::{binary::parse_binary_operator, build_binary_expression},
 };
 use crate::parser::ast::Expression;
 use nom::{
     branch::alt,
-    character::complete::{alphanumeric0, space0, digit0},
+    character::complete::{alphanumeric0, multispace0, space0},
     multi::many0,
     sequence::separated_pair,
     IResult, Parser,
@@ -32,9 +31,9 @@ use nom::{
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_expression_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
-    let (i, expr) = parse_expression(i)?;
+    let (i, expression) = parse_expression(i)?;
 
-    let expr_statement = ASTNode::ExpressionStatement { expression: expr };
+    let expr_statement = ASTNode::ExpressionStatement { expression };
 
     let (i, _) = space0(i)?;
 
@@ -52,8 +51,9 @@ pub fn parse_expression_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&
 }
 
 pub fn parse_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
+    println!("before expr: {:?}", i);
     let (i, result) = parse_expression_with(parse_basic_expression).parse(i)?;
-
+    println!("after expr: {:?}", i);
     Ok((i, result))
 }
 
@@ -65,16 +65,16 @@ where
 {
     move |i| {
         let parser_closure = |i| parser(i);
-println!("{:?}", &i);
+
         let (i, expr) = parser_closure(i)?;
-        println!("{:?}", &i);
+
         let mut expr_vec = vec![expr];
         let mut operators_vec = Vec::with_capacity(3);
 
         // Check for binary expr
         let (i, rest) = many0(separated_pair(
-            parse_binary_operator.preceded_by(jump_comments),
-            jump_comments,
+            parse_binary_operator.preceded_by(multispace0),
+            multispace0,
             parser_closure,
         ))
         .cut()
@@ -94,20 +94,32 @@ println!("{:?}", &i);
 
 fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, found) = alt((
-        alt((tag("\""), tag("'"), tag("("), tag("{"), tag("["), tag("|"))),
-        alphanumeric0
+        alt((
+            tag("\""),
+            tag("'"),
+            tag("("),
+            tag("{"),
+            tag("["),
+            tag("|"),
+            tag("-"),
+        )),
+        alphanumeric0,
     ))
     .peek()
     .parse(i)?;
 
+    println!("expr_start {}", found);
+    println!("expr_start {:?}", i);
+
     let (i, expr) = match found {
-        "\"" | "'" => parse_string(i)?, // strings
+        "\"" | "'" => parse_string(i)?,
         "[" => parse_array(i)?,
         "{" => parse_object(i)?,
         "(" => parse_parenthesized(i)?,
         "|" => parse_fn_expression(i)?,
         "true" | "false" => parse_bool(i)?,
         "nil" => parse_nil(i)?,
+        "-" => parse_number(i)?,
         _ => alt((
             parse_member_expr,
             parse_indexing,

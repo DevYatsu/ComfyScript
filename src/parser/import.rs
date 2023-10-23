@@ -17,7 +17,6 @@ use nom::{
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
-    let (i, _) = tag("import").complete().parse(i)?;
     let (i, _) = multispace1(i)?;
 
     let (i, asterisk) = char('*').opt().parse(i)?;

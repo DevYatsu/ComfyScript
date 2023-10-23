@@ -148,12 +148,14 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             nom::error::ErrorKind::Tag => unreachable!(),
                             nom::error::ErrorKind::Alt => unreachable!(),
                             nom::error::ErrorKind::TakeUntil => {
+                                println!("hey takeuntil: {:?}", location);
                                 let closing_tag = if &self.content[place - 2..place - 1] == "/" {
                                     // it means the opening tag is /*
                                     &self.content[place - 2..place]
                                 } else {
                                     &self.content[place - 1..place]
                                 };
+
                                 let opening_tag = get_opposing_tag(closing_tag);
 
                                 let mut err = SyntaxError::closing_tag(

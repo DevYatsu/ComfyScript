@@ -1,6 +1,5 @@
 use crate::parser::{
     ast::{identifier::parse_identifier_expression, Expression},
-    comment::jump_comments,
     expression::parse_expression_with,
 };
 
@@ -18,14 +17,14 @@ pub fn parse_fn_call(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> 
 
     let (input, _) = char('(')(input)?;
     let (input, args) = separated_list0(
-        char(',').preceded_by(jump_comments),
-        parse_expression.preceded_by(jump_comments),
+        char(',').preceded_by(multispace0),
+        parse_expression.preceded_by(multispace0),
     )
     .parse(input)?;
 
-    let (input, _) = char(',').preceded_by(jump_comments).opt().parse(input)?;
+    let (input, _) = char(',').preceded_by(multispace0).opt().parse(input)?;
 
-    let (input, _) = char(')').preceded_by(jump_comments).cut().parse(input)?;
+    let (input, _) = char(')').preceded_by(multispace0).cut().parse(input)?;
 
     let expr = Expression::CallExpression {
         callee: Box::new(id),
@@ -36,7 +35,7 @@ pub fn parse_fn_call(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> 
 }
 
 fn parse_expression_except_fn_call(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    let (i, _) = jump_comments(i)?;
+    let (i, _) = multispace0(i)?;
 
     let (i, expr) = alt((
         parse_parenthesized,

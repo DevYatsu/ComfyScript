@@ -15,8 +15,7 @@ use nom::{
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
-    let (input, _) = tag("fn").complete().parse(input)?;
-    let (input, _) = multispace1.parse(input)?;
+    let (input, _) = multispace1(input)?;
 
     let (input, id) = parse_identifier.cut().context("identifier").parse(input)?;
 

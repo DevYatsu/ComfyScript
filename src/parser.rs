@@ -11,11 +11,14 @@ mod loop_while;
 mod operations;
 
 use self::{
-    assignment::{initial::parse_var_init, reassign::parse_assignment},
+    assignment::{
+        initial::{parse_var_init, VariableKeyword},
+        reassign::parse_assignment,
+    },
     ast::ASTNode,
-    comment::parse_comment_statement,
-    expression::parse_expression_statement,
-    function::{parse_function, return_expression::parse_return_statement},
+    comment::{parse_line_comment, parse_multiline_comment},
+    expression::{parse_expression, parse_expression_statement},
+    function::parse_function,
     if_block::parse_if_statement,
     loop_for::parse_for_statement,
     loop_while::parse_while_statement,
@@ -24,7 +27,7 @@ use crate::parser::import::parse_import;
 use nom::{
     branch::alt,
     bytes::complete::take_while1,
-    character::complete::{alphanumeric0, char, space0},
+    character::complete::{alphanumeric0, char, multispace0, space0},
     multi::many0,
     IResult, Parser,
 };
@@ -53,10 +56,12 @@ fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a st
         .parse(input)?;
 
     let (input, _) = parse_new_lines.opt().parse(input)?;
+    println!("block {}", input);
 
     let (input, statements) = many0(parse_statement.delimited_by(parse_new_lines.opt()))
         .cut()
         .parse(input)?;
+    println!("afterblock {}", input);
 
     let (input, _) = char('}')
         .opt_preceded_by(parse_new_lines)
@@ -67,28 +72,71 @@ fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a st
     Ok((input, ASTNode::BlockStatement { body: statements }))
 }
 
-fn parse_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
+fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, found) = alt((
+        alphanumeric0,
         alt((
             tag("//").complete(),
             tag("/*").complete(),
             tag(">>").complete(),
         )),
-        alphanumeric0,
     ))
-    .peek()
-    .parse(input)?;
+    .parse(initial_input)?;
+    println!("input {:?}", found);
 
     let (input, statement) = match found {
-        "let" | "var" => parse_var_init(input)?,
+        "let" | "var" => {
+            let kind = match found {
+                "let" => VariableKeyword::Let,
+                _ => VariableKeyword::Var,
+            };
+            println!("working");
+
+            let (input, declarations) = parse_var_init(input)?;
+            println!("working");
+
+            (input, ASTNode::VariableDeclaration { declarations, kind })
+        }
         "import" => parse_import(input)?,
         "fn" => parse_function(input)?,
         "if" => parse_if_statement(input)?,
         "for" => parse_for_statement(input)?,
         "while" => parse_while_statement(input)?,
-        "return" | ">>" => parse_return_statement(input)?,
-        "//" | "/*" => parse_comment_statement(input)?,
-        _ => alt((parse_assignment, parse_expression_statement))(input)?,
+        "return" | ">>" => {
+            let is_shortcut = match found {
+                ">>" => true,
+                _ => false,
+            };
+
+            let (input, _) = multispace0(input)?;
+
+            let (input, argument) = parse_expression.cut().parse(input)?;
+
+            (
+                input,
+                ASTNode::ReturnStatement {
+                    argument,
+                    is_shortcut,
+                },
+            )
+        }
+        "//" => {
+            let (input, expression) = parse_line_comment(input)?;
+
+            (input, ASTNode::ExpressionStatement { expression })
+        }
+        "/*" => {
+            println!("mutliline input {:?}", input);
+
+            let (input, expression) = parse_multiline_comment(input)?;
+
+            (input, ASTNode::ExpressionStatement { expression })
+        }
+        _ => {
+            println!("expr_statement {:?}", initial_input);
+
+            alt((parse_assignment, parse_expression_statement))(initial_input)?
+        }
     };
 
     Ok((input, statement))

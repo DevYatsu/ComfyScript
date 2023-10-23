@@ -1,13 +1,12 @@
 use std::fmt;
 
 use crate::parser::{
-    ast::{identifier::parse_identifier, vars::VariableDeclarator, ASTNode},
-    comment::jump_comments,
+    ast::{identifier::parse_identifier, vars::VariableDeclarator},
     expression::parse_expression,
 };
 use nom::{
     branch::alt,
-    character::complete::{char, multispace1, space0},
+    character::complete::{char, multispace0, multispace1, space0},
     multi::separated_list1,
     IResult, Parser,
 };
@@ -28,30 +27,14 @@ impl fmt::Display for VariableKeyword {
     }
 }
 
-pub fn parse_var_init(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
-    let (input, keyword) = parse_variable_keyword(input)?;
-
+pub fn parse_var_init(input: &str) -> IResult<&str, Vec<VariableDeclarator>, ErrorTree<&str>> {
     let (input, _) = multispace1(input)?;
 
-    let (input, declarations) = separated_list1(
-        tag(",").delimited_by(jump_comments),
-        parse_single_declaration,
-    )
-    .parse(input)?;
-
-    let result = (
-        input,
-        ASTNode::VariableDeclaration {
-            declarations,
-            kind: keyword,
-        },
-    );
-
-    Ok(result)
+    separated_list1(tag(","), parse_single_declaration).parse(input)
 }
 
 pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator, ErrorTree<&str>> {
-    let (input, _) = jump_comments(input)?;
+    let (input, _) = multispace0(input)?;
 
     let (input, id) = parse_identifier
         .verify(|id| id.name.parse::<i32>().is_err())
@@ -59,12 +42,15 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
         .context("identifier")
         .parse(input)?;
 
-    let (input, _) = jump_comments(input)?;
+    let (input, _) = multispace0(input)?;
 
     let (input, _) = char('=').cut().parse(input)?;
-    let (input, _) = jump_comments(input)?;
+
+    let (input, _) = multispace0(input)?;
+    println!("working until now {:?}", input);
 
     let (input, value) = parse_expression.parse(input)?;
+    println!("working until now {:?}", input);
 
     let declarator = VariableDeclarator { id, init: value };
     let (input, _) = space0(input)?;
@@ -79,12 +65,7 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
         .cut()
         .parse(input)?;
 
-    Ok((input, declarator))
-}
+    let (input, _) = multispace0(input)?;
 
-fn parse_variable_keyword(i: &str) -> IResult<&str, VariableKeyword, ErrorTree<&str>> {
-    alt((
-        tag("let").complete().map(|_| VariableKeyword::Let),
-        tag("var").complete().map(|_| VariableKeyword::Var),
-    ))(i)
+    Ok((input, declarator))
 }

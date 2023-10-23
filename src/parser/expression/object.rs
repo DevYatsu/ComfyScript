@@ -4,13 +4,10 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, ParserExt};
 
-use crate::parser::{
-    ast::{
-        identifier::parse_identifier,
-        object::{Property, PropertyKind},
-        Expression,
-    },
-    comment::jump_comments,
+use crate::parser::ast::{
+    identifier::parse_identifier,
+    object::{Property, PropertyKind},
+    Expression,
 };
 
 use super::parse_expression;
@@ -19,7 +16,7 @@ pub fn parse_object(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, _) = char('{')(i)?;
     let (i, _) = multispace0(i)?;
 
-    let (i, elements) = separated_list0(char(','), parse_property.delimited_by(jump_comments))
+    let (i, elements) = separated_list0(char(','), parse_property.delimited_by(multispace0))
         .cut()
         .parse(i)?;
     println!("1 {:?}", i);

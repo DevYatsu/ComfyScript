@@ -7,10 +7,10 @@ from "test_package"
 import x from "math"
 
 var x="s",
-    dude = -1, // trying comments in here 
+    dude = -1,
     boolValue = true,
     _nil_value_ = nil
-
+    
 dude 
 dude *= 2
 
@@ -22,7 +22,6 @@ let x = {s: "str"}
 fn x (x) >> x
 
 x(x)
-
 
 if x == ef {
     print(" test testtt")
