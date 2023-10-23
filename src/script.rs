@@ -128,8 +128,15 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             err.add_label(Label::primary((), place..place + length));
                             err
                         }
+                        nom_supreme::error::Expectation::Eof => {
+                            let (place, length, found) = self.get_error_data(location);
+
+                            let mut err = SyntaxError::unexpected(found);
+
+                            err.add_label(Label::primary((), place..place + length));
+                            err
+                        }
                         _ => {
-                            println!("unreachable: {}", kind);
                             todo!()
                         }
                     },
