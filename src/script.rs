@@ -96,7 +96,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                         nom_supreme::error::Expectation::Tag(expected_token) => {
                             let token = expected_token.to_string();
                             let (place, length, found) = self.get_error_data(location);
-
+  
                             let mut err = SyntaxError::expected(token, found);
 
                             err.add_label(Label::primary((), place..place + length));
@@ -137,32 +137,32 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                         let (place, length, found) = self.get_error_data(location);
 
                         match kind {
-                            nom::error::ErrorKind::Tag => todo!(),
-                            nom::error::ErrorKind::Alt => todo!(),
+                            nom::error::ErrorKind::Tag => unreachable!(),
+                            nom::error::ErrorKind::Alt => unreachable!(),
                             nom::error::ErrorKind::TakeUntil => {
-                                let opening_tag = if &self.content[place - 2..place - 1] == "/" {
+                                let closing_tag = if &self.content[place - 2..place - 1] == "/" {
                                     // it means the opening tag is /*
                                     &self.content[place - 2..place]
                                 } else {
                                     &self.content[place - 1..place]
                                 };
-                                let closing_tag = get_opening_tag(opening_tag);
+                                let opening_tag = get_opening_tag(closing_tag);
 
                                 let mut err = SyntaxError::closing_tag(
-                                    opening_tag.to_owned(),
                                     closing_tag.to_owned(),
+                                    opening_tag.to_owned(),
                                 );
 
                                 err.add_label(Label::primary((), place..place));
 
                                 err
                             }
-                            nom::error::ErrorKind::AlphaNumeric => todo!(),
-                            nom::error::ErrorKind::Space => todo!(),
-                            nom::error::ErrorKind::MultiSpace => todo!(),
-                            nom::error::ErrorKind::Char => todo!(),
-                            nom::error::ErrorKind::CrLf => todo!(),
-                            nom::error::ErrorKind::Verify => todo!(),
+                            nom::error::ErrorKind::AlphaNumeric => unreachable!(),
+                            nom::error::ErrorKind::Space => unreachable!(),
+                            nom::error::ErrorKind::MultiSpace => unreachable!(),
+                            nom::error::ErrorKind::Char => unreachable!(),
+                            nom::error::ErrorKind::CrLf => unreachable!(),
+                            nom::error::ErrorKind::Verify => unreachable!(),
                             nom::error::ErrorKind::Float => {
                                 let mut err = SyntaxError::number(found);
 
@@ -172,14 +172,13 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             _ => unreachable!(),
                         }
                     }
-                    nom_supreme::error::BaseErrorKind::External(_) => todo!(),
+                    nom_supreme::error::BaseErrorKind::External(_) => unreachable!(),
                 };
 
                 err
             }
             nom_supreme::error::GenericErrorTree::Alt(alt) => {
                 let x = &alt[0];
-                println!("alt {:?}", alt);
                 self.match_error(x)
             }
         }
