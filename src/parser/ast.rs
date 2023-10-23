@@ -19,7 +19,7 @@ use super::{
 };
 use std::fmt;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ASTNode {
     Program {
         body: Vec<ASTNode>,
@@ -70,16 +70,18 @@ pub enum ASTNode {
     },
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expression {
     Literal {
         value: LiteralValue, // can be either a string or a number
         raw: String,
     },
     TemplateLiteral {
-        value: String,
+        // value/expression/expression syntax
+        quasis: Vec<String>,
         expressions: Vec<Expression>,
         // syntax like this: #"hey {name}, I am {age} years old"
+        // here first value is ""
     },
     Range {
         // similar to rust for instance 0..10
@@ -247,10 +249,19 @@ impl fmt::Display for Expression {
             Expression::Literal { raw, .. } => {
                 write!(f, "{}", raw)
             }
-            Expression::TemplateLiteral { value, .. } => {
-                write!(f, "{}", value)? //todo! update n the future
-                ;
-                todo!()
+            Expression::TemplateLiteral {
+                quasis,
+                expressions,
+            } => {
+                for i in 0..quasis.len() {
+                    write!(f, "{}", quasis[i])?;
+
+                    if expressions.len() > i {
+                        write!(f, "{}", expressions[i])?;
+                    }
+                }
+
+                write!(f, "")
             }
             Expression::Array { elements } => {
                 write!(f, "[")?;

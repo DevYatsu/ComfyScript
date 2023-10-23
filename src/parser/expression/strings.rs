@@ -6,6 +6,13 @@ use nom_supreme::{error::ErrorTree, ParserExt};
 
 use crate::parser::ast::{literal_value::LiteralValue, Expression};
 
+#[derive(Debug, Clone, PartialEq)]
+enum StringFragment {
+    Literal(String),
+    EscapedChar(char),
+    EscapedWS,
+} // to implement for strings in the future
+
 pub fn parse_string(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, quote) = parse_quote(i)?;
 

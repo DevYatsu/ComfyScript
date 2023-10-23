@@ -2,7 +2,7 @@ use std::fmt;
 
 use super::{identifier::Identifier, Expression};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct VariableDeclarator {
     pub id: Identifier,
     pub init: Expression,

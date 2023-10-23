@@ -9,11 +9,13 @@ mod object;
 mod parenthesized;
 pub mod range;
 pub mod strings;
+mod template_literal;
 
 use self::{
     array::parse_array, bool::parse_bool, function_call::parse_fn_call, indexing::parse_indexing,
     member_expr::parse_member_expr, nil::parse_nil, numbers::parse_number, object::parse_object,
     parenthesized::parse_parenthesized, range::parse_range, strings::parse_string,
+    template_literal::parse_template_literal,
 };
 use super::{
     ast::{identifier::parse_identifier_expression, ASTNode},
@@ -101,6 +103,7 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
 
     let (i, expr) = match found {
         "\"" | "'" => parse_string(i)?,
+        "#" => parse_template_literal(i)?,
         "[" => parse_array(i)?,
         "{" => parse_object(i)?,
         "|" => parse_fn_expression(i)?,

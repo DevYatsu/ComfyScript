@@ -2,7 +2,7 @@ use std::fmt;
 
 use super::{identifier::Identifier, Expression};
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Property {
     pub is_method: bool,
     pub shorthand: bool,
@@ -11,7 +11,7 @@ pub struct Property {
     pub kind: PropertyKind,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum PropertyKind {
     Init,
     Get,

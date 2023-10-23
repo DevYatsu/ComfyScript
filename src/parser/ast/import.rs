@@ -2,12 +2,12 @@ use std::fmt;
 
 use super::identifier::Identifier;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ImportSpecifier {
     pub local: Identifier,
     pub imported: Identifier, // name locally
 }
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ImportSource {
     pub value: String,
 }
