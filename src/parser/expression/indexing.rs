@@ -5,7 +5,7 @@ use nom_supreme::{error::ErrorTree, ParserExt};
 
 use crate::parser::ast::{identifier::parse_identifier_expression, Expression};
 
-use super::{parenthesized::parse_parenthesized, parse_expression, parse_expression_with};
+use super::{parenthesized::parse_parenthesized, parse_expression, parse_expression_with, function_call::parse_fn_call};
 
 pub fn parse_indexing(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, indexed) = parse_expression_with(parse_expression_except_indexing)(i)?;
@@ -32,6 +32,7 @@ pub fn parse_indexing(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
 fn parse_expression_except_indexing(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     alt((
         parse_parenthesized,
+        parse_fn_call,
         parse_identifier_expression,
         // avoid adding to many parser here
     ))(i)
