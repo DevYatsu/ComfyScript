@@ -24,7 +24,7 @@ use super::{
 use crate::parser::ast::Expression;
 use nom::{
     branch::alt,
-    character::complete::{alphanumeric0, space0},
+    character::complete::{alphanumeric0, space0, digit0},
     multi::many0,
     sequence::separated_pair,
     IResult, Parser,
@@ -65,9 +65,9 @@ where
 {
     move |i| {
         let parser_closure = |i| parser(i);
-
+println!("{:?}", &i);
         let (i, expr) = parser_closure(i)?;
-
+        println!("{:?}", &i);
         let mut expr_vec = vec![expr];
         let mut operators_vec = Vec::with_capacity(3);
 
@@ -95,16 +95,13 @@ where
 fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, found) = alt((
         alt((tag("\""), tag("'"), tag("("), tag("{"), tag("["), tag("|"))),
-        alphanumeric0,
+        alphanumeric0
     ))
     .peek()
     .parse(i)?;
 
     let (i, expr) = match found {
-        x if x.chars().all(|c| c.is_digit(10)) => parse_number(i)?,
-        // numbers etc
-        "\"" | "'" => parse_string(i)?,
-        // strings
+        "\"" | "'" => parse_string(i)?, // strings
         "[" => parse_array(i)?,
         "{" => parse_object(i)?,
         "(" => parse_parenthesized(i)?,
@@ -116,7 +113,7 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
             parse_indexing,
             parse_fn_call,
             parse_range,
-            parse_number,
+            parse_number, // all numbers are not covered up there, only basic ones: not 1e15 for example
             parse_identifier_expression,
         ))
         .parse(i)?,
