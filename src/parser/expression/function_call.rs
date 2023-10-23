@@ -10,7 +10,7 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, ParserExt};
 
-use super::{parenthesized::parse_parenthesized, parse_expression, indexing::parse_indexing};
+use super::{indexing::parse_indexing, parenthesized::parse_parenthesized, parse_expression};
 
 pub fn parse_fn_call(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (input, id) = parse_expression_with(parse_expression_except_fn_call)(input)?;

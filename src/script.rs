@@ -103,6 +103,12 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             let closing_tag = expected_token.to_string();
                             let opening_tag = get_opening_tag(&closing_tag).to_owned();
 
+                            let location = if location.is_empty() {
+                                &self.content[(self.content.len() - 1)..]
+                            } else {
+                                location
+                            };
+
                             let (place, length, _) = self.get_error_data(location);
 
                             let mut err = SyntaxError::closing_tag(opening_tag, closing_tag);

@@ -13,7 +13,7 @@ mod operations;
 use self::{
     assignment::{initial::parse_var_init, reassign::parse_assignment},
     ast::ASTNode,
-    comment::{jump_comments, parse_comment_statement},
+    comment::parse_comment_statement,
     expression::parse_expression_statement,
     function::{parse_function, return_expression::parse_return_statement},
     if_block::parse_if_statement,

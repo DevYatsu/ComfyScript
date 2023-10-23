@@ -5,7 +5,10 @@ use nom_supreme::{error::ErrorTree, ParserExt};
 
 use crate::parser::ast::{identifier::parse_identifier_expression, Expression};
 
-use super::{parenthesized::parse_parenthesized, parse_expression, parse_expression_with, function_call::parse_fn_call};
+use super::{
+    function_call::parse_fn_call, parenthesized::parse_parenthesized, parse_expression,
+    parse_expression_with,
+};
 
 pub fn parse_indexing(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, indexed) = parse_expression_with(parse_expression_except_indexing)(i)?;

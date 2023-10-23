@@ -29,5 +29,4 @@ if x == ef {
     print(" test testtt")
 }
 
-if x {}
-import x from "str"  
+if x {
