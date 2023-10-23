@@ -30,7 +30,7 @@ use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 pub fn parse_expression_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, expr) = parse_expression(input)?;
-    println!("e {:?}", expr);
+
     let expr_statement = ASTNode::ExpressionStatement { expression: expr };
 
     let (input, _) = space0(input)?;

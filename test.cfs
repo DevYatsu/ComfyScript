@@ -23,14 +23,9 @@ fn x (x) {
     >> x
 } 
 
-x(x) 
+x(x)
+( 
 
 if x == ef {
     print(" test testtt")
-
-
-if x {
-
-while efef {}
-
 }

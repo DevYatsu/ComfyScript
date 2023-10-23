@@ -59,11 +59,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                 let ctx = contexts[contexts.len() - 1].1;
                 let location = contexts[0].0;
 
-                let location = if location.is_empty() {
-                    &self.content[(self.content.len() - 1)..]
-                } else {
-                    location
-                };
+                let location = self.location_with_last_no_whitespace(&location);
 
                 let (place, length, found) = self.get_error_data(location);
 
@@ -93,11 +89,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                 }
             }
             nom_supreme::error::GenericErrorTree::Base { location, kind } => {
-                let location = if location.is_empty() {
-                    &self.content[(self.content.len() - 1)..]
-                } else {
-                    location
-                };
+                let location = self.location_with_last_no_whitespace(&location);
 
                 let err = match kind {
                     nom_supreme::error::BaseErrorKind::Expected(expec) => match expec {
@@ -135,7 +127,10 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             err.add_label(Label::primary((), place..place + length));
                             err
                         }
-                        _ => unreachable!(),
+                        _ => {
+                            println!("unreachable: {}", kind);
+                            todo!()
+                        }
                     },
                     nom_supreme::error::BaseErrorKind::Kind(kind) => {
                         println!("{:?}", kind);
@@ -207,6 +202,18 @@ impl<Name: Display + Clone> ComfyScript<Name> {
             (error_content.len() - new_error_content.len()) + error_length,
             found,
         )
+    }
+    fn location_with_last_no_whitespace<'a>(&'a self, location: &'a str) -> &'a str {
+        if location.is_empty() {
+            let index_last_real_char = self
+                .content
+                .rfind(|c: char| c.is_ascii_alphanumeric() || c.is_ascii_punctuation())
+                .unwrap_or(self.content.len() - 1);
+
+            &self.content[index_last_real_char..]
+        } else {
+            location
+        }
     }
 
     pub fn minify(&self) -> Result<String, Box<dyn Error>> {

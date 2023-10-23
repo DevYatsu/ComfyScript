@@ -14,13 +14,17 @@ pub struct Identifier {
 pub fn parse_identifier(i: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
     let (i, name) = many1(alt((tag("_"), alphanumeric1)))
         .map(|list| list.join(""))
-        .verify(|word| !RESERVED_KEYWORD.contains(&word.as_str()))
+        .verify(is_id_valid)
         .context("identifier")
         .parse(i)?;
 
     let identifier = Identifier { name };
 
     Ok((i, identifier))
+}
+
+fn is_id_valid(word: &String) -> bool {
+    !RESERVED_KEYWORD.contains(&word.as_str())
 }
 
 pub fn parse_unchecked_id(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
