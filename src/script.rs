@@ -57,8 +57,15 @@ impl<Name: Display + Clone> ComfyScript<Name> {
         match e {
             nom_supreme::error::GenericErrorTree::Stack { contexts, .. } => {
                 let ctx = contexts[contexts.len() - 1].1;
-                let (place, length, found) = self.get_error_data(contexts[0].0);
-                println!("error {:?}", ctx);
+                let location = contexts[0].0;
+
+                let location = if location.is_empty() {
+                    &self.content[(self.content.len() - 1)..]
+                } else {
+                    location
+                };
+
+                let (place, length, found) = self.get_error_data(location);
 
                 match ctx {
                     nom_supreme::error::StackContext::Context(msg) => {
@@ -74,6 +81,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                                 SyntaxError::expected("(".to_owned(), &found[0..1])
                             }
                             "block" => SyntaxError::block(&found[0..1]),
+                            "block end" => SyntaxError::closing_tag("{".to_owned(), "}".to_owned()),
                             _ => unreachable!(),
                         };
 
@@ -85,8 +93,11 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                 }
             }
             nom_supreme::error::GenericErrorTree::Base { location, kind } => {
-                println!("kind {:?}", kind);
-                println!("loc {:?}", location);
+                let location = if location.is_empty() {
+                    &self.content[(self.content.len() - 1)..]
+                } else {
+                    location
+                };
 
                 let err = match kind {
                     nom_supreme::error::BaseErrorKind::Expected(expec) => match expec {
@@ -102,12 +113,6 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                         nom_supreme::error::Expectation::Char(expected_token) => {
                             let closing_tag = expected_token.to_string();
                             let opening_tag = get_opening_tag(&closing_tag).to_owned();
-
-                            let location = if location.is_empty() {
-                                &self.content[(self.content.len() - 1)..]
-                            } else {
-                                location
-                            };
 
                             let (place, length, _) = self.get_error_data(location);
 

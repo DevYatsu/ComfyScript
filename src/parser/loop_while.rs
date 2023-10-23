@@ -11,7 +11,7 @@ pub fn parse_while_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&s
 
     let (input, test) = parse_expression.parse(input)?;
     let (input, _) = multispace0(input)?;
-
+    println!("efef {:?}", test);
     let (input, body) = parse_block.cut().parse(input)?;
 
     let node = ASTNode::WhileStatement {

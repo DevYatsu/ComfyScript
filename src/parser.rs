@@ -25,7 +25,7 @@ use nom::{
     branch::alt,
     bytes::complete::take_while1,
     character::complete::{char, space0},
-    multi::{many0, separated_list0},
+    multi::many0,
     IResult, Parser,
 };
 use nom_supreme::{error::ErrorTree, final_parser::final_parser, ParserExt};
@@ -49,15 +49,21 @@ fn parse_code<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str
 
 fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
     let (input, _) = char('{')
-        .preceded_by(parse_new_lines.opt())
+        .opt_preceded_by(parse_new_lines)
         .cut()
         .context("block")
-        .terminated(parse_new_lines.opt())
         .parse(input)?;
 
-    let (input, statements) = separated_list0(parse_new_lines.opt(), parse_statement)
-        .terminated(char('}').preceded_by(parse_new_lines.opt()).cut())
+    let (input, _) = parse_new_lines.opt().parse(input)?;
+
+    let (input, statements) = many0(parse_statement.delimited_by(parse_new_lines.opt()))
         .cut()
+        .parse(input)?;
+
+    let (input, _) = char('}')
+        .opt_preceded_by(parse_new_lines)
+        .cut()
+        .context("block end")
         .parse(input)?;
 
     Ok((input, ASTNode::BlockStatement { body: statements }))
