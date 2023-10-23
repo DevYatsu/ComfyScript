@@ -72,12 +72,10 @@ fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a st
 
 fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, found) = alt((
+        tag("//").complete(),
+        tag("/*").complete(),
+        tag(">>").complete(),
         alphanumeric0,
-        alt((
-            tag("//").complete(),
-            tag("/*").complete(),
-            tag(">>").complete(),
-        )),
     ))
     .parse(initial_input)?;
 
@@ -116,7 +114,9 @@ fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
             )
         }
         "//" => {
+            println!("input: {:?}", input);
             let (input, expression) = parse_line_comment(input)?;
+            println!("AFTER COMMENT : {:?}", input);
 
             (input, ASTNode::ExpressionStatement { expression })
         }
@@ -125,9 +125,7 @@ fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
 
             (input, ASTNode::ExpressionStatement { expression })
         }
-        _ => {
-            alt((parse_assignment, parse_expression_statement))(initial_input)?
-        }
+        _ => alt((parse_assignment, parse_expression_statement))(initial_input)?,
     };
 
     Ok((input, statement))

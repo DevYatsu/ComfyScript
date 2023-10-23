@@ -1,25 +1,12 @@
-use super::ast::{ASTNode, Expression};
+use super::ast::Expression;
 use nom::{
-    branch::alt, bytes::complete::take_until, character::complete::multispace0, multi::many0,
+    branch::alt,
+    bytes::complete::{take, take_until},
+    character::complete::multispace0,
+    multi::many0,
     IResult, Parser,
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
-
-pub fn parse_comment_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
-    let (input, comment) = parse_comment(input)?;
-
-    let comment_statement = ASTNode::ExpressionStatement {
-        expression: comment,
-    };
-
-    Ok((input, comment_statement))
-}
-
-pub fn parse_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    let (input, comment) = alt((parse_line_comment, parse_multiline_comment))(input)?;
-
-    Ok((input, comment))
-}
 
 pub fn jump_comments(input: &str) -> IResult<&str, String, ErrorTree<&str>> {
     let (input, _) = multispace0(input)?;
@@ -32,7 +19,20 @@ pub fn jump_comments(input: &str) -> IResult<&str, String, ErrorTree<&str>> {
 }
 
 pub fn parse_line_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
+    if !input.contains("\n") {
+        // if we arrive at the end of input
+
+        let (input, comment_value) = take(input.len())(input)?;
+
+        let comment_expr = Expression::Comment {
+            is_line: true,
+            raw_value: "//".to_string() + &comment_value,
+        };
+        return Ok((input, comment_expr));
+    }
+
     let (input, comment_value) = take_until("\n")(input)?;
+
     let (input, comment_closing) = tag("\n").complete().parse(input)?;
 
     let comment_expr = Expression::Comment {
