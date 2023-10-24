@@ -40,7 +40,6 @@ fn parse_expression_except_fn_call(i: &str) -> IResult<&str, Expression, ErrorTr
     let (i, expr) = alt((
         parse_parenthesized,
         parse_identifier_expression,
-        // avoid adding to many parser here
     ))(i)?;
 
     Ok((i, expr))
