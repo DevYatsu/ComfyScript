@@ -9,12 +9,12 @@ use nom_supreme::error::ErrorTree;
 use super::function_call::parse_fn_call;
 use super::indexing::parse_indexing;
 use super::parenthesized::parse_parenthesized;
-use super::parse_expression_with;
+use super::parse_expression_with0;
 
 pub fn parse_member_expr(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, mut ids) = separated_list1(
         char('.'),
-        parse_expression_with(parse_expression_except_member_expr),
+        parse_expression_with0(parse_expression_except_member_expr),
     )(i)?;
     // we are sure that ids length is >= 2 here
 

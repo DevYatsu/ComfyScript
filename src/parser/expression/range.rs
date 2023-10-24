@@ -12,11 +12,11 @@ use super::function_call::parse_fn_call;
 use super::indexing::parse_indexing;
 use super::member_expr::parse_member_expr;
 use super::parenthesized::parse_parenthesized;
-use super::{parse_expression_with, parse_primitive_value};
+use super::{parse_expression_with0, parse_primitive_value};
 
 pub fn parse_range(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, from) = map(
-        parse_expression_with(parse_expression_except_range),
+        parse_expression_with0(parse_expression_except_range),
         |expr| Box::new(expr),
     )(i)?;
 
@@ -27,7 +27,7 @@ pub fn parse_range(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, _) = multispace0(i)?;
 
     let (i, to) = map(
-        parse_expression_with(parse_expression_except_range),
+        parse_expression_with0(parse_expression_except_range),
         |expr| Box::new(expr),
     )
     .cut()

@@ -1,6 +1,6 @@
 use crate::parser::{
     ast::{identifier::parse_identifier_expression, Expression},
-    expression::parse_expression_with,
+    expression::parse_expression_with0,
 };
 
 use nom::{
@@ -12,7 +12,7 @@ use nom_supreme::{error::ErrorTree, ParserExt};
 use super::{parenthesized::parse_parenthesized, parse_expression};
 
 pub fn parse_fn_call(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    let (input, id) = parse_expression_with(parse_expression_except_fn_call)(input)?;
+    let (input, id) = parse_expression_with0(parse_expression_except_fn_call)(input)?;
     let (input, _) = multispace0(input)?;
 
     let (input, _) = char('(')(input)?;

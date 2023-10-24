@@ -11,7 +11,7 @@ use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 use crate::parser::ast::Expression;
 
 use super::{
-    parse_expression,
+    parse_expression1,
     strings::{parse_escaped_char, parse_escaped_whitespace},
 };
 
@@ -70,7 +70,7 @@ pub fn parse_literal(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
 fn parse_literal_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, _) = char('{').terminated(multispace0).parse(i)?;
 
-    let (i, expr) = parse_expression.cut().parse(i)?;
+    let (i, expr) = parse_expression1.parse(i)?;
 
     let (i, _) = char('}').preceded_by(multispace0).parse(i)?;
 

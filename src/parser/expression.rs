@@ -53,12 +53,51 @@ pub fn parse_expression_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&
 }
 
 pub fn parse_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    let (i, result) = parse_expression_with(parse_basic_expression).parse(i)?;
+    let (i, result) = parse_expression_with0(parse_basic_expression).parse(i)?;
+
+    Ok((i, result))
+}
+pub fn parse_expression1(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
+    let (i, result) = parse_expression_with1(parse_basic_expression).parse(i)?;
 
     Ok((i, result))
 }
 
-pub fn parse_expression_with<'a, F>(
+pub fn parse_expression_with0<'a, F>(
+    parser: F,
+) -> impl Fn(&'a str) -> IResult<&'a str, Expression, ErrorTree<&str>>
+where
+    F: Fn(&'a str) -> IResult<&'a str, Expression, ErrorTree<&str>>,
+{
+    move |i| {
+        let parser_closure = |i| parser(i);
+
+        let (i, expr) = parser_closure(i)?;
+
+        let mut expr_vec = vec![expr];
+        let mut operators_vec = Vec::with_capacity(3);
+
+        // Check for binary expr
+        let (i, rest) = many0(separated_pair(
+            parse_binary_operator.preceded_by(multispace0),
+            multispace0,
+            parser_closure,
+        ))
+        .parse(i)?;
+
+        for (op, expr) in rest {
+            operators_vec.push(op);
+            expr_vec.push(expr);
+        }
+
+        // Build binary expr with operators precedence
+        let final_expr = build_binary_expression(expr_vec, operators_vec);
+
+        Ok((i, final_expr))
+    }
+}
+
+fn parse_expression_with1<'a, F>(
     parser: F,
 ) -> impl Fn(&'a str) -> IResult<&'a str, Expression, ErrorTree<&str>>
 where
@@ -77,6 +116,7 @@ where
             parse_binary_operator.preceded_by(multispace0),
             multispace0,
             parser_closure.context("expression").cut(),
+            // only difference with the other is that we cut if there is no valid expr here
         ))
         .parse(i)?;
 
@@ -94,15 +134,7 @@ where
 
 fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, found) = alt((
-        alt((
-            tag("\""),
-            tag("'"),
-            tag("{"),
-            tag("["),
-            tag("|"),
-            tag("-"),
-            tag("#"),
-        )),
+        alt((tag("\""), tag("'"), tag("{"), tag("["), tag("|"), tag("#"))),
         alphanumeric0,
     ))
     .peek()
@@ -116,7 +148,6 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
         "|" => parse_fn_expression(i)?,
         "true" | "false" => parse_bool(i)?,
         "nil" => parse_nil(i)?,
-        "-" => parse_number(i)?,
         _ => alt((
             parse_member_expr,
             parse_indexing,
