@@ -9,6 +9,7 @@ mod import;
 mod loop_for;
 mod loop_while;
 mod operations;
+mod reserved_keywords;
 
 use self::{
     assignment::{

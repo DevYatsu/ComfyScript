@@ -37,10 +37,7 @@ pub fn parse_fn_call(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> 
 fn parse_expression_except_fn_call(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, _) = multispace0(i)?;
 
-    let (i, expr) = alt((
-        parse_parenthesized,
-        parse_identifier_expression,
-    ))(i)?;
+    let (i, expr) = alt((parse_parenthesized, parse_identifier_expression))(i)?;
 
     Ok((i, expr))
 }
