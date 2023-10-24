@@ -19,12 +19,7 @@ pub enum StringFragment {
 }
 
 pub fn parse_string(initial_i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    let build_string = fold_many0(parse_fragment, Vec::new, |mut str_vec, fragment| {
-        str_vec.push(fragment);
-        str_vec
-    });
-
-    let (i, fragments) = alt((delimited(char('"'), build_string, char('"')),)).parse(initial_i)?;
+    let (i, fragments) = delimited(char('"'), build_string, char('"')).parse(initial_i)?;
 
     let result_str = Expression::Literal {
         value: LiteralValue::Str(fragments),
@@ -40,6 +35,13 @@ pub fn parse_unchecked_string(initial_i: &str) -> IResult<&str, String, ErrorTre
     let final_str = initial_i[0..(initial_i.len() - i.len())].to_owned();
 
     return Ok((i, final_str));
+}
+
+fn build_string(i: &str) -> IResult<&str, Vec<StringFragment>, ErrorTree<&str>> {
+    fold_many0(parse_fragment, Vec::new, |mut str_vec, fragment| {
+        str_vec.push(fragment);
+        str_vec
+    })(i)
 }
 
 fn parse_unicode(i: &str) -> IResult<&str, char, ErrorTree<&str>> {
@@ -71,7 +73,7 @@ fn parse_escaped_char(i: &str) -> IResult<&str, char, ErrorTree<&str>> {
 }
 
 fn parse_escaped_whitespace(i: &str) -> IResult<&str, &str, ErrorTree<&str>> {
-    preceded(char('\\'), multispace1).parse(i)
+    preceded(char('\\'), multispace1.context("unknown char escape").cut()).parse(i)
 }
 
 fn parse_literal(i: &str) -> IResult<&str, String, ErrorTree<&str>> {

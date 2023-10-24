@@ -76,6 +76,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             }
                             "block" => SyntaxError::block(&found[0..1]),
                             "block end" => SyntaxError::closing_tag("{".to_owned(), "}".to_owned()),
+                            "unknown char escape" => SyntaxError::unknown_char_escape(found),
                             _ => unreachable!(),
                         };
 

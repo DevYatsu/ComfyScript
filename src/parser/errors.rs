@@ -156,6 +156,18 @@ impl<FileId> SyntaxError<FileId> {
             )],
         }
     }
+
+    pub fn unknown_char_escape(found: &str) -> Self {
+        SyntaxError {
+            message: "unknown character escape".to_owned(),
+            code: 11.into(),
+            labels: Vec::new(),
+            notes: vec![format!(
+                "unknown character escape
+    at `\\{found}`"
+            )],
+        }
+    }
 }
 
 pub fn get_opposing_tag(opening_tag: &str) -> &str {
