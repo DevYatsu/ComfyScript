@@ -1,10 +1,10 @@
 use nom::{
     branch::alt,
     bytes::complete::is_not,
-    character::complete::char,
+    character::complete::{char, multispace0},
     combinator::{map, value, verify},
     multi::fold_many0,
-    sequence::{delimited, preceded},
+    sequence::{delimited, preceded, terminated},
     IResult, Parser,
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag};
@@ -71,5 +71,5 @@ pub fn parse_literal(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
 }
 
 fn parse_literal_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    delimited(char('{'), parse_expression, char('}'))(i)
+    delimited(terminated(char('{'), multispace0), parse_expression, preceded(multispace0, char('}')))(i)
 }
