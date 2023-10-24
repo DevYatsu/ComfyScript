@@ -28,7 +28,7 @@ fn test() {
 }
 
 if x == ef {
-    print(" test \ aa{pag}angtes\ttt")
+    print(" test \ test again \u{A1}")
 }  
 
 // test 
