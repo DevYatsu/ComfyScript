@@ -44,7 +44,7 @@ fn build_string(i: &str) -> IResult<&str, Vec<StringFragment>, ErrorTree<&str>> 
     })(i)
 }
 
-fn parse_unicode(i: &str) -> IResult<&str, char, ErrorTree<&str>> {
+pub fn parse_unicode(i: &str) -> IResult<&str, char, ErrorTree<&str>> {
     let parse_hex = take_while_m_n(1, 6, |c: char| c.is_ascii_hexdigit());
 
     let parse_delimited_hex = preceded(char('u'), delimited(char('{'), parse_hex, char('}')));

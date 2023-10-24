@@ -4,10 +4,10 @@ use nom::{
     character::complete::{char, multispace0},
     combinator::{map, value, verify},
     multi::fold_many0,
-    sequence::{delimited, preceded, terminated},
+    sequence::{delimited, preceded},
     IResult, Parser,
 };
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 use crate::parser::ast::Expression;
 
@@ -48,14 +48,16 @@ fn build_template_literal(i: &str) -> IResult<&str, Vec<TemplateLiteralFragment>
 
 fn parse_literal_fragment(i: &str) -> IResult<&str, TemplateLiteralFragment, ErrorTree<&str>> {
     alt((
+        tag("{{")
+            .complete()
+            .map(|_| TemplateLiteralFragment::EscapedChar('{')),
+        map(parse_literal, TemplateLiteralFragment::Literal),
+        map(parse_escaped_char, TemplateLiteralFragment::EscapedChar),
         map(
             parse_literal_expression,
             TemplateLiteralFragment::Expression,
         ),
-        map(parse_literal, TemplateLiteralFragment::Literal),
-        map(parse_escaped_char, TemplateLiteralFragment::EscapedChar),
         value(TemplateLiteralFragment::EscapedWS, parse_escaped_whitespace),
-        tag("{").map(|value: &str| TemplateLiteralFragment::Literal(value.to_owned())),
     ))
     .parse(i)
 }
@@ -71,5 +73,14 @@ pub fn parse_literal(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
 }
 
 fn parse_literal_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    delimited(terminated(char('{'), multispace0), parse_expression, preceded(multispace0, char('}')))(i)
+    let (i, _) = char('{').terminated(multispace0).parse(i)?;
+
+    let (i, expr) = parse_expression
+        .context("template literal expression")
+        .cut()
+        .parse(i)?;
+
+    let (i, _) = char('}').preceded_by(multispace0).parse(i)?;
+
+    Ok((i, expr))
 }
