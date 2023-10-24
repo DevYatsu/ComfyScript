@@ -1,18 +1,19 @@
 use nom::{
     branch::alt,
+    bytes::complete::is_not,
     character::complete::char,
-    combinator::{map, value},
+    combinator::{map, value, verify},
     multi::fold_many0,
     sequence::{delimited, preceded},
     IResult, Parser,
 };
-use nom_supreme::error::ErrorTree;
+use nom_supreme::{error::ErrorTree, tag::complete::tag};
 
 use crate::parser::ast::Expression;
 
 use super::{
     parse_expression,
-    strings::{parse_escaped_char, parse_escaped_whitespace, parse_literal},
+    strings::{parse_escaped_char, parse_escaped_whitespace},
 };
 
 #[derive(Debug, Clone, PartialEq)]
@@ -54,7 +55,18 @@ fn parse_literal_fragment(i: &str) -> IResult<&str, TemplateLiteralFragment, Err
         map(parse_literal, TemplateLiteralFragment::Literal),
         map(parse_escaped_char, TemplateLiteralFragment::EscapedChar),
         value(TemplateLiteralFragment::EscapedWS, parse_escaped_whitespace),
+        tag("{").map(|value: &str| TemplateLiteralFragment::Literal(value.to_owned())),
     ))
+    .parse(i)
+}
+
+pub fn parse_literal(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
+    let not_quote_slash = is_not("\"\\{");
+
+    map(
+        verify(not_quote_slash, |s: &str| !s.is_empty()),
+        |x: &str| x.to_string(),
+    )
     .parse(i)
 }
 

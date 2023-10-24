@@ -76,7 +76,7 @@ pub fn parse_escaped_whitespace(i: &str) -> IResult<&str, &str, ErrorTree<&str>>
     preceded(char('\\'), multispace1.context("unknown char escape").cut()).parse(i)
 }
 
-pub fn parse_literal(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
+fn parse_literal(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
     let not_quote_slash = is_not("\"\\");
 
     map(

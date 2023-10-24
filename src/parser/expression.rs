@@ -95,7 +95,15 @@ where
 
 fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, found) = alt((
-        alt((tag("\""), tag("'"), tag("{"), tag("["), tag("|"), tag("-"), tag("#"))),
+        alt((
+            tag("\""),
+            tag("'"),
+            tag("{"),
+            tag("["),
+            tag("|"),
+            tag("-"),
+            tag("#"),
+        )),
         alphanumeric0,
     ))
     .peek()
