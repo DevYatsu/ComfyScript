@@ -3,8 +3,7 @@ use nom::{
     bytes::complete::is_not,
     character::complete::{char, multispace0},
     combinator::{map, value, verify},
-    multi::fold_many0,
-    sequence::{delimited, preceded},
+    multi::many0,
     IResult, Parser,
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
@@ -25,11 +24,10 @@ pub enum TemplateLiteralFragment {
 }
 
 pub fn parse_template_literal(initial_i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    let (i, fragments) = preceded(
-        char('#'),
-        delimited(char('"'), build_template_literal, char('"')),
-    )
-    .parse(initial_i)?;
+    let (i, _) = char('#')(initial_i)?;
+    let (i, _) = char('"')(i)?;
+    let (i, fragments) = build_template_literal(i)?;
+    let (i, _) = char('"')(i)?;
 
     let result_str = Expression::TemplateLiteral {
         raw: initial_i[0..initial_i.len() - i.len()].to_string(),
@@ -40,10 +38,7 @@ pub fn parse_template_literal(initial_i: &str) -> IResult<&str, Expression, Erro
 }
 
 fn build_template_literal(i: &str) -> IResult<&str, Vec<TemplateLiteralFragment>, ErrorTree<&str>> {
-    fold_many0(parse_literal_fragment, Vec::new, |mut str_vec, fragment| {
-        str_vec.push(fragment);
-        str_vec
-    })(i)
+    many0(parse_literal_fragment)(i)
 }
 
 fn parse_literal_fragment(i: &str) -> IResult<&str, TemplateLiteralFragment, ErrorTree<&str>> {
@@ -53,11 +48,11 @@ fn parse_literal_fragment(i: &str) -> IResult<&str, TemplateLiteralFragment, Err
             .map(|_| TemplateLiteralFragment::EscapedChar('{')),
         map(parse_literal, TemplateLiteralFragment::Literal),
         map(parse_escaped_char, TemplateLiteralFragment::EscapedChar),
+        value(TemplateLiteralFragment::EscapedWS, parse_escaped_whitespace),
         map(
             parse_literal_expression,
             TemplateLiteralFragment::Expression,
         ),
-        value(TemplateLiteralFragment::EscapedWS, parse_escaped_whitespace),
     ))
     .parse(i)
 }
@@ -75,10 +70,7 @@ pub fn parse_literal(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
 fn parse_literal_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, _) = char('{').terminated(multispace0).parse(i)?;
 
-    let (i, expr) = parse_expression
-        .context("template literal expression")
-        .cut()
-        .parse(i)?;
+    let (i, expr) = parse_expression.cut().parse(i)?;
 
     let (i, _) = char('}').preceded_by(multispace0).parse(i)?;
 

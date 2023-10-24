@@ -76,9 +76,8 @@ where
         let (i, rest) = many0(separated_pair(
             parse_binary_operator.preceded_by(multispace0),
             multispace0,
-            parser_closure,
+            parser_closure.context("expression").cut(),
         ))
-        .cut()
         .parse(i)?;
 
         for (op, expr) in rest {
