@@ -28,7 +28,7 @@ fn test() {
 }
 
 if x == ef {
-    print(" test testtt")
+    print(" test \\aapagangtes\ttt")
 }  
 
 // test 

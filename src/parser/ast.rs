@@ -147,7 +147,7 @@ impl fmt::Display for ASTNode {
                     }
                 }
 
-                write!(f, " from \"{}\";", source)
+                write!(f, " from {};", source)
             }
             ASTNode::VariableDeclaration { declarations, kind } => {
                 write!(f, "{} ", kind)?;

@@ -2,10 +2,9 @@ use super::{
     ast::{
         identifier::{parse_identifier, Identifier},
         import::{ImportSource, ImportSpecifier},
-        literal_value::LiteralValue,
-        ASTNode, Expression,
+        ASTNode,
     },
-    expression::strings::parse_string,
+    expression::strings::parse_unchecked_string,
 };
 use nom::{
     branch::alt,
@@ -63,15 +62,11 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (i, _) = tag("from").complete().cut().parse(i)?;
     let (i, _) = multispace1.cut().parse(i)?;
 
-    let (i, source) = parse_string.cut().context("import source").parse(i)?;
-
-    let source = match source {
-        Expression::Literal { value, .. } => match value {
-            LiteralValue::Str(value) => ImportSource { value },
-            _ => unreachable!(),
-        },
-        _ => unreachable!(),
-    };
+    let (i, source) = parse_unchecked_string
+        .map(|s| ImportSource { value: s })
+        .cut()
+        .context("import source")
+        .parse(i)?;
 
     let import_declaration = ASTNode::ImportDeclaration { specifiers, source };
     let (i, _) = space0(i)?;

@@ -1,48 +1,94 @@
 use nom::{
-    branch::alt, bytes::complete::take_until, character::complete::char, combinator::map, IResult,
-    Parser,
+    branch::alt,
+    bytes::complete::{is_not, take_while_m_n},
+    character::complete::{char, multispace1},
+    combinator::{map, map_opt, value, verify},
+    sequence::{delimited, preceded},
+    IResult, Parser,
 };
 use nom_supreme::{error::ErrorTree, ParserExt};
 
 use crate::parser::ast::{literal_value::LiteralValue, Expression};
+use nom::multi::fold_many0;
 
 #[derive(Debug, Clone, PartialEq)]
-enum StringFragment {
+pub enum StringFragment {
     Literal(String),
     EscapedChar(char),
     EscapedWS,
-} // to implement for strings in the future
-
-pub fn parse_string(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    let (i, quote) = parse_quote(i)?;
-
-    let (i, result) = take_until(&*quote.to_string()).cut().parse(i)?;
-    let (i, c) = char(quote)(i)?;
-
-    return Ok((
-        i,
-        Expression::Literal {
-            value: LiteralValue::Str(result.to_owned()),
-            raw: c.to_string() + result + &c.to_string(),
-        },
-    ));
 }
 
-pub fn parse_unchecked_string(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
-    let (i, quote) = parse_quote(i)?;
+pub fn parse_string(initial_i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
+    let build_string = fold_many0(parse_fragment, Vec::new, |mut str_vec, fragment| {
+        str_vec.push(fragment);
+        str_vec
+    });
 
-    let (i, result) = take_until(&*quote.to_string()).cut().parse(i)?;
-    let (i, c) = char(quote)(i)?;
+    let (i, fragments) = alt((delimited(char('"'), build_string, char('"')),)).parse(initial_i)?;
 
-    return Ok((i, c.to_string() + result + &c.to_string()));
+    let result_str = Expression::Literal {
+        value: LiteralValue::Str(fragments),
+        raw: initial_i[0..initial_i.len() - i.len()].to_string(),
+    };
+
+    Ok((i, result_str))
 }
 
-fn parse_quote(i: &str) -> IResult<&str, char, ErrorTree<&str>> {
-    let simple_quote = '\'';
-    let double_quote = '"';
+pub fn parse_unchecked_string(initial_i: &str) -> IResult<&str, String, ErrorTree<&str>> {
+    let (i, _) = parse_string(initial_i)?;
 
+    let final_str = initial_i[0..(initial_i.len() - i.len())].to_owned();
+
+    return Ok((i, final_str));
+}
+
+fn parse_unicode(i: &str) -> IResult<&str, char, ErrorTree<&str>> {
+    let parse_hex = take_while_m_n(1, 6, |c: char| c.is_ascii_hexdigit());
+
+    let parse_delimited_hex = preceded(char('u'), delimited(char('{'), parse_hex, char('}')));
+
+    let parse_u32 = parse_delimited_hex.map_res(|hex| u32::from_str_radix(hex, 16));
+
+    map_opt(parse_u32, std::char::from_u32).parse(i)
+}
+
+fn parse_escaped_char(i: &str) -> IResult<&str, char, ErrorTree<&str>> {
+    preceded(
+        char('\\'),
+        alt((
+            parse_unicode,
+            value('\n', char('n')),
+            value('\r', char('r')),
+            value('\t', char('t')),
+            value('\u{08}', char('b')),
+            value('\u{0C}', char('f')),
+            value('\\', char('\\')),
+            value('/', char('/')),
+            value('"', char('"')),
+        )),
+    )
+    .parse(i)
+}
+
+fn parse_escaped_whitespace(i: &str) -> IResult<&str, &str, ErrorTree<&str>> {
+    preceded(char('\\'), multispace1).parse(i)
+}
+
+fn parse_literal(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
+    let not_quote_slash = is_not("\"\\");
+
+    map(
+        verify(not_quote_slash, |s: &str| !s.is_empty()),
+        |x: &str| x.to_string(),
+    )
+    .parse(i)
+}
+
+fn parse_fragment(i: &str) -> IResult<&str, StringFragment, ErrorTree<&str>> {
     alt((
-        map(char(double_quote), move |_| double_quote),
-        map(char(simple_quote), move |_| simple_quote),
-    ))(i)
+        map(parse_literal, StringFragment::Literal),
+        map(parse_escaped_char, StringFragment::EscapedChar),
+        value(StringFragment::EscapedWS, parse_escaped_whitespace),
+    ))
+    .parse(i)
 }
