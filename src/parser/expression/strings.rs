@@ -54,7 +54,7 @@ fn parse_unicode(i: &str) -> IResult<&str, char, ErrorTree<&str>> {
     map_opt(parse_u32, std::char::from_u32).parse(i)
 }
 
-fn parse_escaped_char(i: &str) -> IResult<&str, char, ErrorTree<&str>> {
+pub fn parse_escaped_char(i: &str) -> IResult<&str, char, ErrorTree<&str>> {
     preceded(
         char('\\'),
         alt((
@@ -72,11 +72,11 @@ fn parse_escaped_char(i: &str) -> IResult<&str, char, ErrorTree<&str>> {
     .parse(i)
 }
 
-fn parse_escaped_whitespace(i: &str) -> IResult<&str, &str, ErrorTree<&str>> {
+pub fn parse_escaped_whitespace(i: &str) -> IResult<&str, &str, ErrorTree<&str>> {
     preceded(char('\\'), multispace1.context("unknown char escape").cut()).parse(i)
 }
 
-fn parse_literal(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
+pub fn parse_literal(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
     let not_quote_slash = is_not("\"\\");
 
     map(

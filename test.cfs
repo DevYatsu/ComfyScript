@@ -28,7 +28,9 @@ fn test() {
 }
 
 if x == ef {
-    print(" test \ test again \u{A1}")
+    print(" test \ test again \u{A0}")
 }  
+
+print(#"test \\ \ efef {test}")
 
 // test 

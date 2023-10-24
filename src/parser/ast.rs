@@ -15,6 +15,7 @@ use self::{
 };
 use super::{
     assignment::initial::VariableKeyword,
+    expression::template_literal::TemplateLiteralFragment,
     operations::{assignment::AssignmentOperator, binary::BinaryOperator},
 };
 use std::fmt;
@@ -78,8 +79,8 @@ pub enum Expression {
     },
     TemplateLiteral {
         // value/expression/expression syntax
-        quasis: Vec<String>,
-        expressions: Vec<Expression>,
+        value: Vec<TemplateLiteralFragment>,
+        raw: String,
         // syntax like this: #"hey {name}, I am {age} years old"
         // here first value is ""
     },
@@ -249,19 +250,8 @@ impl fmt::Display for Expression {
             Expression::Literal { raw, .. } => {
                 write!(f, "{}", raw)
             }
-            Expression::TemplateLiteral {
-                quasis,
-                expressions,
-            } => {
-                for i in 0..quasis.len() {
-                    write!(f, "{}", quasis[i])?;
-
-                    if expressions.len() > i {
-                        write!(f, "{}", expressions[i])?;
-                    }
-                }
-
-                write!(f, "")
+            Expression::TemplateLiteral { raw, .. } => {
+                write!(f, "{}", raw)
             }
             Expression::Array { elements } => {
                 write!(f, "[")?;

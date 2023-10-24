@@ -9,7 +9,7 @@ mod object;
 mod parenthesized;
 pub mod range;
 pub mod strings;
-mod template_literal;
+pub mod template_literal;
 
 use self::{
     array::parse_array, bool::parse_bool, function_call::parse_fn_call, indexing::parse_indexing,
@@ -95,7 +95,7 @@ where
 
 fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, found) = alt((
-        alt((tag("\""), tag("'"), tag("{"), tag("["), tag("|"), tag("-"))),
+        alt((tag("\""), tag("'"), tag("{"), tag("["), tag("|"), tag("-"), tag("#"))),
         alphanumeric0,
     ))
     .peek()
