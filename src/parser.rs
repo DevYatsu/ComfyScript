@@ -8,6 +8,7 @@ mod if_block;
 mod import;
 mod loop_for;
 mod loop_while;
+mod match_block;
 mod operations;
 mod reserved_keywords;
 
@@ -23,6 +24,7 @@ use self::{
     if_block::parse_if_statement,
     loop_for::parse_for_statement,
     loop_while::parse_while_statement,
+    match_block::parse_match_statement,
 };
 use crate::parser::import::parse_import;
 use nom::{
@@ -50,11 +52,7 @@ fn parse_code<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str
 }
 
 fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
-    let (input, _) = char('{')
-        .opt_preceded_by(parse_new_lines)
-        .cut()
-        .context("block")
-        .parse(input)?;
+    let (input, _) = char('{').cut().context("block").parse(input)?;
 
     let (input, _) = parse_new_lines.opt().parse(input)?;
 
@@ -96,6 +94,7 @@ fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
         "if" => parse_if_statement(input)?,
         "for" => parse_for_statement(input)?,
         "while" => parse_while_statement(input)?,
+        "match" => parse_match_statement(input)?,
         "return" | ">>" => {
             let is_shortcut = match found {
                 ">>" => true,

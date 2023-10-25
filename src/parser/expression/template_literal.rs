@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use nom::{
     branch::alt,
     bytes::complete::is_not,
@@ -75,4 +77,15 @@ fn parse_literal_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str
     let (i, _) = char('}').preceded_by(multispace0).parse(i)?;
 
     Ok((i, expr))
+}
+
+impl Display for TemplateLiteralFragment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            TemplateLiteralFragment::Literal(s) => write!(f, "{}", s),
+            TemplateLiteralFragment::EscapedChar(escaped) => write!(f, "{}", escaped),
+            TemplateLiteralFragment::Expression(expr) => write!(f, "{{{}}}", expr),
+            TemplateLiteralFragment::EscapedWS => write!(f, ""),
+        }
+    }
 }

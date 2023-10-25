@@ -1,3 +1,5 @@
+use std::fmt::Display;
+
 use nom::{
     branch::alt,
     bytes::complete::{is_not, take_while_m_n},
@@ -93,4 +95,14 @@ fn parse_fragment(i: &str) -> IResult<&str, StringFragment, ErrorTree<&str>> {
         value(StringFragment::EscapedWS, parse_escaped_whitespace),
     ))
     .parse(i)
+}
+
+impl Display for StringFragment {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            StringFragment::Literal(s) => write!(f, "{}", s),
+            StringFragment::EscapedChar(escaped) => write!(f, "{}", escaped),
+            StringFragment::EscapedWS => write!(f, ""),
+        }
+    }
 }

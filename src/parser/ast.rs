@@ -16,6 +16,7 @@ use self::{
 use super::{
     assignment::initial::VariableKeyword,
     expression::template_literal::TemplateLiteralFragment,
+    match_block::MatchBlock,
     operations::{assignment::AssignmentOperator, binary::BinaryOperator},
 };
 use std::fmt;
@@ -61,6 +62,10 @@ pub enum ASTNode {
         body: Box<ASTNode>,
         alternate: Option<Box<ASTNode>>,
         // alternate may either be None, a BlockStatement or an IfStatement
+    },
+    MatchStatement {
+        test: Expression,
+        body: MatchBlock,
     },
     BlockStatement {
         body: Vec<ASTNode>,
@@ -239,6 +244,9 @@ impl fmt::Display for ASTNode {
                     write!(f, "{}", node)?;
                 }
                 write!(f, "}}")
+            }
+            ASTNode::MatchStatement { test, body } => {
+                write!(f, "match {test} {body}")
             }
         }
     }
