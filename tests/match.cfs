@@ -1,0 +1,13 @@
+let x = true
+
+match x {
+    true => {
+        print("it's true")
+    }
+    false => {
+        print("it's false")
+    }
+    Err(x) => {
+
+    }
+}
