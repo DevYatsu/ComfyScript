@@ -14,7 +14,7 @@ let file_content = fs.read_file("doesNotExist.txt")
 
 match file_content {
     Ok(content) => {
-        print(#"Here is the file content: \n { content }")
+        print(#"Here is the file content:\n { content }")
     }
     Err(error) => {
         print(#"Error: { error }")
