@@ -80,9 +80,6 @@ fn parse_match_case(input: &str) -> IResult<&str, MatchCase, ErrorTree<&str>> {
 
 fn parse_match_pattern(input: &str) -> IResult<&str, MatchPattern, ErrorTree<&str>> {
     alt((
-        parse_ok_pattern_variant,
-        parse_err_pattern_variant,
-        parse_identifier.map(|id| MatchPattern::Variable(id)),
         tag("nil")
             .complete()
             .value(MatchPattern::LiteralValue(LiteralValue::Nil)),
@@ -92,6 +89,9 @@ fn parse_match_pattern(input: &str) -> IResult<&str, MatchPattern, ErrorTree<&st
         tag("false")
             .complete()
             .value(MatchPattern::LiteralValue(LiteralValue::Boolean(false))),
+        parse_ok_pattern_variant,
+        parse_err_pattern_variant,
+        parse_identifier.map(|id| MatchPattern::Variable(id)),
         parse_number_literal_value.map(|num| MatchPattern::LiteralValue(num)),
         parse_string_literal_value.map(|s| MatchPattern::LiteralValue(s)),
     ))(input)
