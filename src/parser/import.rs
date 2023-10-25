@@ -4,7 +4,7 @@ use super::{
         import::{ImportSource, ImportSpecifier},
         ASTNode,
     },
-    expression::strings::parse_unchecked_string,
+    expression::strings::parse_raw_string,
 };
 use nom::{
     branch::alt,
@@ -62,7 +62,7 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (i, _) = tag("from").complete().cut().parse(i)?;
     let (i, _) = multispace1.cut().parse(i)?;
 
-    let (i, source) = parse_unchecked_string
+    let (i, source) = parse_raw_string
         .map(|s| ImportSource { value: s })
         .cut()
         .context("import source")

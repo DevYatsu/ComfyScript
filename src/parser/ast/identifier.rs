@@ -27,7 +27,7 @@ fn is_id_valid(word: &String) -> bool {
     !RESERVED_KEYWORD.contains(&word.as_str())
 }
 
-pub fn parse_unchecked_id(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
+pub fn parse_raw_id(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
     let (i, s) = many1(alt((tag("_"), alphanumeric1)))
         .map(|list| list.join(""))
         .parse(i)?;

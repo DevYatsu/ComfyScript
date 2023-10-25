@@ -38,3 +38,26 @@ pub fn parse_number(initial_i: &str) -> IResult<&str, Expression, ErrorTree<&str
         },
     ))
 }
+
+pub fn parse_number_literal_value(i: &str) -> IResult<&str, LiteralValue, ErrorTree<&str>> {
+    let (base_input, sign) = opt(alt((char('+'), char('-'))))(i)?;
+
+    // is normal to avoid having things such as Infinity considered numbers
+    let (i, num) = float.verify(|num| num.is_normal()).parse(base_input)?;
+    let (_, other_dot) = char('.').opt().parse(i)?;
+
+    // check in case a range is following
+    let (i, num) = if other_dot.is_some() {
+        let (i, num_string) = take_until1(".")(base_input)?;
+        (i, num_string.parse::<f32>().unwrap())
+    } else {
+        (i, num)
+    };
+
+    let num = match sign {
+        Some('-') => -num,
+        _ => num,
+    };
+
+    Ok((i, LiteralValue::Number(num)))
+}

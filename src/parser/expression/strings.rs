@@ -31,7 +31,7 @@ pub fn parse_string(initial_i: &str) -> IResult<&str, Expression, ErrorTree<&str
     Ok((i, result_str))
 }
 
-pub fn parse_unchecked_string(initial_i: &str) -> IResult<&str, String, ErrorTree<&str>> {
+pub fn parse_raw_string(initial_i: &str) -> IResult<&str, String, ErrorTree<&str>> {
     let (i, _) = parse_string(initial_i)?;
 
     let final_str = initial_i[0..(initial_i.len() - i.len())].to_owned();
@@ -95,6 +95,12 @@ fn parse_fragment(i: &str) -> IResult<&str, StringFragment, ErrorTree<&str>> {
         value(StringFragment::EscapedWS, parse_escaped_whitespace),
     ))
     .parse(i)
+}
+
+pub fn parse_string_literal_value(i: &str) -> IResult<&str, LiteralValue, ErrorTree<&str>> {
+    let (base_input, s) = build_string(i)?;
+
+    Ok((i, LiteralValue::Str(s)))
 }
 
 impl Display for StringFragment {

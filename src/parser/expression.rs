@@ -4,7 +4,7 @@ mod function_call;
 pub mod indexing;
 pub mod member_expr;
 mod nil;
-mod numbers;
+pub mod numbers;
 mod object;
 mod parenthesized;
 pub mod range;
@@ -163,6 +163,6 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
     Ok((i, expr))
 }
 
-fn parse_primitive_value(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
+pub fn parse_primitive_value(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     alt((parse_string, parse_bool, parse_number, parse_nil))(i)
 }

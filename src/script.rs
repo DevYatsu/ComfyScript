@@ -1,8 +1,8 @@
 use crate::parser::{
-    ast::{self, identifier::parse_unchecked_id},
+    ast::{self, identifier::parse_raw_id},
     comment::jump_comments,
     errors::{get_opposing_tag, SyntaxError},
-    expression::strings::parse_unchecked_string,
+    expression::strings::parse_raw_string,
     parse_input,
 };
 use codespan_reporting::{diagnostic::Label, files::SimpleFile};
@@ -199,7 +199,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
             .and_then(|(i, _)| Ok(i))
             .unwrap_or(error_content);
 
-        let error_length = alt((parse_unchecked_id, parse_unchecked_string))
+        let error_length = alt((parse_raw_id, parse_raw_string))
             .parse(&new_error_content)
             .and_then(|(_, w)| Ok(w.len()))
             .unwrap_or(1);

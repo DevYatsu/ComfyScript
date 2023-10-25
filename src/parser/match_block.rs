@@ -1,18 +1,23 @@
 use std::fmt::Display;
 
-use crate::parser::parse_statement;
-
 use super::{
-    ast::{identifier::Identifier, literal_value::LiteralValue, ASTNode},
-    expression::parse_expression,
-    parse_new_lines,
+    ast::{
+        identifier::{parse_identifier, Identifier},
+        literal_value::LiteralValue,
+        ASTNode,
+    },
+    expression::{
+        numbers::parse_number_literal_value, parse_expression, strings::parse_string_literal_value,
+    },
+    parse_block,
 };
 use nom::{
+    branch::alt,
     character::complete::{char, multispace0, multispace1},
     multi::many0,
     IResult, Parser,
 };
-use nom_supreme::{error::ErrorTree, ParserExt};
+use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct MatchCase {
@@ -26,7 +31,7 @@ pub struct MatchBlock {
 }
 
 #[derive(Debug, Clone, PartialEq)]
-enum MatchPattern {
+pub enum MatchPattern {
     LiteralValue(LiteralValue),
     Variable(Identifier),
     Ok(Box<MatchPattern>),
@@ -46,24 +51,60 @@ pub fn parse_match_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&s
     Ok((input, node))
 }
 
-fn parse_match_block<'a>(input: &'a str) -> IResult<&'a str, MatchBlock, ErrorTree<&'a str>> {
-    let (input, _) = char('{').cut().context("block").parse(input)?;
+fn parse_match_block(input: &str) -> IResult<&str, MatchBlock, ErrorTree<&str>> {
+    let (input, _) = char('{').cut().context("match block").parse(input)?;
 
-    todo!();
-
-    let (input, _) = parse_new_lines.opt().parse(input)?;
-
-    let (input, statements) = many0(parse_statement.delimited_by(parse_new_lines.opt()))
+    let (input, cases) = many0(parse_match_case.delimited_by(multispace0))
         .cut()
         .parse(input)?;
 
     let (input, _) = char('}')
-        .opt_preceded_by(parse_new_lines)
+        .opt_preceded_by(multispace0) // to remove useless i believe
         .cut()
-        .context("block end")
+        .context("match block end")
         .parse(input)?;
 
-    Ok((input, MatchBlock { cases: todo!() }))
+    Ok((input, MatchBlock { cases }))
+}
+
+fn parse_match_case(input: &str) -> IResult<&str, MatchCase, ErrorTree<&str>> {
+    let (input, pattern) = parse_match_pattern(input)?;
+    let (input, _) = multispace0(input)?;
+    let (input, _) = tag("=>").complete().parse(input)?;
+    let (input, _) = multispace0(input)?;
+
+    let (input, body) = parse_block(input)?;
+
+    Ok((input, MatchCase { pattern, body }))
+}
+
+fn parse_match_pattern(input: &str) -> IResult<&str, MatchPattern, ErrorTree<&str>> {
+    let parse_ok_pattern_variant = parse_identifier
+        .map(|id| MatchPattern::Ok(Box::new(MatchPattern::Variable(id))))
+        .preceded_by(tag("Ok(").complete())
+        .terminated(char(')'));
+
+    let parse_err_pattern_variant = parse_identifier
+        .map(|id| MatchPattern::Err(Box::new(MatchPattern::Variable(id))))
+        .preceded_by(tag("Err(").complete())
+        .terminated(char(')'));
+
+    alt((
+        parse_identifier.map(|id| MatchPattern::Variable(id)),
+        tag("nil")
+            .complete()
+            .value(MatchPattern::LiteralValue(LiteralValue::Nil)),
+        tag("true")
+            .complete()
+            .value(MatchPattern::LiteralValue(LiteralValue::Boolean(true))),
+        tag("false")
+            .complete()
+            .value(MatchPattern::LiteralValue(LiteralValue::Boolean(false))),
+        parse_number_literal_value.map(|num| MatchPattern::LiteralValue(num)),
+        parse_string_literal_value.map(|s| MatchPattern::LiteralValue(s)),
+        parse_ok_pattern_variant,
+        parse_err_pattern_variant,
+    ))(input)
 }
 
 impl Display for MatchBlock {
