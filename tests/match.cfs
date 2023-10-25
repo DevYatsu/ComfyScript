@@ -7,7 +7,16 @@ match x {
     false => {
         print("it's false")
     }
-    Err(x) => {
+}
 
+import * as fs from "fs"
+let file_content = fs.read_file("doesNotExist.txt")
+
+match file_content {
+    Ok(content) => {
+        print(#"Here is the file content: \n { content }")
+    }
+    Err(error) => {
+        print(#"Error: { error }")
     }
 }
