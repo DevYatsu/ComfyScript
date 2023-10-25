@@ -79,17 +79,9 @@ fn parse_match_case(input: &str) -> IResult<&str, MatchCase, ErrorTree<&str>> {
 }
 
 fn parse_match_pattern(input: &str) -> IResult<&str, MatchPattern, ErrorTree<&str>> {
-    let parse_ok_pattern_variant = parse_identifier
-        .map(|id| MatchPattern::Ok(Box::new(MatchPattern::Variable(id))))
-        .preceded_by(tag("Ok(").complete())
-        .terminated(char(')'));
-
-    let parse_err_pattern_variant = parse_identifier
-        .map(|id| MatchPattern::Err(Box::new(MatchPattern::Variable(id))))
-        .preceded_by(tag("Err(").complete())
-        .terminated(char(')'));
-
     alt((
+        parse_ok_pattern_variant,
+        parse_err_pattern_variant,
         parse_identifier.map(|id| MatchPattern::Variable(id)),
         tag("nil")
             .complete()
@@ -102,9 +94,26 @@ fn parse_match_pattern(input: &str) -> IResult<&str, MatchPattern, ErrorTree<&st
             .value(MatchPattern::LiteralValue(LiteralValue::Boolean(false))),
         parse_number_literal_value.map(|num| MatchPattern::LiteralValue(num)),
         parse_string_literal_value.map(|s| MatchPattern::LiteralValue(s)),
-        parse_ok_pattern_variant,
-        parse_err_pattern_variant,
     ))(input)
+}
+
+fn parse_ok_pattern_variant(input: &str) -> IResult<&str, MatchPattern, ErrorTree<&str>> {
+    let (input, _) = tag("Ok(").complete().parse(input)?;
+    let (input, id) = parse_identifier
+        .map(|id| MatchPattern::Ok(Box::new(MatchPattern::Variable(id))))
+        .parse(input)?;
+    let (input, _) = char(')').parse(input)?;
+
+    Ok((input, MatchPattern::Ok(Box::new(id))))
+}
+fn parse_err_pattern_variant(input: &str) -> IResult<&str, MatchPattern, ErrorTree<&str>> {
+    let (input, _) = tag("Err(").complete().parse(input)?;
+    let (input, id) = parse_identifier
+        .map(|id| MatchPattern::Err(Box::new(MatchPattern::Variable(id))))
+        .parse(input)?;
+    let (input, _) = char(')').parse(input)?;
+
+    Ok((input, MatchPattern::Ok(Box::new(id))))
 }
 
 impl Display for MatchBlock {
