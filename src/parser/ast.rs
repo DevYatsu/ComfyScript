@@ -93,9 +93,9 @@ pub enum Expression {
     },
     Range {
         // similar to rust for instance 0..10
-        from: Box<Expression>,
+        from: Option<Box<Expression>>,
         limits: RangeType,
-        to: Box<Expression>,
+        to: Option<Box<Expression>>,
     },
     Array {
         elements: Vec<Expression>,
@@ -344,7 +344,17 @@ impl fmt::Display for Expression {
                 write!(f, " {}", body)
             }
             Expression::Range { from, limits, to } => {
-                write!(f, "{from}{limits}{to}")
+                if let Some(from) = from {
+                    write!(f, "{from}")?;
+                }
+
+                write!(f, "{limits}")?;
+
+                if let Some(to) = to {
+                    write!(f, "{to}")?;
+                }
+
+                write!(f, "")
             }
         }
     }

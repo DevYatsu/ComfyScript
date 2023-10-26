@@ -14,7 +14,7 @@ pub mod template_literal;
 use self::{
     array::parse_array, bool::parse_bool, function_call::parse_fn_call, indexing::parse_indexing,
     member_expr::parse_opt_member_expr, nil::parse_nil, numbers::parse_number,
-    object::parse_object, parenthesized::parse_parenthesized, range::parse_opt_range,
+    object::parse_object, parenthesized::parse_parenthesized, range::{parse_opt_range, parse_range},
     strings::parse_string, template_literal::parse_template_literal,
 };
 use super::{
@@ -25,7 +25,7 @@ use super::{
 use crate::parser::ast::Expression;
 use nom::{
     branch::alt,
-    character::complete::{alphanumeric0, multispace0, space0},
+    character::complete::{alphanumeric0, char, multispace0, space0},
     multi::many0,
     sequence::separated_pair,
     IResult, Parser,
@@ -141,7 +141,30 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
     .parse(i)?;
 
     let (i, expr) = match found {
-        "\"" | "'" => parse_string(i)?,
+        "\"" | "'" => {
+            let (i, base_expr) = parse_string.parse(i)?;
+
+            let (i, open_tag) = char('[').preceded_by(multispace0).opt().parse(i)?;
+
+            let (i, expr) = if open_tag.is_some() {
+                let (i, _) = multispace0(i)?;
+                let (i, property) = parse_expression.map(Box::new).parse(i)?;
+                let (i, _) = char(']').preceded_by(multispace0).parse(i)?;
+
+                (
+                    i,
+                    Expression::MemberExpression {
+                        indexed: Box::new(base_expr),
+                        property,
+                        computed: true,
+                    },
+                )
+            } else {
+                (i, base_expr)
+            };
+
+            (i, expr)
+        }
         "#" => parse_template_literal(i)?,
         "[" => parse_array(i)?,
         "{" => parse_object(i)?,
@@ -154,6 +177,7 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
             parse_fn_call,
             parse_parenthesized,
             parse_identifier_expression,
+            parse_range,
         ))
         .parse(i)?,
     };

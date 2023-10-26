@@ -22,18 +22,42 @@ pub fn parse_opt_range(
         .parse(i)?;
 
         if let Some(range_type) = opt_range_type {
-            let (i, final_expr) = parse_basic_expression.preceded_by(multispace0).parse(i)?;
+            let (i, final_expr) = parse_basic_expression
+                .preceded_by(multispace0)
+                .map(Box::new)
+                .opt()
+                .parse(i)?;
 
             return Ok((
                 i,
                 Expression::Range {
-                    from: Box::new(initial_expr.to_owned()),
+                    from: Some(Box::new(initial_expr.to_owned())),
                     limits: range_type,
-                    to: Box::new(final_expr),
+                    to: final_expr,
                 },
             ));
         }
 
         Ok((i, initial_expr.to_owned()))
     }
+}
+
+pub fn parse_range(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
+    let (i, range_type) = alt((
+        value(RangeType::DotEqual, tag("..=").complete()),
+        value(RangeType::Dot, tag("..")).complete(),
+    ))
+    .preceded_by(multispace0)
+    .parse(i)?;
+
+    let (i, final_expr) = parse_basic_expression.preceded_by(multispace0).parse(i)?;
+
+    Ok((
+        i,
+        Expression::Range {
+            from: None,
+            limits: range_type,
+            to: Some(Box::new(final_expr)),
+        },
+    ))
 }

@@ -7,7 +7,7 @@ use crate::parser::ast::{identifier::parse_identifier_expression, Expression};
 
 use super::{
     function_call::parse_fn_call, parenthesized::parse_parenthesized, parse_expression,
-    parse_expression_with0,
+    parse_expression_with0, strings::parse_string,
 };
 
 pub fn parse_indexing(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
@@ -34,6 +34,7 @@ pub fn parse_indexing(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
 
 fn parse_expression_except_indexing(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     alt((
+        parse_string,
         parse_parenthesized,
         parse_fn_call,
         parse_identifier_expression,
