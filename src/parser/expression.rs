@@ -13,9 +13,9 @@ pub mod template_literal;
 
 use self::{
     array::parse_array, bool::parse_bool, function_call::parse_fn_call, indexing::parse_indexing,
-    member_expr::parse_member_expr, nil::parse_nil, numbers::parse_number, object::parse_object,
-    parenthesized::parse_parenthesized, range::parse_range, strings::parse_string,
-    template_literal::parse_template_literal,
+    member_expr::parse_opt_member_expr, nil::parse_nil, numbers::parse_number,
+    object::parse_object, parenthesized::parse_parenthesized, range::parse_opt_range,
+    strings::parse_string, template_literal::parse_template_literal,
 };
 use super::{
     ast::{identifier::parse_identifier_expression, ASTNode},
@@ -25,7 +25,7 @@ use super::{
 use crate::parser::ast::Expression;
 use nom::{
     branch::alt,
-    character::complete::{alphanumeric0, multispace0, space0},
+    character::complete::{alphanumeric0, char, multispace0, space0},
     multi::many0,
     sequence::separated_pair,
     IResult, Parser,
@@ -140,11 +140,6 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
     .peek()
     .parse(i)?;
 
-    if parse_member_expr(i).is_ok() {
-        let (i, expr) = parse_member_expr(i)?;
-        return Ok((i, expr));
-    };
-
     let (i, expr) = match found {
         "\"" | "'" => parse_string(i)?,
         "#" => parse_template_literal(i)?,
@@ -156,12 +151,19 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
         _ => alt((
             parse_indexing,
             parse_fn_call,
-            parse_range,
-            parse_number, // all numbers are not covered up there, only basic ones: not 1e15 for example
+            parse_number,
             parse_parenthesized,
             parse_identifier_expression,
         ))
         .parse(i)?,
+    };
+
+    // range parsing
+    let (i, expr) = parse_opt_range(expr)(i)?;
+
+    let (i, expr) = match expr {
+        Expression::Range { .. } => (i, expr),
+        _ => parse_opt_member_expr(expr)(i)?,
     };
 
     Ok((i, expr))

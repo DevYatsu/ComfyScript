@@ -1,5 +1,5 @@
 use nom::bytes::complete::{take, take_until1};
-use nom::character::complete::{alphanumeric0, alphanumeric1};
+use nom::character::complete::alphanumeric1;
 use nom::number::complete::float;
 use nom::Parser;
 use nom::{character::complete::char, IResult};

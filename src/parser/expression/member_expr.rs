@@ -14,9 +14,32 @@ use super::indexing::parse_indexing;
 use super::numbers::parse_number;
 use super::object::parse_object;
 use super::parenthesized::parse_parenthesized;
-use super::parse_expression_with0;
 use super::strings::parse_string;
 use super::template_literal::parse_template_literal;
+use super::{parse_basic_expression, parse_expression_with0};
+
+pub fn parse_opt_member_expr(
+    initial_expr: Expression,
+) -> impl Fn(&str) -> IResult<&str, Expression, ErrorTree<&str>> {
+    move |i| {
+        let (i, opt_dot) = char('.').opt().parse(i)?;
+
+        if opt_dot.is_some() {
+            let (i, final_expr) = parse_basic_expression.parse(i)?;
+
+            return Ok((
+                i,
+                Expression::MemberExpression {
+                    indexed: Box::new(initial_expr.to_owned()),
+                    property: Box::new(final_expr),
+                    computed: false,
+                },
+            ));
+        }
+
+        Ok((i, initial_expr.to_owned()))
+    }
+}
 
 pub fn parse_member_expr(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, mut ids) = separated_list1(
