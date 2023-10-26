@@ -23,8 +23,6 @@ pub fn parse_number(initial_i: &str) -> IResult<&str, Expression, ErrorTree<&str
         (i, num)
     };
 
-    println!("{:?}", (i, num));
-
     let (_, raw) = take((initial_i.len() - i.len()) as usize)(initial_i)?;
 
     Ok((
