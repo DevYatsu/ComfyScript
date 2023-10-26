@@ -37,3 +37,4 @@ if x == ef {
 
 "str"[..1]
 
+let x: Fn = |one: Number| -> Number >> 1

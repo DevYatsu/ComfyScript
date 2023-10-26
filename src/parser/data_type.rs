@@ -17,6 +17,7 @@ pub enum DataType {
     Object,
     Array,
     Range,
+    Fn,
     Class(String),
 }
 
@@ -27,6 +28,7 @@ pub fn parse_data_type(i: &str) -> IResult<&str, DataType, ErrorTree<&str>> {
         value(DataType::Array, tag("Array").complete()),
         value(DataType::Object, tag("Object").complete()),
         value(DataType::Range, tag("Range").complete()),
+        value(DataType::Fn, tag("Fn").complete()),
         value(DataType::Bool, tag("bool").complete()),
         value(DataType::Nil, tag("nil").complete()),
         map(alphanumeric1, |t: &str| DataType::Class(t.to_owned())),
@@ -63,6 +65,7 @@ impl Display for DataType {
             DataType::Object => write!(f, "Object"),
             DataType::Array => write!(f, "Array"),
             DataType::Range => write!(f, "Range"),
+            DataType::Fn => write!(f, "Fn"),
             DataType::Class(value) => write!(f, "{}", value),
         }
     }
