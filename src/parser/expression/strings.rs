@@ -100,7 +100,7 @@ fn parse_fragment(i: &str) -> IResult<&str, StringFragment, ErrorTree<&str>> {
 pub fn parse_string_literal_value(i: &str) -> IResult<&str, LiteralValue, ErrorTree<&str>> {
     let (base_input, s) = build_string(i)?;
 
-    Ok((i, LiteralValue::Str(s)))
+    Ok((base_input, LiteralValue::Str(s)))
 }
 
 impl Display for StringFragment {
