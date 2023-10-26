@@ -21,6 +21,6 @@ lazy_static! {
     };
 }
 
-pub fn print(expr: &str) {
+pub fn _print(expr: &str) {
     println!("{expr}")
 }
