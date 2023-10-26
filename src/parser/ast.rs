@@ -124,6 +124,7 @@ pub enum Expression {
     },
     IdentifierExpression(Identifier),
     Parenthesized(Box<Expression>),
+    ErrorPropagation(Box<Expression>), // ? like in rust
     Comment {
         is_line: bool,
         raw_value: String,
@@ -317,6 +318,9 @@ impl fmt::Display for Expression {
             }
             Expression::Parenthesized(expr) => {
                 write!(f, "({})", expr)
+            }
+            Expression::ErrorPropagation(expr) => {
+                write!(f, "{}?", expr)
             }
             Expression::Comment { raw_value, .. } => {
                 write!(f, "{}", raw_value)
