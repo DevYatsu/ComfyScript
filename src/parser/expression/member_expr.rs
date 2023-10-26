@@ -1,15 +1,21 @@
 use crate::parser::ast::identifier::parse_identifier_expression;
 use crate::parser::ast::Expression;
 use nom::branch::alt;
-use nom::character::complete::{char, multispace0};
+use nom::character::complete::{alphanumeric0, char, multispace0};
 use nom::multi::separated_list1;
 use nom::{IResult, Parser};
 use nom_supreme::error::ErrorTree;
+use nom_supreme::tag::complete::tag;
+use nom_supreme::ParserExt;
 
+use super::array::parse_array;
 use super::function_call::parse_fn_call;
 use super::indexing::parse_indexing;
+use super::object::parse_object;
 use super::parenthesized::parse_parenthesized;
 use super::parse_expression_with0;
+use super::strings::parse_string;
+use super::template_literal::parse_template_literal;
 
 pub fn parse_member_expr(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, mut ids) = separated_list1(
@@ -58,14 +64,21 @@ fn build_member_expr(mut ids: Vec<Expression>) -> Expression {
 fn parse_expression_except_member_expr(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, _) = multispace0(i)?;
 
-    let (i, expr) = alt((
-        parse_parenthesized,
-        parse_indexing,
-        parse_fn_call,
-        parse_identifier_expression,
-        // avoid adding to many parser here
+    let (i, found) = alt((
+        alt((tag("\""), tag("'"), tag("{"), tag("["), tag("#"), tag("("))),
+        alphanumeric0,
     ))
+    .peek()
     .parse(i)?;
+
+    let (i, expr) = match found {
+        "\"" | "'" => parse_string(i)?,
+        "#" => parse_template_literal(i)?,
+        "[" => parse_array(i)?,
+        "{" => parse_object(i)?,
+        "(" => parse_parenthesized(i)?,
+        _ => alt((parse_indexing, parse_fn_call, parse_identifier_expression)).parse(i)?,
+    };
 
     Ok((i, expr))
 }

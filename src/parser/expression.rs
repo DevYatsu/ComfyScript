@@ -140,6 +140,11 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
     .peek()
     .parse(i)?;
 
+    if parse_member_expr(i).is_ok() {
+        let (i, expr) = parse_member_expr(i)?;
+        return Ok((i, expr));
+    }
+
     let (i, expr) = match found {
         "\"" | "'" => parse_string(i)?,
         "#" => parse_template_literal(i)?,
@@ -149,7 +154,6 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
         "true" | "false" => parse_bool(i)?,
         "nil" => parse_nil(i)?,
         _ => alt((
-            parse_member_expr,
             parse_indexing,
             parse_fn_call,
             parse_range,
