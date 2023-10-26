@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use nom::{
     branch::alt,
-    character::complete::alphanumeric1,
+    character::complete::{alphanumeric1, char, multispace0},
     combinator::{map, value},
     IResult, Parser,
 };
@@ -34,6 +34,23 @@ pub fn parse_data_type(i: &str) -> IResult<&str, DataType, ErrorTree<&str>> {
     .parse(i)?;
 
     Ok((i, data_type))
+}
+
+pub fn parse_opt_type_assignement(input: &str) -> IResult<&str, Option<DataType>, ErrorTree<&str>> {
+    let (input, opt_colon) = char(':').preceded_by(multispace0).opt().parse(input)?;
+
+    if opt_colon.is_some() {
+        let (input, _) = multispace0(input)?;
+
+        let (input, param_type) = parse_data_type
+            .map(Some)
+            .cut()
+            .context("valid data type")
+            .parse(input)?;
+        return Ok((input, param_type));
+    }
+
+    Ok((input, None))
 }
 
 impl Display for DataType {

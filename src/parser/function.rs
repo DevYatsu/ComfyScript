@@ -6,7 +6,7 @@ use self::return_expression::parse_return_statement;
 
 use super::{
     ast::{identifier::Identifier, ASTNode, Expression},
-    data_type::{parse_data_type, DataType},
+    data_type::{parse_data_type, parse_opt_type_assignement, DataType},
     parse_block,
 };
 use crate::parser::ast::identifier::parse_identifier;
@@ -109,29 +109,9 @@ fn parse_fn_body(input: &str) -> IResult<&str, (ASTNode, bool), ErrorTree<&str>>
 
 fn parse_fn_param(input: &str) -> IResult<&str, FunctionParam, ErrorTree<&str>> {
     let (input, id) = parse_identifier.preceded_by(multispace0).parse(input)?;
-    let (input, opt_colon) = parse_char(':')
-        .preceded_by(multispace0)
-        .opt()
-        .parse(input)?;
+    let (input, param_type) = parse_opt_type_assignement(input)?;
 
-    if opt_colon.is_some() {
-        let (input, _) = multispace0(input)?;
-
-        let (input, param_type) = parse_data_type
-            .map(Some)
-            .cut()
-            .context("valid data type")
-            .parse(input)?;
-        return Ok((input, FunctionParam { id, param_type }));
-    }
-
-    Ok((
-        input,
-        FunctionParam {
-            id,
-            param_type: None,
-        },
-    ))
+    Ok((input, FunctionParam { id, param_type }))
 }
 
 fn parse_fn_return_type(input: &str) -> IResult<&str, DataType, ErrorTree<&str>> {

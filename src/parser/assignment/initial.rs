@@ -3,6 +3,7 @@ use std::fmt;
 use crate::parser::{
     ast::{identifier::parse_identifier, vars::VariableDeclarator},
     comment::multispace0comments,
+    data_type::parse_opt_type_assignement,
     expression::parse_expression,
 };
 use nom::{
@@ -44,6 +45,8 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
         .parse(input)?;
 
     let (input, _) = multispace0(input)?;
+    let (input, var_type) = parse_opt_type_assignement(input)?;
+    let (input, _) = multispace0(input)?;
 
     let (input, _) = char('=').cut().parse(input)?;
 
@@ -51,7 +54,11 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
 
     let (input, value) = parse_expression.parse(input)?;
 
-    let declarator = VariableDeclarator { id, init: value };
+    let declarator = VariableDeclarator {
+        id,
+        init: value,
+        var_type,
+    };
     let (input, _) = space0(input)?;
 
     if input.is_empty() {
