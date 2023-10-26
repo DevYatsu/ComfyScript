@@ -143,7 +143,7 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
     if parse_member_expr(i).is_ok() {
         let (i, expr) = parse_member_expr(i)?;
         return Ok((i, expr));
-    }
+    };
 
     let (i, expr) = match found {
         "\"" | "'" => parse_string(i)?,

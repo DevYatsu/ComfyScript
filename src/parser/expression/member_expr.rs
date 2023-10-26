@@ -11,6 +11,7 @@ use nom_supreme::ParserExt;
 use super::array::parse_array;
 use super::function_call::parse_fn_call;
 use super::indexing::parse_indexing;
+use super::numbers::parse_number;
 use super::object::parse_object;
 use super::parenthesized::parse_parenthesized;
 use super::parse_expression_with0;
@@ -77,7 +78,13 @@ fn parse_expression_except_member_expr(i: &str) -> IResult<&str, Expression, Err
         "[" => parse_array(i)?,
         "{" => parse_object(i)?,
         "(" => parse_parenthesized(i)?,
-        _ => alt((parse_indexing, parse_fn_call, parse_identifier_expression)).parse(i)?,
+        _ => alt((
+            parse_number,
+            parse_indexing,
+            parse_fn_call,
+            parse_identifier_expression,
+        ))
+        .parse(i)?,
     };
 
     Ok((i, expr))
