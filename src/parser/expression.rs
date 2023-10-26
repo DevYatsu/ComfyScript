@@ -12,10 +12,18 @@ pub mod strings;
 pub mod template_literal;
 
 use self::{
-    array::parse_array, bool::parse_bool, function_call::parse_fn_call, indexing::parse_indexing,
-    member_expr::parse_opt_member_expr, nil::parse_nil, numbers::parse_number,
-    object::parse_object, parenthesized::parse_parenthesized, range::{parse_opt_range, parse_range},
-    strings::parse_string, template_literal::parse_template_literal,
+    array::parse_array,
+    bool::parse_bool,
+    function_call::parse_fn_call,
+    indexing::parse_indexing,
+    member_expr::parse_opt_member_expr,
+    nil::parse_nil,
+    numbers::parse_number,
+    object::parse_object,
+    parenthesized::parse_parenthesized,
+    range::{parse_opt_range, parse_range},
+    strings::parse_string,
+    template_literal::parse_template_literal,
 };
 use super::{
     ast::{identifier::parse_identifier_expression, ASTNode},

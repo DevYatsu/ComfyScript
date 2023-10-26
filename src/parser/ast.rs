@@ -15,9 +15,8 @@ use self::{
 };
 use super::{
     assignment::initial::VariableKeyword,
-    data_type::DataType,
     expression::template_literal::TemplateLiteralFragment,
-    function::FunctionParam,
+    function::{FunctionParam, FunctionReturnType},
     match_block::MatchBlock,
     operations::{assignment::AssignmentOperator, binary::BinaryOperator},
 };
@@ -45,7 +44,7 @@ pub enum ASTNode {
         // if None then anon func
         params: Vec<FunctionParam>,
         body: Box<ASTNode>,
-        return_type: Option<DataType>,
+        return_type: Option<FunctionReturnType>,
         is_shortcut: bool,
         // if is_shortcut == true then body = ASTNode::ReturnStatement
     },
@@ -126,7 +125,6 @@ pub enum Expression {
     },
     IdentifierExpression(Identifier),
     Parenthesized(Box<Expression>),
-    ErrorPropagation(Box<Expression>), // ? like in rust
     Comment {
         is_line: bool,
         raw_value: String,
@@ -135,8 +133,12 @@ pub enum Expression {
         params: Vec<FunctionParam>,
         body: Box<ASTNode>,
         is_shortcut: bool,
-        return_type: Option<DataType>,
+        return_type: Option<FunctionReturnType>,
     },
+
+    FallibleExpression(Box<Expression>), // An expression that can fail
+    OkExpression(Box<Expression>),       // A successful expression
+    ErrExpression(Box<Expression>),      // An expression that represents an error
 }
 
 // display is used to minify the content
@@ -176,7 +178,11 @@ impl fmt::Display for ASTNode {
                 write!(f, "{};", expression)
             }
             ASTNode::FunctionDeclaration {
-                id, params, body, ..
+                id,
+                params,
+                body,
+                return_type,
+                ..
             } => {
                 write!(f, "fn {}(", id.clone())?;
 
@@ -189,6 +195,10 @@ impl fmt::Display for ASTNode {
                 }
 
                 write!(f, ")")?;
+
+                if let Some(return_type) = return_type {
+                    write!(f, "{}", return_type)?;
+                }
 
                 write!(f, " {}", body)
                 // either put a block statement or a return statement (with shortcut)
@@ -322,13 +332,15 @@ impl fmt::Display for Expression {
             Expression::Parenthesized(expr) => {
                 write!(f, "({})", expr)
             }
-            Expression::ErrorPropagation(expr) => {
-                write!(f, "{}?", expr)
-            }
             Expression::Comment { raw_value, .. } => {
                 write!(f, "{}", raw_value)
             }
-            Expression::FnExpression { params, body, .. } => {
+            Expression::FnExpression {
+                params,
+                body,
+                return_type,
+                ..
+            } => {
                 write!(f, "|")?;
 
                 for (i, param) in params.into_iter().enumerate() {
@@ -340,6 +352,10 @@ impl fmt::Display for Expression {
                 }
 
                 write!(f, "|")?;
+
+                if let Some(return_type) = return_type {
+                    write!(f, "{}", return_type)?;
+                }
 
                 write!(f, " {}", body)
             }
@@ -355,6 +371,16 @@ impl fmt::Display for Expression {
                 }
 
                 write!(f, "")
+            }
+
+            Expression::FallibleExpression(expr) => {
+                write!(f, "{}?", expr)
+            }
+            Expression::OkExpression(expr) => {
+                write!(f, "{}?", expr)
+            }
+            Expression::ErrExpression(expr) => {
+                write!(f, "{}?", expr)
             }
         }
     }

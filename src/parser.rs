@@ -4,7 +4,7 @@ pub mod comment;
 mod data_type;
 pub mod errors;
 pub mod expression;
-mod function;
+pub mod function;
 mod if_block;
 mod import;
 mod loop_for;

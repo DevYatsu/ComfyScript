@@ -19,8 +19,13 @@ use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FunctionParam {
-    id: Identifier,
-    param_type: Option<DataType>,
+    pub id: Identifier,
+    pub param_type: Option<DataType>,
+}
+#[derive(Debug, Clone, PartialEq)]
+pub struct FunctionReturnType {
+    pub return_type: DataType,
+    pub is_fallible: bool, // may fail or not
 }
 
 pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
@@ -114,7 +119,7 @@ fn parse_fn_param(input: &str) -> IResult<&str, FunctionParam, ErrorTree<&str>> 
     Ok((input, FunctionParam { id, param_type }))
 }
 
-fn parse_fn_return_type(input: &str) -> IResult<&str, DataType, ErrorTree<&str>> {
+fn parse_fn_return_type(input: &str) -> IResult<&str, FunctionReturnType, ErrorTree<&str>> {
     let (input, _) = tag("->").complete().preceded_by(multispace0).parse(input)?;
     let (input, return_type) = parse_data_type
         .cut()
@@ -122,7 +127,19 @@ fn parse_fn_return_type(input: &str) -> IResult<&str, DataType, ErrorTree<&str>>
         .preceded_by(multispace0)
         .parse(input)?;
 
-    Ok((input, return_type))
+    let (input, is_fallible) = parse_char('?')
+        .preceded_by(multispace0)
+        .opt()
+        .map(|x| x.is_some())
+        .parse(input)?;
+
+    Ok((
+        input,
+        FunctionReturnType {
+            return_type,
+            is_fallible,
+        },
+    ))
 }
 
 impl Display for FunctionParam {
@@ -131,6 +148,17 @@ impl Display for FunctionParam {
 
         if let Some(param_type) = &self.param_type {
             write!(f, ":{}", param_type)?;
+        }
+
+        write!(f, "")
+    }
+}
+impl Display for FunctionReturnType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.return_type)?;
+
+        if self.is_fallible {
+            write!(f, "?")?;
         }
 
         write!(f, "")

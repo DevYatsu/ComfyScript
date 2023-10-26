@@ -9,18 +9,29 @@ mod math;
 mod thread;
 mod time;
 
-use lazy_static::lazy_static;
+use std::io as std_io;
 
-use hashbrown::HashMap;
+use crate::parser::{ast::Expression, expression::strings::StringFragment};
 
-lazy_static! {
-    static ref HTTP_FUNCTIONS: HashMap<&'static str, &'static str> = {
-        let mut hash = HashMap::new();
-        hash.insert("test", "test");
-        hash
-    };
+pub fn print(value: String) -> Expression {
+    println!("{}", value);
+
+    Expression::Literal {
+        value: crate::parser::ast::literal_value::LiteralValue::Nil,
+        raw: "nil".to_owned(),
+    }
 }
 
-pub fn _print(expr: &str) {
-    println!("{expr}")
+pub fn input(value: String) -> Expression {
+    let mut input = String::new();
+
+    std_io::stdin()
+        .read_line(&mut input)
+        .expect("Failed to read line");
+
+    let fragments = vec![StringFragment::Literal(input.to_owned())];
+    Expression::Literal {
+        value: crate::parser::ast::literal_value::LiteralValue::Str(fragments),
+        raw: input,
+    }
 }

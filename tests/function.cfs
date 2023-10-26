@@ -32,3 +32,8 @@ fn closure () {
 closure_value = closure()
 
 closure_value()
+
+
+fn fallibleExpr() -> String? {
+    >> "str"
+}

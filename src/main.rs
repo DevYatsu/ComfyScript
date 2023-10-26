@@ -1,6 +1,7 @@
 mod comfy;
 mod command;
 mod execute_folder;
+mod interpreter;
 mod minify;
 mod parser;
 mod script;
