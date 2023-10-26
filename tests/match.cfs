@@ -9,6 +9,17 @@ match x {
     }
 }
 
+let str = "string"
+
+match str {
+    "value" => {}
+    "string" => {
+        // here should work
+    }
+    _ => {
+    }
+}
+
 import * as fs from "fs"
 let file_content = fs.read_file("doesNotExist.txt")
 
@@ -20,3 +31,4 @@ match file_content {
         print(#"Error: { error }")
     }
 }
+

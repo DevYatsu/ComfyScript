@@ -61,7 +61,7 @@ fn parse_match_block(input: &str) -> IResult<&str, MatchBlock, ErrorTree<&str>> 
     let (input, _) = char('}')
         .opt_preceded_by(multispace0) // to remove useless i believe
         .cut()
-        .context("match block end")
+        .context("unexpected")
         .parse(input)?;
 
     Ok((input, MatchBlock { cases }))
@@ -92,8 +92,8 @@ fn parse_match_pattern(input: &str) -> IResult<&str, MatchPattern, ErrorTree<&st
         parse_ok_pattern_variant,
         parse_err_pattern_variant,
         parse_identifier.map(|id| MatchPattern::Variable(id)),
-        parse_number_literal_value.map(|num| MatchPattern::LiteralValue(num)),
         parse_string_literal_value.map(|s| MatchPattern::LiteralValue(s)),
+        parse_number_literal_value.map(|num| MatchPattern::LiteralValue(num)),
     ))(input)
 }
 

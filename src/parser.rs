@@ -61,7 +61,7 @@ fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a st
         .parse(input)?;
 
     let (input, _) = char('}')
-        .opt_preceded_by(parse_new_lines)
+        .opt_preceded_by(multispace0)
         .cut()
         .context("block end")
         .parse(input)?;
@@ -114,9 +114,7 @@ fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
             )
         }
         "//" => {
-            println!("input: {:?}", input);
             let (input, expression) = parse_line_comment(input)?;
-            println!("AFTER COMMENT : {:?}", input);
 
             (input, ASTNode::ExpressionStatement { expression })
         }
@@ -133,7 +131,8 @@ fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
 
 fn parse_new_lines(i: &str) -> IResult<&str, &str, ErrorTree<&str>> {
     let (i, _) = space0(i)?;
-    let (i, removed) = take_while1(|c: char| c == ';' || c.is_ascii_whitespace()).parse(i)?;
+    let (i, removed) = take_while1(|c: char| c == ';' || c == '\n').parse(i)?;
+    let (i, _) = space0(i)?;
 
     Ok((i, removed))
 }
