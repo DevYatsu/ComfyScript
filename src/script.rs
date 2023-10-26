@@ -42,8 +42,8 @@ impl<Name: Display + Clone> ComfyScript<Name> {
             ast::ASTNode::Program { body } => body,
             _ => unreachable!(),
         };
-        // program.iter().for_each(|node| println!("{:?}", node));
-        
+        program.iter().for_each(|node| println!("{:?}", node));
+
         // next need to interpret
         Ok(())
     }
@@ -77,6 +77,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             "block" => SyntaxError::block(&found[0..1]),
                             "block end" => SyntaxError::closing_tag("{".to_owned(), "}".to_owned()),
                             "unknown char escape" => SyntaxError::unknown_char_escape(found),
+                            "valid data type" => SyntaxError::valid_data_type(found),
                             _ => {
                                 unreachable!()
                             }

@@ -15,7 +15,9 @@ use self::{
 };
 use super::{
     assignment::initial::VariableKeyword,
+    data_type::DataType,
     expression::template_literal::TemplateLiteralFragment,
+    function::FunctionParam,
     match_block::MatchBlock,
     operations::{assignment::AssignmentOperator, binary::BinaryOperator},
 };
@@ -41,9 +43,9 @@ pub enum ASTNode {
     FunctionDeclaration {
         id: Identifier,
         // if None then anon func
-        params: Vec<Identifier>,
+        params: Vec<FunctionParam>,
         body: Box<ASTNode>,
-
+        return_type: Option<DataType>,
         is_shortcut: bool,
         // if is_shortcut == true then body = ASTNode::ReturnStatement
     },
@@ -130,9 +132,10 @@ pub enum Expression {
         raw_value: String,
     },
     FnExpression {
-        params: Vec<Identifier>,
+        params: Vec<FunctionParam>,
         body: Box<ASTNode>,
         is_shortcut: bool,
+        return_type: Option<DataType>,
     },
 }
 
@@ -354,11 +357,13 @@ impl Into<Expression> for ASTNode {
                 params,
                 body,
                 is_shortcut,
+                return_type,
                 ..
             } => Expression::FnExpression {
                 params,
                 body,
                 is_shortcut,
+                return_type,
             },
             _ => unreachable!(),
         }

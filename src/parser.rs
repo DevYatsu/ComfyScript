@@ -1,6 +1,7 @@
 mod assignment;
 pub mod ast;
 pub mod comment;
+mod data_type;
 pub mod errors;
 pub mod expression;
 mod function;
@@ -10,7 +11,7 @@ mod loop_for;
 mod loop_while;
 mod match_block;
 mod operations;
-mod reserved_keywords;
+mod reserved;
 
 use self::{
     assignment::{

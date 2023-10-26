@@ -1,6 +1,6 @@
 use std::fmt;
 
-use crate::parser::reserved_keywords::RESERVED_KEYWORD;
+use crate::parser::reserved;
 use nom::{branch::alt, character::complete::alphanumeric1, multi::many1, IResult, Parser};
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
@@ -24,7 +24,7 @@ pub fn parse_identifier(i: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
 }
 
 fn is_id_valid(word: &String) -> bool {
-    !RESERVED_KEYWORD.contains(&word.as_str())
+    !reserved::KEYWORDS.contains(&word.as_str())
 }
 
 pub fn parse_raw_id(i: &str) -> IResult<&str, String, ErrorTree<&str>> {

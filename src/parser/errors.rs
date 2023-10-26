@@ -168,6 +168,17 @@ impl<FileId> SyntaxError<FileId> {
             )],
         }
     }
+    pub fn valid_data_type(found: &str) -> Self {
+        SyntaxError {
+            message: "expected a valid data type".to_owned(),
+            code: 12.into(),
+            labels: Vec::new(),
+            notes: vec![format!(
+                "expected a data type
+    found `{found}`"
+            )],
+        }
+    }
 }
 
 pub fn get_opposing_tag(opening_tag: &str) -> &str {

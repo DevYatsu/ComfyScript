@@ -23,9 +23,11 @@ fn x (x) >> x
 
 x(x)
 
-fn test() {
-    >> test
+fn test() -> String {
+    >> "test"
 }
+
+fn test() -> String >> "test"
 
 if x == ef {
     print(" test \ test again \u{A0}")

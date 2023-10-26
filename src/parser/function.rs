@@ -1,9 +1,12 @@
 pub mod return_expression;
 
+use std::fmt::Display;
+
 use self::return_expression::parse_return_statement;
 
 use super::{
     ast::{identifier::Identifier, ASTNode, Expression},
+    data_type::{parse_data_type, DataType},
     parse_block,
 };
 use crate::parser::ast::identifier::parse_identifier;
@@ -13,6 +16,12 @@ use nom::{
     IResult, Parser,
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FunctionParam {
+    id: Identifier,
+    param_type: Option<DataType>,
+}
 
 pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = multispace1(input)?;
@@ -32,6 +41,11 @@ pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = parse_char(')').cut().parse(input)?;
     let (input, _) = multispace0(input)?;
 
+    let (input, return_type) = parse_fn_return_type
+        .terminated(multispace0)
+        .opt()
+        .parse(input)?;
+
     let (input, (body, is_shortcut)) = parse_fn_body
         .cut()
         .map(|(b, s)| (Box::new(b), s))
@@ -42,10 +56,12 @@ pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         params,
         body,
         is_shortcut,
+        return_type,
     };
 
     Ok((input, node))
 }
+
 pub fn parse_fn_expression(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (input, _) = tag("|")(input)?;
     let (input, _) = multispace0(input)?;
@@ -54,8 +70,12 @@ pub fn parse_fn_expression(input: &str) -> IResult<&str, Expression, ErrorTree<&
 
     let (input, _) = multispace0(input)?;
     let (input, _) = tag("|").cut().parse(input)?;
-
     let (input, _) = multispace0(input)?;
+
+    let (input, return_type) = parse_fn_return_type
+        .terminated(multispace0)
+        .opt()
+        .parse(input)?;
 
     let (input, (body, is_shortcut)) = parse_fn_body.map(|(b, s)| (Box::new(b), s)).parse(input)?;
 
@@ -63,12 +83,13 @@ pub fn parse_fn_expression(input: &str) -> IResult<&str, Expression, ErrorTree<&
         params,
         body,
         is_shortcut,
+        return_type,
     };
 
     Ok((input, node))
 }
 
-fn parse_fn_params(input: &str) -> IResult<&str, Vec<Identifier>, ErrorTree<&str>> {
+fn parse_fn_params(input: &str) -> IResult<&str, Vec<FunctionParam>, ErrorTree<&str>> {
     let (input, params) = separated_list0(tag(","), parse_fn_param).parse(input)?;
 
     Ok((input, params))
@@ -86,10 +107,52 @@ fn parse_fn_body(input: &str) -> IResult<&str, (ASTNode, bool), ErrorTree<&str>>
     Ok((input, (body, false)))
 }
 
-fn parse_fn_param(input: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
-    let (input, _) = multispace0(input)?;
+fn parse_fn_param(input: &str) -> IResult<&str, FunctionParam, ErrorTree<&str>> {
+    let (input, id) = parse_identifier.preceded_by(multispace0).parse(input)?;
+    let (input, opt_colon) = parse_char(':')
+        .preceded_by(multispace0)
+        .opt()
+        .parse(input)?;
 
-    let (input, id) = parse_identifier.parse(input)?;
+    if opt_colon.is_some() {
+        let (input, _) = multispace0(input)?;
 
-    Ok((input, id))
+        let (input, param_type) = parse_data_type
+            .map(Some)
+            .cut()
+            .context("valid data type")
+            .parse(input)?;
+        return Ok((input, FunctionParam { id, param_type }));
+    }
+
+    Ok((
+        input,
+        FunctionParam {
+            id,
+            param_type: None,
+        },
+    ))
+}
+
+fn parse_fn_return_type(input: &str) -> IResult<&str, DataType, ErrorTree<&str>> {
+    let (input, _) = tag("->").complete().preceded_by(multispace0).parse(input)?;
+    let (input, return_type) = parse_data_type
+        .cut()
+        .context("valid data type")
+        .preceded_by(multispace0)
+        .parse(input)?;
+
+    Ok((input, return_type))
+}
+
+impl Display for FunctionParam {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.id)?;
+
+        if let Some(param_type) = &self.param_type {
+            write!(f, ":{}", param_type)?;
+        }
+
+        write!(f, "")
+    }
 }
