@@ -1,6 +1,6 @@
 mod array;
 mod bool;
-mod function_call;
+pub mod function_call;
 pub mod indexing;
 pub mod member_expr;
 mod nil;
@@ -25,7 +25,7 @@ use super::{
 use crate::parser::ast::Expression;
 use nom::{
     branch::alt,
-    character::complete::{alphanumeric0, char, multispace0, space0},
+    character::complete::{alphanumeric0, multispace0, space0},
     multi::many0,
     sequence::separated_pair,
     IResult, Parser,
@@ -149,9 +149,9 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
         "true" | "false" => parse_bool(i)?,
         "nil" => parse_nil(i)?,
         _ => alt((
+            parse_number,
             parse_indexing,
             parse_fn_call,
-            parse_number,
             parse_parenthesized,
             parse_identifier_expression,
         ))
@@ -167,8 +167,4 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
     };
 
     Ok((i, expr))
-}
-
-pub fn parse_primitive_value(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    alt((parse_string, parse_bool, parse_number, parse_nil))(i)
 }

@@ -14,8 +14,8 @@ pub fn parse_opt_range(
 ) -> impl Fn(&str) -> IResult<&str, Expression, ErrorTree<&str>> {
     move |i| {
         let (i, opt_range_type) = alt((
-            value(RangeType::Dot, tag("..")),
-            value(RangeType::DotEqual, tag("..=")),
+            value(RangeType::DotEqual, tag("..=").complete()),
+            value(RangeType::Dot, tag("..")).complete(),
         ))
         .preceded_by(multispace0)
         .opt()

@@ -7,18 +7,15 @@ use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 use crate::parser::{
     ast::{identifier::parse_identifier_expression, ASTNode, Expression},
-    expression::{indexing::parse_indexing, member_expr::parse_member_expr, parse_expression},
+    expression::{
+        function_call::parse_fn_call, indexing::parse_indexing, member_expr::parse_opt_member_expr,
+        parse_expression,
+    },
     operations::assignment::parse_assignment_operator,
 };
 
 pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
-    let (i, id) = alt((
-        parse_indexing,
-        parse_member_expr,
-        parse_identifier_expression,
-    ))
-    .map(|e| Box::new(e))
-    .parse(i)?;
+    let (i, id) = parse_assigned.map(|e| Box::new(e)).parse(i)?;
 
     let (i, _) = multispace0(i)?;
 
@@ -47,4 +44,12 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         .parse(i)?;
 
     Ok((i, expr_statement))
+}
+
+fn parse_assigned(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
+    let (i, expr) = alt((parse_indexing, parse_fn_call, parse_identifier_expression)).parse(i)?;
+
+    let (i, expr) = parse_opt_member_expr(expr)(i)?;
+
+    Ok((i, expr))
 }
