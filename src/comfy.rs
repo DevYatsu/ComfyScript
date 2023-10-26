@@ -11,7 +11,10 @@ mod time;
 
 use std::io as std_io;
 
-use crate::parser::{ast::Expression, expression::strings::StringFragment};
+use crate::parser::{
+    ast::{literal_value::LiteralValue, Expression},
+    expression::strings::StringFragment,
+};
 
 pub fn print(value: String) -> Expression {
     println!("{}", value);
@@ -22,16 +25,35 @@ pub fn print(value: String) -> Expression {
     }
 }
 
-pub fn input(value: String) -> Expression {
+pub fn input(prompt: String) -> Expression {
     let mut input = String::new();
 
-    std_io::stdin()
-        .read_line(&mut input)
-        .expect("Failed to read line");
+    print!("{}", prompt);
 
-    let fragments = vec![StringFragment::Literal(input.to_owned())];
-    Expression::Literal {
-        value: crate::parser::ast::literal_value::LiteralValue::Str(fragments),
-        raw: input,
+    if std_io::stdin().read_line(&mut input).is_ok() {
+        let fragments = vec![StringFragment::Literal(input.clone())];
+        Expression::OkExpression(Box::new(Expression::Literal {
+            value: LiteralValue::Str(fragments),
+            raw: input,
+        }))
+    } else {
+        let fragments = vec![StringFragment::Literal("Failed to read line".to_owned())];
+        Expression::ErrExpression(Box::new(Expression::Literal {
+            value: LiteralValue::Str(fragments),
+            raw: "Failed to read line".to_owned(),
+        }))
     }
 }
+// or maybe the one below
+
+// pub fn input(prompt: &str) -> Result<String, String> {
+//     let mut input = String::new();
+
+//     print!("{}", prompt);
+
+//     if let Ok(_) = io::stdin().read_line(&mut input) {
+//         Ok(input.trim().to_owned())
+//     } else {
+//         Err("Failed to read line".to_owned())
+//     }
+// }
