@@ -14,6 +14,5 @@ Create:
 
 ## Todo in parsing
 
-- strings and strings litteral indexing
 - regexp support
 - implement beautifier/code prettifier
