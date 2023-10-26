@@ -3,7 +3,3 @@ pub const KEYWORDS: [&str; 23] = [
     "for", "in", "while", "as", "class", "define", "method", "if", "else", "on", "Ok",
     "Err", // for errors management
 ];
-
-pub const TYPES: [&str; 7] = [
-    "String", "Bool", "Number", "Nil", "Object", "Array", "Range",
-];
