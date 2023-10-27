@@ -273,11 +273,151 @@ impl SymbolTable {
                             return Err(format!("Cannot calculate {} modulo {}", left, right).into())
                         }
                     },
-                    BinaryOperator::Greater => todo!(),
-                    BinaryOperator::GreaterOrEqual => todo!(),
-                    BinaryOperator::Smaller => todo!(),
-                    BinaryOperator::SmallerOrEqual => todo!(),
-                    BinaryOperator::And => todo!(),
+                    BinaryOperator::Greater => match (left.to_owned(), right.to_owned()) {
+                        (
+                            Expression::Literal { value, .. },
+                            Expression::Literal { value: value_2, .. },
+                        ) => match (value, value_2) {
+                            (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
+                                Ok(Expression::Literal {
+                                    value: LiteralValue::Boolean(num1 > num2),
+                                    raw: (num1 > num2).to_string(),
+                                })
+                            }
+                            _ => {
+                                return Err(format!(
+                                    "Cannot compare {} for '>' equality {}",
+                                    left, right
+                                )
+                                .into())
+                            }
+                        },
+                        _ => {
+                            return Err(format!(
+                                "Cannot compare {} for '>' equality {}",
+                                left, right
+                            )
+                            .into())
+                        }
+                    },
+                    BinaryOperator::GreaterOrEqual => match (left.to_owned(), right.to_owned()) {
+                        (
+                            Expression::Literal { value, .. },
+                            Expression::Literal { value: value_2, .. },
+                        ) => match (value, value_2) {
+                            (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
+                                Ok(Expression::Literal {
+                                    value: LiteralValue::Boolean(num1 >= num2),
+                                    raw: (num1 >= num2).to_string(),
+                                })
+                            }
+                            _ => {
+                                return Err(format!(
+                                    "Cannot compare {} for '>=' equality {}",
+                                    left, right
+                                )
+                                .into())
+                            }
+                        },
+                        _ => {
+                            return Err(format!(
+                                "Cannot compare {} for '>=' equality {}",
+                                left, right
+                            )
+                            .into())
+                        }
+                    },
+                    BinaryOperator::Smaller => match (left.to_owned(), right.to_owned()) {
+                        (
+                            Expression::Literal { value, .. },
+                            Expression::Literal { value: value_2, .. },
+                        ) => match (value, value_2) {
+                            (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
+                                Ok(Expression::Literal {
+                                    value: LiteralValue::Boolean(num1 < num2),
+                                    raw: (num1 < num2).to_string(),
+                                })
+                            }
+                            _ => {
+                                return Err(format!(
+                                    "Cannot compare {} for '<' equality {}",
+                                    left, right
+                                )
+                                .into())
+                            }
+                        },
+                        _ => {
+                            return Err(format!(
+                                "Cannot compare {} for '<' equality {}",
+                                left, right
+                            )
+                            .into())
+                        }
+                    },
+                    BinaryOperator::SmallerOrEqual => match (left.to_owned(), right.to_owned()) {
+                        (
+                            Expression::Literal { value, .. },
+                            Expression::Literal { value: value_2, .. },
+                        ) => match (value, value_2) {
+                            (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
+                                Ok(Expression::Literal {
+                                    value: LiteralValue::Boolean(num1 <= num2),
+                                    raw: (num1 <= num2).to_string(),
+                                })
+                            }
+                            _ => {
+                                return Err(format!(
+                                    "Cannot compare {} for '<=' equality {}",
+                                    left, right
+                                )
+                                .into())
+                            }
+                        },
+                        _ => {
+                            return Err(format!(
+                                "Cannot compare {} for '<=' equality {}",
+                                left, right
+                            )
+                            .into())
+                        }
+                    },
+                    BinaryOperator::And => match (left.to_owned(), right.to_owned()) {
+                        (
+                            Expression::Literal { value, .. },
+                            Expression::Literal { value: value_2, .. },
+                        ) => Ok(Expression::Literal {
+                            value: LiteralValue::Boolean(!(value.is_falsy() || value_2.is_falsy())),
+                            raw: (!(value.is_falsy() || value_2.is_falsy())).to_string(),
+                        }),
+                        (Expression::Array { elements }, Expression::Literal { value, .. }) => {
+                            Ok(Expression::Literal {
+                                value: LiteralValue::Boolean(
+                                    !(elements.is_empty() || value.is_falsy()),
+                                ),
+                                raw: (!(elements.is_empty() || value.is_falsy())).to_string(),
+                            })
+                        }
+                        (Expression::Literal { value, .. }, Expression::Array { elements }) => {
+                            Ok(Expression::Literal {
+                                value: LiteralValue::Boolean(
+                                    !(elements.is_empty() || value.is_falsy()),
+                                ),
+                                raw: (!(elements.is_empty() || value.is_falsy())).to_string(),
+                            })
+                        }
+                        (Expression::Array { elements }, _) => Ok(Expression::Literal {
+                            value: LiteralValue::Boolean(!elements.is_empty()),
+                            raw: (!elements.is_empty()).to_string(),
+                        }),
+                        (_, Expression::Array { elements }) => Ok(Expression::Literal {
+                            value: LiteralValue::Boolean(!elements.is_empty()),
+                            raw: (!elements.is_empty()).to_string(),
+                        }),
+                        _ => Ok(Expression::Literal {
+                            value: LiteralValue::Boolean(true),
+                            raw: true.to_string(),
+                        }),
+                    },
                     BinaryOperator::Or => todo!(),
                 }
             }
