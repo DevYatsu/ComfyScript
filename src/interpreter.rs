@@ -46,6 +46,7 @@ impl SymbolTable {
             Expression::Object { .. } => Ok(expression),
             Expression::Range { .. } => Ok(expression),
             Expression::FallibleExpression(_) => Ok(expression),
+            Expression::FnExpression { .. } => Ok(expression),
 
             Expression::TemplateLiteral { value, .. } => {
                 let mut string = String::new();
@@ -70,6 +71,7 @@ impl SymbolTable {
                     raw: string,
                 })
             }
+
             Expression::BinaryExpression {
                 left,
                 operator,
@@ -147,6 +149,7 @@ impl SymbolTable {
                     BinaryOperator::Or => todo!(),
                 }
             }
+
             Expression::MemberExpression {
                 indexed,
                 property,
@@ -233,17 +236,11 @@ impl SymbolTable {
             }
             Expression::Parenthesized(expr) => self.evaluate_expr(*expr),
             Expression::Comment { .. } => unreachable!("Cannot evaluate a comment"),
-            Expression::FnExpression {
-                params,
-                body,
-                is_shortcut,
-                return_type,
-            } => todo!(),
         }
     }
 }
 
-pub fn interpret(program: ASTNode) {
+pub fn interpret(program: ASTNode) -> Result<(), String> {
     let nodes = match program {
         ASTNode::Program { body } => body,
         _ => unreachable!(),
@@ -256,47 +253,24 @@ pub fn interpret(program: ASTNode) {
             ASTNode::Program { body } => todo!(),
             ASTNode::ImportDeclaration { specifiers, source } => todo!(),
             ASTNode::VariableDeclaration { declarations, kind } => {
-                let table = match kind {
-                    VariableKeyword::Var => &mut symbol_table.variables,
-                    VariableKeyword::Let => &mut symbol_table.constants,
-                };
+                // let target_table = match kind {
+                //     VariableKeyword::Var => &mut symbol_table.variables,
+                //     VariableKeyword::Let => &mut symbol_table.constants,
+                // };
 
+                // need to update this code to only match kind once
                 for declaration in declarations {
-                    table.insert(declaration.id.name.to_owned(), declaration.init);
+                    let name = declaration.id.name.to_owned();
+                    let expr = symbol_table.evaluate_expr(declaration.init)?;
+
+                    match kind {
+                        VariableKeyword::Var => symbol_table.variables.insert(name, expr),
+                        VariableKeyword::Let => symbol_table.constants.insert(name, expr),
+                    };
                 }
             }
             ASTNode::ExpressionStatement { expression } => {
-                match expression {
-                    Expression::BinaryExpression {
-                        left,
-                        operator,
-                        right,
-                    } => todo!(),
-                    Expression::MemberExpression {
-                        indexed,
-                        property,
-                        computed,
-                    } => todo!(),
-                    Expression::CallExpression { callee, args } => todo!(),
-                    Expression::AssignmentExpression {
-                        operator,
-                        id,
-                        assigned,
-                    } => todo!(),
-                    Expression::IdentifierExpression(_) => {
-                        // check if id exists, if not return an error
-                        todo!()
-                    }
-                    Expression::Parenthesized(_) => {
-                        // evaluate expression and return an error if necessary
-                        todo!()
-                    }
-                    Expression::FallibleExpression(_) => {
-                        // evaluate expr and return error if necessary
-                        todo!()
-                    }
-                    _ => (),
-                }
+                symbol_table.evaluate_expr(expression)?;
             }
             ASTNode::FunctionDeclaration {
                 id,
@@ -325,4 +299,6 @@ pub fn interpret(program: ASTNode) {
             } => todo!(),
         }
     }
+
+    Ok(())
 }
