@@ -77,7 +77,7 @@ pub enum ASTNode {
     },
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone)]
 pub enum Expression {
     Literal {
         value: LiteralValue, // can be either a string or a number
@@ -393,6 +393,146 @@ impl Into<Expression> for ASTNode {
                 return_type,
             },
             _ => unreachable!(),
+        }
+    }
+}
+
+impl PartialEq for Expression {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Literal { value: l_value, .. }, Self::Literal { value: r_value, .. }) => {
+                l_value == r_value
+            }
+            (
+                Self::TemplateLiteral { value: l_value, .. },
+                Self::TemplateLiteral { value: r_value, .. },
+            ) => l_value == r_value,
+            (
+                Self::Range {
+                    from: l_from,
+                    limits: l_limits,
+                    to: l_to,
+                },
+                Self::Range {
+                    from: r_from,
+                    limits: r_limits,
+                    to: r_to,
+                },
+            ) => {
+                let l_from = if l_from.is_none() {
+                    Some(Box::new(Expression::Literal {
+                        value: LiteralValue::Number(0.0),
+                        raw: "0".to_string(),
+                    }))
+                } else {
+                    l_from.to_owned()
+                };
+                let r_from = if r_from.is_none() {
+                    Some(Box::new(Expression::Literal {
+                        value: LiteralValue::Number(0.0),
+                        raw: "0".to_string(),
+                    }))
+                } else {
+                    r_from.to_owned()
+                };
+
+                l_from == r_from && l_limits == r_limits && l_to == r_to
+            }
+            (
+                Self::Array {
+                    elements: l_elements,
+                },
+                Self::Array {
+                    elements: r_elements,
+                },
+            ) => l_elements == r_elements,
+            (
+                Self::Object {
+                    properties: l_properties,
+                },
+                Self::Object {
+                    properties: r_properties,
+                },
+            ) => l_properties == r_properties,
+            (
+                Self::BinaryExpression {
+                    left: l_left,
+                    operator: l_operator,
+                    right: l_right,
+                },
+                Self::BinaryExpression {
+                    left: r_left,
+                    operator: r_operator,
+                    right: r_right,
+                },
+            ) => l_left == r_left && l_operator == r_operator && l_right == r_right,
+            (
+                Self::MemberExpression {
+                    indexed: l_indexed,
+                    property: l_property,
+                    computed: l_computed,
+                },
+                Self::MemberExpression {
+                    indexed: r_indexed,
+                    property: r_property,
+                    computed: r_computed,
+                },
+            ) => l_indexed == r_indexed && l_property == r_property && l_computed == r_computed,
+            (
+                Self::CallExpression {
+                    callee: l_callee,
+                    args: l_args,
+                },
+                Self::CallExpression {
+                    callee: r_callee,
+                    args: r_args,
+                },
+            ) => l_callee == r_callee && l_args == r_args,
+            (
+                Self::AssignmentExpression {
+                    operator: l_operator,
+                    id: l_id,
+                    assigned: l_assigned,
+                },
+                Self::AssignmentExpression {
+                    operator: r_operator,
+                    id: r_id,
+                    assigned: r_assigned,
+                },
+            ) => l_operator == r_operator && l_id == r_id && l_assigned == r_assigned,
+            (Self::IdentifierExpression(l0), Self::IdentifierExpression(r0)) => l0 == r0,
+            (Self::Parenthesized(l0), Self::Parenthesized(r0)) => l0 == r0,
+            (
+                Self::Comment {
+                    is_line: l_is_line,
+                    raw_value: l_raw_value,
+                },
+                Self::Comment {
+                    is_line: r_is_line,
+                    raw_value: r_raw_value,
+                },
+            ) => l_is_line == r_is_line && l_raw_value == r_raw_value,
+            (
+                Self::FnExpression {
+                    params: l_params,
+                    body: l_body,
+                    is_shortcut: l_is_shortcut,
+                    return_type: l_return_type,
+                },
+                Self::FnExpression {
+                    params: r_params,
+                    body: r_body,
+                    is_shortcut: r_is_shortcut,
+                    return_type: r_return_type,
+                },
+            ) => {
+                l_params == r_params
+                    && l_body == r_body
+                    && l_is_shortcut == r_is_shortcut
+                    && l_return_type == r_return_type
+            }
+            (Self::FallibleExpression(l0), Self::FallibleExpression(r0)) => l0 == r0,
+            _ => false,
         }
     }
 }

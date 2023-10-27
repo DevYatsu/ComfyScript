@@ -51,7 +51,12 @@ impl SymbolTable {
     pub fn evaluate_expr(&mut self, expression: Expression) -> Result<Expression, String> {
         match expression {
             Expression::Literal { .. } => Ok(expression),
-            Expression::Array { .. } => Ok(expression),
+            Expression::Array { elements } => Ok(Expression::Array {
+                elements: elements
+                    .into_iter()
+                    .map(|el| self.evaluate_expr(el))
+                    .collect::<Result<Vec<Expression>, String>>()?,
+            }),
             Expression::Object { .. } => Ok(expression),
             Expression::Range { .. } => Ok(expression),
             Expression::FallibleExpression(_) => Ok(expression),
@@ -143,13 +148,131 @@ impl SymbolTable {
                         }
                         _ => return Err(format!("Cannot add {} with {}", left, right).into()),
                     },
-                    BinaryOperator::Minus => todo!(),
-                    BinaryOperator::Times => todo!(),
-                    BinaryOperator::Divide => todo!(),
-                    BinaryOperator::Exponential => todo!(),
-                    BinaryOperator::Equal => todo!(),
-                    BinaryOperator::NotEqual => todo!(),
-                    BinaryOperator::Modulo => todo!(),
+                    BinaryOperator::Minus => match (left.to_owned(), right.to_owned()) {
+                        (
+                            Expression::Literal { value, .. },
+                            Expression::Literal { value: value_2, .. },
+                        ) => match (value, value_2) {
+                            (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
+                                let num = num1 - num2;
+
+                                Ok(Expression::Literal {
+                                    value: LiteralValue::Number(num),
+                                    raw: num.to_string(),
+                                })
+                            }
+                            _ => {
+                                return Err(
+                                    format!("Cannot substract {} with {}", left, right).into()
+                                )
+                            }
+                        },
+                        _ => return Err(format!("Cannot substract {} with {}", left, right).into()),
+                    },
+                    BinaryOperator::Times => match (left.to_owned(), right.to_owned()) {
+                        (
+                            Expression::Literal { value, .. },
+                            Expression::Literal { value: value_2, .. },
+                        ) => match (value, value_2) {
+                            (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
+                                let num = num1 * num2;
+
+                                Ok(Expression::Literal {
+                                    value: LiteralValue::Number(num),
+                                    raw: num.to_string(),
+                                })
+                            }
+                            _ => {
+                                return Err(
+                                    format!("Cannot multiply {} with {}", left, right).into()
+                                )
+                            }
+                        },
+                        _ => return Err(format!("Cannot multiply {} with {}", left, right).into()),
+                    },
+                    BinaryOperator::Divide => match (left.to_owned(), right.to_owned()) {
+                        (
+                            Expression::Literal { value, .. },
+                            Expression::Literal { value: value_2, .. },
+                        ) => match (value, value_2) {
+                            (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
+                                let num = num1 / num2;
+
+                                Ok(Expression::Literal {
+                                    value: LiteralValue::Number(num),
+                                    raw: num.to_string(),
+                                })
+                            }
+                            _ => {
+                                return Err(format!("Cannot divide {} with {}", left, right).into())
+                            }
+                        },
+                        _ => return Err(format!("Cannot divide {} with {}", left, right).into()),
+                    },
+                    BinaryOperator::Exponential => match (left.to_owned(), right.to_owned()) {
+                        (
+                            Expression::Literal { value, .. },
+                            Expression::Literal { value: value_2, .. },
+                        ) => match (value, value_2) {
+                            (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
+                                let num = num1.powf(num2);
+
+                                Ok(Expression::Literal {
+                                    value: LiteralValue::Number(num),
+                                    raw: num.to_string(),
+                                })
+                            }
+                            _ => {
+                                return Err(format!(
+                                    "Cannot calculate {} raised to the power of {}",
+                                    left, right
+                                )
+                                .into())
+                            }
+                        },
+                        _ => {
+                            return Err(format!(
+                                "Cannot calculate {} raised to the power of {}",
+                                left, right
+                            )
+                            .into())
+                        }
+                    },
+                    BinaryOperator::Equal => {
+                        return Ok(Expression::Literal {
+                            value: LiteralValue::Boolean(left == right),
+                            raw: (left == right).to_string(),
+                        })
+                    }
+                    BinaryOperator::NotEqual => {
+                        return Ok(Expression::Literal {
+                            value: LiteralValue::Boolean(left != right),
+                            raw: (left != right).to_string(),
+                        })
+                    }
+                    BinaryOperator::Modulo => match (left.to_owned(), right.to_owned()) {
+                        (
+                            Expression::Literal { value, .. },
+                            Expression::Literal { value: value_2, .. },
+                        ) => match (value, value_2) {
+                            (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
+                                let num = num1 % num2;
+
+                                Ok(Expression::Literal {
+                                    value: LiteralValue::Number(num),
+                                    raw: num.to_string(),
+                                })
+                            }
+                            _ => {
+                                return Err(
+                                    format!("Cannot calculate {} modulo {}", left, right).into()
+                                )
+                            }
+                        },
+                        _ => {
+                            return Err(format!("Cannot calculate {} modulo {}", left, right).into())
+                        }
+                    },
                     BinaryOperator::Greater => todo!(),
                     BinaryOperator::GreaterOrEqual => todo!(),
                     BinaryOperator::Smaller => todo!(),

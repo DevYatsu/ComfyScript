@@ -184,10 +184,13 @@ impl<FileId> SyntaxError<FileId> {
             message: "Invalid function name".to_owned(),
             code: 12.into(),
             labels: Vec::new(),
-            notes: vec!["Check if the name is used or invalid".to_owned(),format!(
-                "expected a valid name
+            notes: vec![
+                "Check if the name is used or invalid".to_owned(),
+                format!(
+                    "expected a valid name
     found `{found}`"
-            )],
+                ),
+            ],
         }
     }
 }

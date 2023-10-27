@@ -33,7 +33,7 @@ pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = multispace1(input)?;
 
     let (input, id) = parse_identifier
-      .verify(|id| !DEFINED_FUNCTIONS.contains(&id.name.as_str()))
+        .verify(|id| !DEFINED_FUNCTIONS.contains(&id.name.as_str()))
         .context("invalid function name")
         .cut()
         .parse(input)?;

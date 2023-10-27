@@ -1,7 +1,9 @@
 let x = 2
-let y = 3
+var y = 2.000
+let arr: Array = [1.,2.0]
 let z = x + y
 
-fn fn() {}
+let bool = x == y
+let bool2 = [1,2] == arr
 
 print(z)

@@ -41,11 +41,11 @@ impl<Name: Display + Clone> ComfyScript<Name> {
             }
         };
 
-        let nodes = match &program {
+        let _nodes = match &program {
             ast::ASTNode::Program { body } => body,
             _ => unreachable!(),
         };
-        // nodes.iter().for_each(|node| println!("{:?}", node));
+        // _nodes.iter().for_each(|node| println!("{:?}", node));
 
         match interpret(program) {
             Ok(_) => println!("worked!"),
