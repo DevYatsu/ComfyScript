@@ -1,9 +1,8 @@
 let x = 2
-var y = 2.000
+var y: Number = 2.000
 let arr: Array = [1.,2.0]
 let z = x + y
 
 let bool = x == y
-let bool2 = [1,2] == arr
-let bool3 = "" || []
+
 print(z)
