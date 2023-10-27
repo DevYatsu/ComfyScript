@@ -418,7 +418,35 @@ impl SymbolTable {
                             raw: true.to_string(),
                         }),
                     },
-                    BinaryOperator::Or => todo!(),
+                    BinaryOperator::Or => match (left.to_owned(), right.to_owned()) {
+                        (
+                            Expression::Literal { value, .. },
+                            Expression::Literal { value: value_2, .. },
+                        ) => Ok(Expression::Literal {
+                            value: LiteralValue::Boolean(!value.is_falsy() || !value_2.is_falsy()),
+                            raw: (!value.is_falsy() || !value_2.is_falsy()).to_string(),
+                        }),
+                        (Expression::Array { elements }, Expression::Literal { value, .. }) => {
+                            Ok(Expression::Literal {
+                                value: LiteralValue::Boolean(
+                                    (!elements.is_empty() || !value.is_falsy()),
+                                ),
+                                raw: (!elements.is_empty() || !value.is_falsy()).to_string(),
+                            })
+                        }
+                        (Expression::Literal { value, .. }, Expression::Array { elements }) => {
+                            Ok(Expression::Literal {
+                                value: LiteralValue::Boolean(
+                                    !elements.is_empty() || !value.is_falsy(),
+                                ),
+                                raw: (!elements.is_empty() || !value.is_falsy()).to_string(),
+                            })
+                        }
+                        _ => Ok(Expression::Literal {
+                            value: LiteralValue::Boolean(true),
+                            raw: true.to_string(),
+                        }),
+                    },
                 }
             }
 

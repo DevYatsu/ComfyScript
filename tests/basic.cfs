@@ -5,5 +5,5 @@ let z = x + y
 
 let bool = x == y
 let bool2 = [1,2] == arr
-let bool3 = "" && arr
+let bool3 = "" || []
 print(z)
