@@ -8,6 +8,7 @@ use super::{
     ast::{identifier::Identifier, ASTNode, Expression},
     data_type::{parse_data_type, parse_opt_type_assignement, DataType},
     parse_block,
+    reserved::DEFINED_FUNCTIONS,
 };
 use crate::parser::ast::identifier::parse_identifier;
 use nom::{
@@ -31,7 +32,11 @@ pub struct FunctionReturnType {
 pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
     let (input, _) = multispace1(input)?;
 
-    let (input, id) = parse_identifier.cut().context("identifier").parse(input)?;
+    let (input, id) = parse_identifier
+      .verify(|id| !DEFINED_FUNCTIONS.contains(&id.name.as_str()))
+        .context("invalid function name")
+        .cut()
+        .parse(input)?;
 
     let (input, _) = multispace0(input)?;
     let (input, _) = parse_char('(')

@@ -36,6 +36,15 @@ impl SymbolTable {
 
         Err(format!("Undefined variable '{}'", name))
     }
+    fn get_function(&self, name: &str) -> Result<&ASTNode, String> {
+        let value = self.functions.get(name);
+
+        if let Some(value) = value {
+            return Ok(value);
+        }
+
+        Err(format!("Undefined function '{}'", name))
+    }
     fn reassign_variable(&mut self, name: String, expr: Expression) {
         self.variables.insert(name, expr);
     }
@@ -155,7 +164,37 @@ impl SymbolTable {
                 property,
                 computed,
             } => todo!(),
-            Expression::CallExpression { callee, args } => todo!(),
+            Expression::CallExpression { callee, args } => match *callee {
+                Expression::MemberExpression {
+                    indexed,
+                    property,
+                    computed,
+                } => todo!(),
+                Expression::CallExpression { callee, args } => todo!(),
+                Expression::IdentifierExpression(Identifier { name }) => {
+                    println!("here need to evaluate");
+                    println!("{:?}", self);
+                    Ok(Expression::Literal {
+                        value: LiteralValue::Nil,
+                        raw: "".to_owned(),
+                    })
+                }
+                Expression::FnExpression {
+                    params,
+                    body,
+                    is_shortcut,
+                    return_type,
+                } => todo!(),
+                Expression::FallibleExpression(_) => todo!(),
+                Expression::Parenthesized(expr) => {
+                    let expr = self.evaluate_expr(*expr)?;
+                    Ok(Expression::Literal {
+                        value: LiteralValue::Nil,
+                        raw: "".to_owned(),
+                    })
+                }
+                _ => unreachable!(),
+            },
             Expression::AssignmentExpression {
                 operator,
                 id,

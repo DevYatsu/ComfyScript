@@ -179,6 +179,17 @@ impl<FileId> SyntaxError<FileId> {
             )],
         }
     }
+    pub fn invalid_function_name(found: &str) -> Self {
+        SyntaxError {
+            message: "Invalid function name".to_owned(),
+            code: 12.into(),
+            labels: Vec::new(),
+            notes: vec!["Check if the name is used or invalid".to_owned(),format!(
+                "expected a valid name
+    found `{found}`"
+            )],
+        }
+    }
 }
 
 pub fn get_opposing_tag(opening_tag: &str) -> &str {

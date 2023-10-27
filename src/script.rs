@@ -1,9 +1,12 @@
-use crate::parser::{
-    ast::{self, identifier::parse_raw_id},
-    comment::jump_comments,
-    errors::{get_opposing_tag, SyntaxError},
-    expression::strings::parse_raw_string,
-    parse_input,
+use crate::{
+    interpreter::interpret,
+    parser::{
+        ast::{self, identifier::parse_raw_id},
+        comment::jump_comments,
+        errors::{get_opposing_tag, SyntaxError},
+        expression::strings::parse_raw_string,
+        parse_input,
+    },
 };
 use codespan_reporting::{diagnostic::Label, files::SimpleFile};
 use nom::{branch::alt, Parser};
@@ -38,13 +41,16 @@ impl<Name: Display + Clone> ComfyScript<Name> {
             }
         };
 
-        let program = match program {
+        let nodes = match &program {
             ast::ASTNode::Program { body } => body,
             _ => unreachable!(),
         };
-        program.iter().for_each(|node| println!("{:?}", node));
+        // nodes.iter().for_each(|node| println!("{:?}", node));
 
-        // next need to interpret
+        match interpret(program) {
+            Ok(_) => println!("worked!"),
+            Err(e) => eprintln!("error {}!", e),
+        };
         Ok(())
     }
 
@@ -78,6 +84,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             "block end" => SyntaxError::closing_tag("{".to_owned(), "}".to_owned()),
                             "unknown char escape" => SyntaxError::unknown_char_escape(found),
                             "valid data type" => SyntaxError::valid_data_type(found),
+                            "invalid function name" => SyntaxError::invalid_function_name(found),
                             _ => {
                                 unreachable!()
                             }
