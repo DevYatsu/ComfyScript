@@ -1,4 +1,4 @@
-mod assignment;
+pub mod assignment;
 pub mod ast;
 pub mod comment;
 mod data_type;
@@ -10,7 +10,7 @@ mod import;
 mod loop_for;
 mod loop_while;
 mod match_block;
-mod operations;
+pub mod operations;
 mod reserved;
 
 use self::{

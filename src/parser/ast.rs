@@ -137,8 +137,6 @@ pub enum Expression {
     },
 
     FallibleExpression(Box<Expression>), // An expression that can fail
-    OkExpression(Box<Expression>),       // A successful expression
-    ErrExpression(Box<Expression>),      // An expression that represents an error
 }
 
 // display is used to minify the content
@@ -372,14 +370,7 @@ impl fmt::Display for Expression {
 
                 write!(f, "")
             }
-
             Expression::FallibleExpression(expr) => {
-                write!(f, "{}?", expr)
-            }
-            Expression::OkExpression(expr) => {
-                write!(f, "{}?", expr)
-            }
-            Expression::ErrExpression(expr) => {
                 write!(f, "{}?", expr)
             }
         }

@@ -1,5 +1,3 @@
-use std::fmt::Display;
-
 use nom::{
     branch::alt,
     bytes::complete::{is_not, take_while_m_n},
@@ -21,10 +19,10 @@ pub enum StringFragment {
 }
 
 pub fn parse_string(initial_i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    let (i, fragments) = delimited(char('"'), build_string, char('"')).parse(initial_i)?;
+    let (i, string) = delimited(char('"'), build_string, char('"')).parse(initial_i)?;
 
     let result_str = Expression::Literal {
-        value: LiteralValue::Str(fragments),
+        value: LiteralValue::Str(string),
         raw: initial_i[0..initial_i.len() - i.len()].to_string(),
     };
 
@@ -39,10 +37,14 @@ pub fn parse_raw_string(initial_i: &str) -> IResult<&str, String, ErrorTree<&str
     return Ok((i, final_str));
 }
 
-fn build_string(i: &str) -> IResult<&str, Vec<StringFragment>, ErrorTree<&str>> {
-    fold_many0(parse_fragment, Vec::new, |mut str_vec, fragment| {
-        str_vec.push(fragment);
-        str_vec
+fn build_string(i: &str) -> IResult<&str, String, ErrorTree<&str>> {
+    fold_many0(parse_fragment, String::new, |mut string, fragment| {
+        match fragment {
+            StringFragment::Literal(s) => string.push_str(&s),
+            StringFragment::EscapedChar(c) => string.push(c),
+            StringFragment::EscapedWS => {}
+        }
+        string
     })(i)
 }
 
@@ -101,14 +103,4 @@ pub fn parse_string_literal_value(i: &str) -> IResult<&str, LiteralValue, ErrorT
     let (i, s) = delimited(char('"'), build_string, char('"'))(i)?;
 
     Ok((i, LiteralValue::Str(s)))
-}
-
-impl Display for StringFragment {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            StringFragment::Literal(s) => write!(f, "{}", s),
-            StringFragment::EscapedChar(escaped) => write!(f, "{}", escaped),
-            StringFragment::EscapedWS => write!(f, ""),
-        }
-    }
 }

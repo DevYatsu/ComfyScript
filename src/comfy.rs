@@ -25,23 +25,18 @@ pub fn print(value: String) -> Expression {
     }
 }
 
-pub fn input(prompt: String) -> Expression {
+pub fn input(prompt: String) -> Result<Expression, String> {
     let mut input = String::new();
 
     print!("{}", prompt);
 
     if std_io::stdin().read_line(&mut input).is_ok() {
-        let fragments = vec![StringFragment::Literal(input.clone())];
-        Expression::OkExpression(Box::new(Expression::Literal {
-            value: LiteralValue::Str(fragments),
+        Ok(Expression::Literal {
+            value: LiteralValue::Str(input.to_owned()),
             raw: input,
-        }))
+        })
     } else {
-        let fragments = vec![StringFragment::Literal("Failed to read line".to_owned())];
-        Expression::ErrExpression(Box::new(Expression::Literal {
-            value: LiteralValue::Str(fragments),
-            raw: "Failed to read line".to_owned(),
-        }))
+        Err("Failed to read line".to_owned())
     }
 }
 // or maybe the one below
