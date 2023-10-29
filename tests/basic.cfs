@@ -7,4 +7,8 @@ let bool = x == y
 
 print(z)
 
-let x = input("What is your fav number?", true)
+fn test_fn() -> String {
+    >> x
+}
+
+let t = test_fn()

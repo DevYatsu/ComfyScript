@@ -1,3 +1,5 @@
+use std::{cell::RefCell, fmt::Debug, rc::Rc};
+
 use crate::{
     comfy,
     parser::{
@@ -9,11 +11,31 @@ use crate::{
 };
 use hashbrown::HashMap;
 
+pub fn interpret(program: ASTNode) -> Result<(), String> {
+    let nodes = match program {
+        ASTNode::Program { body } => body,
+        _ => unreachable!(),
+    };
+
+    let mut symbol_table = SymbolTable::new();
+
+    symbol_table.interpret(nodes)?;
+
+    println!("{:?}", symbol_table);
+    Ok(())
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub struct SymbolTable {
-    pub functions: HashMap<String, ASTNode>,
+    pub functions: HashMap<String, InterpretedFn>,
     pub constants: HashMap<String, Expression>,
     pub variables: HashMap<String, Expression>,
+}
+
+#[derive(Clone)]
+pub struct InterpretedFn {
+    pub node: ASTNode,
+    pub executable: Rc<dyn Fn(Vec<Expression>) -> Result<Expression, String>>,
 }
 
 impl SymbolTable {
@@ -24,33 +46,59 @@ impl SymbolTable {
             variables: HashMap::new(),
         }
     }
-    fn get_variable(&self, name: &str) -> Result<&Expression, String> {
-        let value = self.constants.get(name);
 
-        if let Some(value) = value {
-            return Ok(value);
+    pub fn interpret(&mut self, nodes: Vec<ASTNode>) -> Result<Expression, String> {
+        for node in nodes {
+            match node {
+                ASTNode::Program { body } => todo!(),
+                ASTNode::ImportDeclaration { specifiers, source } => todo!(),
+                ASTNode::VariableDeclaration { declarations, kind } => {
+                    // let target_table = match kind {
+                    //     VariableKeyword::Var => &mut self.variables,
+                    //     VariableKeyword::Let => &mut self.constants,
+                    // };
+
+                    // need to update this code to only match kind once
+                    for declaration in declarations {
+                        let name = declaration.id.name.to_owned();
+                        let expr = self.evaluate_expr(declaration.init)?;
+
+                        match kind {
+                            VariableKeyword::Var => self.variables.insert(name, expr),
+                            VariableKeyword::Let => self.constants.insert(name, expr),
+                        };
+                    }
+                }
+                ASTNode::ExpressionStatement { expression } => {
+                    self.evaluate_expr(expression)?;
+                }
+                ASTNode::FunctionDeclaration { .. } => self.add_function(node),
+                ASTNode::ForStatement {
+                    declarations,
+                    kind,
+                    source,
+                    body,
+                } => todo!(),
+                ASTNode::WhileStatement { test, body } => todo!(),
+                ASTNode::IfStatement {
+                    test,
+                    body,
+                    alternate,
+                } => todo!(),
+                ASTNode::MatchStatement { test, body } => todo!(),
+                ASTNode::BlockStatement { body } => todo!(),
+                ASTNode::ReturnStatement { argument, .. } => {
+                    return Ok(self.evaluate_expr(argument)?)
+                }
+            }
         }
 
-        let value = self.variables.get(name);
-
-        if let Some(value) = value {
-            return Ok(value);
-        }
-
-        Err(format!("Undefined variable '{}'", name))
+        Ok(Expression::Literal {
+            value: LiteralValue::Nil,
+            raw: "nil".to_string(),
+        })
     }
-    fn get_function(&self, name: &str) -> Result<&ASTNode, String> {
-        let value = self.functions.get(name);
 
-        if let Some(value) = value {
-            return Ok(value);
-        }
-
-        Err(format!("Undefined function '{}'", name))
-    }
-    fn reassign_variable(&mut self, name: String, expr: Expression) {
-        self.variables.insert(name, expr);
-    }
     pub fn evaluate_expr(&mut self, expression: Expression) -> Result<Expression, String> {
         match expression {
             Expression::Literal { .. } => Ok(expression),
@@ -62,7 +110,7 @@ impl SymbolTable {
             }),
             Expression::Object { .. } => Ok(expression),
             Expression::Range { .. } => Ok(expression),
-            Expression::FallibleExpression(_) => Ok(expression),
+            Expression::FallibleExpression(expr) => Ok(self.evaluate_expr(*expr)?),
             Expression::FnExpression { .. } => Ok(expression),
 
             Expression::TemplateLiteral { value, .. } => {
@@ -432,7 +480,7 @@ impl SymbolTable {
                         (Expression::Array { elements }, Expression::Literal { value, .. }) => {
                             Ok(Expression::Literal {
                                 value: LiteralValue::Boolean(
-                                    (!elements.is_empty() || !value.is_falsy()),
+                                    !elements.is_empty() || !value.is_falsy(),
                                 ),
                                 raw: (!elements.is_empty() || !value.is_falsy()).to_string(),
                             })
@@ -468,7 +516,11 @@ impl SymbolTable {
                 Expression::IdentifierExpression(Identifier { name }) => match name.as_str() {
                     "print" => Ok(comfy::print(self, args)?),
                     "input" => Ok(comfy::input(self, args)?),
-                    _ => todo!(),
+                    name => {
+                        let x = self.get_function(name)?;
+
+                        Ok((x.executable)(args)?)
+                    }
                 },
                 Expression::FnExpression {
                     params,
@@ -568,68 +620,93 @@ impl SymbolTable {
             Expression::Comment { .. } => unreachable!("Cannot evaluate a comment"),
         }
     }
-}
 
-pub fn interpret(program: ASTNode) -> Result<(), String> {
-    let nodes = match program {
-        ASTNode::Program { body } => body,
-        _ => unreachable!(),
-    };
+    fn get_variable(&self, name: &str) -> Result<&Expression, String> {
+        let value = self.constants.get(name);
 
-    let mut symbol_table = SymbolTable::new();
-
-    for node in nodes {
-        match node {
-            ASTNode::Program { body } => todo!(),
-            ASTNode::ImportDeclaration { specifiers, source } => todo!(),
-            ASTNode::VariableDeclaration { declarations, kind } => {
-                // let target_table = match kind {
-                //     VariableKeyword::Var => &mut symbol_table.variables,
-                //     VariableKeyword::Let => &mut symbol_table.constants,
-                // };
-
-                // need to update this code to only match kind once
-                for declaration in declarations {
-                    let name = declaration.id.name.to_owned();
-                    let expr = symbol_table.evaluate_expr(declaration.init)?;
-
-                    match kind {
-                        VariableKeyword::Var => symbol_table.variables.insert(name, expr),
-                        VariableKeyword::Let => symbol_table.constants.insert(name, expr),
-                    };
-                }
-            }
-            ASTNode::ExpressionStatement { expression } => {
-                symbol_table.evaluate_expr(expression)?;
-            }
-            ASTNode::FunctionDeclaration {
-                id,
-                params,
-                body,
-                return_type,
-                is_shortcut,
-            } => todo!(),
-            ASTNode::ForStatement {
-                declarations,
-                kind,
-                source,
-                body,
-            } => todo!(),
-            ASTNode::WhileStatement { test, body } => todo!(),
-            ASTNode::IfStatement {
-                test,
-                body,
-                alternate,
-            } => todo!(),
-            ASTNode::MatchStatement { test, body } => todo!(),
-            ASTNode::BlockStatement { body } => todo!(),
-            ASTNode::ReturnStatement {
-                argument,
-                is_shortcut,
-            } => todo!(),
+        if let Some(value) = value {
+            return Ok(value);
         }
+
+        let value = self.variables.get(name);
+
+        if let Some(value) = value {
+            return Ok(value);
+        }
+
+        Err(format!("Undefined variable '{}'", name))
+    }
+    fn get_function(&self, name: &str) -> Result<&InterpretedFn, String> {
+        let value = self.functions.get(name);
+
+        if let Some(value) = value {
+            return Ok(value);
+        }
+
+        Err(format!("Undefined function '{}'", name))
+    }
+    fn reassign_variable(&mut self, name: String, expr: Expression) {
+        self.variables.insert(name, expr);
     }
 
-    println!("{:?}", symbol_table);
-    Ok(())
+    fn add_function(&mut self, function: ASTNode) {
+        let node = function.clone();
+
+        match function {
+            ASTNode::FunctionDeclaration {
+                id, params, body, ..
+            } => {
+                let name = id.to_owned().name;
+                let symbol_table = Rc::new(RefCell::new(self.clone()));
+
+                let executable: Rc<dyn Fn(Vec<Expression>) -> Result<Expression, String>> =
+                    Rc::new(move |args: Vec<Expression>| -> Result<Expression, String> {
+                        let mut local_symbol_table = symbol_table.borrow_mut();
+
+                        if args.len() != params.len() {
+                            return Err(format!(
+                                "Expected {} arguments when calling function `{}`",
+                                params.len(),
+                                id.to_owned().name
+                            ));
+                        }
+
+                        for (i, param) in params.iter().enumerate() {
+                            local_symbol_table
+                                .variables
+                                .insert(param.id.to_owned().name, args[i].to_owned());
+                        }
+
+                        let result = match *body.to_owned() {
+                            ASTNode::BlockStatement { body } => {
+                                local_symbol_table.interpret(body)?
+                            }
+                            ASTNode::ReturnStatement { argument, .. } => {
+                                local_symbol_table.evaluate_expr(argument)?
+                            }
+                            _ => unreachable!(),
+                        };
+
+                        Ok(result)
+                    });
+
+                self.functions
+                    .insert(name, InterpretedFn { node, executable });
+            }
+            _ => unreachable!(),
+        }
+    }
+}
+
+impl Debug for InterpretedFn {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("InterpretedFn")
+            .field("node", &self.node)
+            .finish()
+    }
+}
+impl PartialEq for InterpretedFn {
+    fn eq(&self, other: &Self) -> bool {
+        self.node == other.node
+    }
 }
