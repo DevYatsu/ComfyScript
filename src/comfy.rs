@@ -3,52 +3,63 @@ mod collections;
 mod env;
 mod fs;
 mod http;
-mod io;
+mod input_output;
 mod json;
 mod math;
 mod thread;
 mod time;
 
-use std::io as std_io;
+use std::io::{self, Write};
 
-use crate::parser::{
-    ast::{literal_value::LiteralValue, Expression},
-    expression::strings::StringFragment,
+use crate::{
+    interpreter::SymbolTable,
+    parser::ast::{literal_value::LiteralValue, Expression},
 };
 
-pub fn print(value: String) -> Expression {
-    println!("{}", value);
+pub fn print(symbol_table: &mut SymbolTable, args: Vec<Expression>) -> Result<Expression, String> {
+    if args.len() != 1 {
+        return Err("Expected 1 argument for function `print`".into());
+    }
 
-    Expression::Literal {
+    println!("{}", symbol_table.evaluate_expr(args[0].to_owned())?);
+
+    Ok(Expression::Literal {
         value: crate::parser::ast::literal_value::LiteralValue::Nil,
         raw: "nil".to_owned(),
-    }
+    })
 }
 
-pub fn input(prompt: String) -> Result<Expression, String> {
-    let mut input = String::new();
+pub fn input(symbol_table: &mut SymbolTable, args: Vec<Expression>) -> Result<Expression, String> {
+    if args.len() < 1 || args.len() > 2 {
+        return Err("Expected exactly 1 or 2 arguments for function `input`".into());
+    }
+
+    let prompt = symbol_table.evaluate_expr(args[0].to_owned())?.to_string();
 
     print!("{}", prompt);
+    let _ = io::stdout().flush();
 
-    if std_io::stdin().read_line(&mut input).is_ok() {
-        Ok(Expression::Literal {
-            value: LiteralValue::Str(input.to_owned()),
-            raw: input,
-        })
-    } else {
-        Err("Failed to read line".to_owned())
+    let mut input = String::new();
+    if let Err(_) = io::stdin().read_line(&mut input) {
+        return Err("Failed to read line".to_owned());
     }
+
+    if args.len() == 2 {
+        let restrain_empty = match symbol_table.evaluate_expr(args[1].to_owned())? {
+            Expression::Literal { value, .. } => match value {
+                LiteralValue::Boolean(b) => b,
+                _ => return Err("Second argument expected to be a boolean".into()),
+            },
+            _ => return Err("Second argument expected to be a boolean".into()),
+        };
+
+        if restrain_empty && input.trim().is_empty() {
+            return Err("Input cannot be empty".into());
+        }
+    }
+
+    Ok(Expression::Literal {
+        value: LiteralValue::Str(input.trim().to_owned()),
+        raw: input,
+    })
 }
-// or maybe the one below
-
-// pub fn input(prompt: &str) -> Result<String, String> {
-//     let mut input = String::new();
-
-//     print!("{}", prompt);
-
-//     if let Ok(_) = io::stdin().read_line(&mut input) {
-//         Ok(input.trim().to_owned())
-//     } else {
-//         Err("Failed to read line".to_owned())
-//     }
-// }

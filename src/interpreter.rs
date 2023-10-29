@@ -1,13 +1,16 @@
-use crate::parser::{
-    assignment::initial::VariableKeyword,
-    ast::{identifier::Identifier, literal_value::LiteralValue, ASTNode, Expression},
-    expression,
-    operations::{assignment::AssignmentOperator, binary::BinaryOperator},
+use crate::{
+    comfy,
+    parser::{
+        assignment::initial::VariableKeyword,
+        ast::{identifier::Identifier, literal_value::LiteralValue, ASTNode, Expression},
+        expression,
+        operations::{assignment::AssignmentOperator, binary::BinaryOperator},
+    },
 };
 use hashbrown::HashMap;
 
 #[derive(Debug, Clone, PartialEq)]
-struct SymbolTable {
+pub struct SymbolTable {
     pub functions: HashMap<String, ASTNode>,
     pub constants: HashMap<String, Expression>,
     pub variables: HashMap<String, Expression>,
@@ -462,14 +465,11 @@ impl SymbolTable {
                     computed,
                 } => todo!(),
                 Expression::CallExpression { callee, args } => todo!(),
-                Expression::IdentifierExpression(Identifier { name }) => {
-                    println!("here need to evaluate");
-                    println!("{:?}", self);
-                    Ok(Expression::Literal {
-                        value: LiteralValue::Nil,
-                        raw: "".to_owned(),
-                    })
-                }
+                Expression::IdentifierExpression(Identifier { name }) => match name.as_str() {
+                    "print" => Ok(comfy::print(self, args)?),
+                    "input" => Ok(comfy::input(self, args)?),
+                    _ => todo!(),
+                },
                 Expression::FnExpression {
                     params,
                     body,
@@ -630,5 +630,6 @@ pub fn interpret(program: ASTNode) -> Result<(), String> {
         }
     }
 
+    println!("{:?}", symbol_table);
     Ok(())
 }

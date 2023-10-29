@@ -6,3 +6,5 @@ let z = x + y
 let bool = x == y
 
 print(z)
+
+let x = input("What is your fav number?", true)
