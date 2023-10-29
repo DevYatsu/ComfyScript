@@ -15,7 +15,7 @@ use crate::parser::{
 };
 
 pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
-    let (i, id) = parse_assigned.map(|e| Box::new(e)).parse(i)?;
+    let (i, id) = parse_assigned.parse(i)?;
 
     let (i, _) = multispace0(i)?;
 
@@ -24,17 +24,15 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 
     let (i, assigned) = parse_expression.parse(i)?;
 
-    let expr_statement = ASTNode::ExpressionStatement {
-        expression: Expression::AssignmentExpression {
-            operator: op,
-            id,
-            assigned: Box::new(assigned),
-        },
+    let assignment = ASTNode::Assignment {
+        operator: op,
+        id,
+        assigned,
     };
     let (i, _) = space0(i)?;
 
     if i.is_empty() {
-        return Ok((i, expr_statement));
+        return Ok((i, assignment));
     }
 
     let (i, _) = alt((tag("\n"), tag(","), tag(";"), tag("//").complete()))
@@ -43,7 +41,7 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         .cut()
         .parse(i)?;
 
-    Ok((i, expr_statement))
+    Ok((i, assignment))
 }
 
 fn parse_assigned(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {

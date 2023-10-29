@@ -35,7 +35,7 @@ pub struct SymbolTable {
 #[derive(Clone)]
 pub struct InterpretedFn {
     pub node: ASTNode,
-    pub executable: Rc<dyn Fn(Vec<Expression>) -> Result<Expression, String>>,
+    pub executable: Rc<dyn Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String>>,
 }
 
 impl SymbolTable {
@@ -69,6 +69,72 @@ impl SymbolTable {
                         };
                     }
                 }
+                ASTNode::Assignment {
+                    operator,
+                    id,
+                    assigned,
+                } => match id {
+                    Expression::MemberExpression {
+                        indexed,
+                        property,
+                        computed,
+                    } => todo!(),
+                    Expression::CallExpression { callee, args } => todo!(),
+                    Expression::IdentifierExpression(Identifier { name }) => {
+                        let var = self.get_variable(&name)?;
+
+                        if self.constants.get(&name).is_some() {
+                            return Err(format!("Cannot reassign constant '{}'", name));
+                        }
+
+                        match operator {
+                            AssignmentOperator::Equal => {
+                                self.reassign_variable(name, assigned);
+                            }
+                            AssignmentOperator::PlusEqual => {
+                                let expr = self.evaluate_expr(Expression::BinaryExpression {
+                                    left: Box::new(var.to_owned()),
+                                    operator: BinaryOperator::Plus,
+                                    right: Box::new(assigned),
+                                })?;
+                                self.reassign_variable(name, expr);
+                            }
+                            AssignmentOperator::MinusEqual => {
+                                let expr = self.evaluate_expr(Expression::BinaryExpression {
+                                    left: Box::new(var.to_owned()),
+                                    operator: BinaryOperator::Minus,
+                                    right: Box::new(assigned),
+                                })?;
+                                self.reassign_variable(name, expr);
+                            }
+                            AssignmentOperator::TimesEqual => {
+                                let expr = self.evaluate_expr(Expression::BinaryExpression {
+                                    left: Box::new(var.to_owned()),
+                                    operator: BinaryOperator::Times,
+                                    right: Box::new(assigned),
+                                })?;
+                                self.reassign_variable(name, expr);
+                            }
+                            AssignmentOperator::DivideEqual => {
+                                let expr = self.evaluate_expr(Expression::BinaryExpression {
+                                    left: Box::new(var.to_owned()),
+                                    operator: BinaryOperator::Divide,
+                                    right: Box::new(assigned),
+                                })?;
+                                self.reassign_variable(name, expr);
+                            }
+                            AssignmentOperator::ModuloEqual => {
+                                let expr = self.evaluate_expr(Expression::BinaryExpression {
+                                    left: Box::new(var.to_owned()),
+                                    operator: BinaryOperator::Modulo,
+                                    right: Box::new(assigned),
+                                })?;
+                                self.reassign_variable(name, expr);
+                            }
+                        }
+                    }
+                    _ => unreachable!(),
+                },
                 ASTNode::ExpressionStatement { expression } => {
                     self.evaluate_expr(expression)?;
                 }
@@ -99,7 +165,7 @@ impl SymbolTable {
         })
     }
 
-    pub fn evaluate_expr(&mut self, expression: Expression) -> Result<Expression, String> {
+    pub fn evaluate_expr(&self, expression: Expression) -> Result<Expression, String> {
         match expression {
             Expression::Literal { .. } => Ok(expression),
             Expression::Array { elements } => Ok(Expression::Array {
@@ -519,7 +585,7 @@ impl SymbolTable {
                     name => {
                         let x = self.get_function(name)?;
 
-                        Ok((x.executable)(args)?)
+                        Ok((x.executable)(self, args)?)
                     }
                 },
                 Expression::FnExpression {
@@ -538,79 +604,6 @@ impl SymbolTable {
                 }
                 _ => unreachable!(),
             },
-            Expression::AssignmentExpression {
-                operator,
-                id,
-                assigned,
-            } => {
-                match *id {
-                    Expression::MemberExpression {
-                        indexed,
-                        property,
-                        computed,
-                    } => todo!(),
-                    Expression::CallExpression { callee, args } => todo!(),
-                    Expression::IdentifierExpression(Identifier { name }) => {
-                        let var = self.get_variable(&name)?;
-
-                        if self.constants.get(&name).is_some() {
-                            return Err(format!("Cannot reassign constant '{}'", name));
-                        }
-
-                        match operator {
-                            AssignmentOperator::Equal => {
-                                self.reassign_variable(name, *assigned);
-                            }
-                            AssignmentOperator::PlusEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(var.to_owned()),
-                                    operator: BinaryOperator::Plus,
-                                    right: assigned,
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
-                            AssignmentOperator::MinusEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(var.to_owned()),
-                                    operator: BinaryOperator::Minus,
-                                    right: assigned,
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
-                            AssignmentOperator::TimesEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(var.to_owned()),
-                                    operator: BinaryOperator::Times,
-                                    right: assigned,
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
-                            AssignmentOperator::DivideEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(var.to_owned()),
-                                    operator: BinaryOperator::Divide,
-                                    right: assigned,
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
-                            AssignmentOperator::ModuloEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(var.to_owned()),
-                                    operator: BinaryOperator::Modulo,
-                                    right: assigned,
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
-                        }
-                    }
-                    _ => unreachable!(),
-                }
-
-                Ok(Expression::Literal {
-                    value: LiteralValue::Nil,
-                    raw: "".to_owned(),
-                })
-            }
             Expression::IdentifierExpression(Identifier { name }) => {
                 let value = self.get_variable(&name)?;
 
@@ -659,8 +652,12 @@ impl SymbolTable {
                 let name = id.to_owned().name;
                 let symbol_table = Rc::new(RefCell::new(self.clone()));
 
-                let executable: Rc<dyn Fn(Vec<Expression>) -> Result<Expression, String>> =
-                    Rc::new(move |args: Vec<Expression>| -> Result<Expression, String> {
+                let executable: Rc<
+                    dyn Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String>,
+                > = Rc::new(
+                    move |actual_symbol_table: &SymbolTable,
+                          args: Vec<Expression>|
+                          -> Result<Expression, String> {
                         let mut local_symbol_table = symbol_table.borrow_mut();
 
                         if args.len() != params.len() {
@@ -672,10 +669,13 @@ impl SymbolTable {
                         }
 
                         for (i, param) in params.iter().enumerate() {
+                            let value = actual_symbol_table.evaluate_expr(args[i].to_owned())?;
+
                             local_symbol_table
                                 .variables
-                                .insert(param.id.to_owned().name, args[i].to_owned());
+                                .insert(param.id.to_owned().name, value);
                         }
+                        println!("local {:?}", local_symbol_table);
 
                         let result = match *body.to_owned() {
                             ASTNode::BlockStatement { body } => {
@@ -688,7 +688,8 @@ impl SymbolTable {
                         };
 
                         Ok(result)
-                    });
+                    },
+                );
 
                 self.functions
                     .insert(name, InterpretedFn { node, executable });

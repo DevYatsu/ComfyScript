@@ -16,7 +16,7 @@ use crate::{
     parser::ast::{literal_value::LiteralValue, Expression},
 };
 
-pub fn print(symbol_table: &mut SymbolTable, args: Vec<Expression>) -> Result<Expression, String> {
+pub fn print(symbol_table: &SymbolTable, args: Vec<Expression>) -> Result<Expression, String> {
     if args.len() != 1 {
         return Err("Expected 1 argument for function `print`".into());
     }
@@ -29,7 +29,7 @@ pub fn print(symbol_table: &mut SymbolTable, args: Vec<Expression>) -> Result<Ex
     })
 }
 
-pub fn input(symbol_table: &mut SymbolTable, args: Vec<Expression>) -> Result<Expression, String> {
+pub fn input(symbol_table: &SymbolTable, args: Vec<Expression>) -> Result<Expression, String> {
     if args.len() < 1 || args.len() > 2 {
         return Err("Expected exactly 1 or 2 arguments for function `input`".into());
     }

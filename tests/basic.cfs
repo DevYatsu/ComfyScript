@@ -7,8 +7,10 @@ let bool = x == y
 
 print(z)
 
-fn test_fn() -> String {
-    >> x
+fn test_fn(q) -> String {
+    >> #"str {q}"
 }
 
-let t = test_fn()
+let s = input("test")
+
+let t = test_fn(s)

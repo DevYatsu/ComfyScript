@@ -35,6 +35,12 @@ pub enum ASTNode {
         declarations: Vec<VariableDeclarator>,
         kind: VariableKeyword,
     },
+    Assignment {
+        operator: AssignmentOperator,
+        id: Expression,
+        assigned: Expression,
+    },
+
     ExpressionStatement {
         expression: Expression,
     }, // everything that is not a real statement, that is for example strings and numbers or var reassigment
@@ -118,11 +124,6 @@ pub enum Expression {
         // can be an IdentifierExpression or a MemberExpression  depending if it's a function call or a FnExpression call
         args: Vec<Expression>,
     },
-    AssignmentExpression {
-        operator: AssignmentOperator,
-        id: Box<Expression>,
-        assigned: Box<Expression>,
-    },
     IdentifierExpression(Identifier),
     Parenthesized(Box<Expression>),
     Comment {
@@ -171,6 +172,15 @@ impl fmt::Display for ASTNode {
                 }
 
                 write!(f, ";")
+            }
+            ASTNode::Assignment {
+                operator,
+                id,
+                assigned,
+            } => {
+                write!(f, "{}", id)?;
+                write!(f, "{}", operator)?;
+                write!(f, "{}", assigned)
             }
             ASTNode::ExpressionStatement { expression } => {
                 write!(f, "{};", expression)
@@ -314,15 +324,6 @@ impl fmt::Display for Expression {
                 }
 
                 write!(f, ")")
-            }
-            Expression::AssignmentExpression {
-                operator,
-                id,
-                assigned,
-            } => {
-                write!(f, "{}", id)?;
-                write!(f, "{}", operator)?;
-                write!(f, "{}", assigned)
             }
             Expression::IdentifierExpression(identifier) => {
                 write!(f, "{}", identifier)
@@ -488,18 +489,6 @@ impl PartialEq for Expression {
                     args: r_args,
                 },
             ) => l_callee == r_callee && l_args == r_args,
-            (
-                Self::AssignmentExpression {
-                    operator: l_operator,
-                    id: l_id,
-                    assigned: l_assigned,
-                },
-                Self::AssignmentExpression {
-                    operator: r_operator,
-                    id: r_id,
-                    assigned: r_assigned,
-                },
-            ) => l_operator == r_operator && l_id == r_id && l_assigned == r_assigned,
             (Self::IdentifierExpression(l0), Self::IdentifierExpression(r0)) => l0 == r0,
             (Self::Parenthesized(l0), Self::Parenthesized(r0)) => l0 == r0,
             (
