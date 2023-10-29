@@ -1,7 +1,7 @@
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
 use crate::{
-    comfy,
+    comfy::{self, math::import_math_fn},
     parser::{
         assignment::initial::VariableKeyword,
         ast::{identifier::Identifier, literal_value::LiteralValue, ASTNode, Expression},
@@ -34,7 +34,7 @@ pub struct SymbolTable {
 
 #[derive(Clone)]
 pub struct InterpretedFn {
-    pub node: ASTNode,
+    pub name: String,
     pub executable: Rc<dyn Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String>>,
 }
 
@@ -51,7 +51,34 @@ impl SymbolTable {
         for node in nodes {
             match node {
                 ASTNode::Program { body } => todo!(),
-                ASTNode::ImportDeclaration { specifiers, source } => todo!(),
+                ASTNode::ImportDeclaration { specifiers, source } => {
+                    match source.console_print().as_str() {
+                        "fs" => {}
+                        "math" => {
+                            let maths_fn = specifiers
+                                .into_iter()
+                                .map(|specifier| {
+                                    import_math_fn(specifier.imported.name)
+                                        .map(|x| (specifier.local.name, x))
+                                })
+                                .collect::<Result<Vec<(String, InterpretedFn)>, String>>()?;
+
+                            maths_fn.into_iter().for_each(|(name, f)| {
+                                self.functions.insert(name, f);
+                            })
+                        }
+                        "json" => {}
+                        "thread" => {}
+                        "time" => {}
+                        "http" => {}
+                        "env" => {}
+                        "collections" => {}
+                        "input_output" => {}
+                        _ => {
+                            // check for importing in another file
+                        }
+                    }
+                }
                 ASTNode::VariableDeclaration { declarations, kind } => {
                     // let target_table = match kind {
                     //     VariableKeyword::Var => &mut self.variables,
@@ -652,8 +679,6 @@ impl SymbolTable {
     }
 
     fn add_function(&mut self, function: ASTNode) {
-        let node = function.clone();
-
         match function {
             ASTNode::FunctionDeclaration {
                 id, params, body, ..
@@ -698,7 +723,7 @@ impl SymbolTable {
                 );
 
                 self.functions
-                    .insert(name, InterpretedFn { node, executable });
+                    .insert(name.to_owned(), InterpretedFn { name, executable });
             }
             _ => unreachable!(),
         }
@@ -708,12 +733,12 @@ impl SymbolTable {
 impl Debug for InterpretedFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         f.debug_struct("InterpretedFn")
-            .field("node", &self.node)
+            .field("name", &self.name)
             .finish()
     }
 }
 impl PartialEq for InterpretedFn {
     fn eq(&self, other: &Self) -> bool {
-        self.node == other.node
+        self.name == other.name
     }
 }

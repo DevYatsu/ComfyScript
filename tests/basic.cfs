@@ -3,14 +3,8 @@ var y: Number = 2.000
 let arr: Array = [1.,2.0]
 let z = x + y
 
-let bool = x == y
+import random as test, floor from "math"
 
-print(z)
-
-fn test_fn(prompt: String, x) -> String {
-    >> #"{prompt}{x}"
-}
-let value = input("Favorite fast food: ", true)
-
-let t = test_fn("Your favorite fastFood is: ", value)
-print(t)
+let zz = test()
+let a = floor(zz * 10)
+print(a)

@@ -5,7 +5,7 @@ mod fs;
 mod http;
 mod input_output;
 mod json;
-mod math;
+pub mod math;
 mod thread;
 mod time;
 

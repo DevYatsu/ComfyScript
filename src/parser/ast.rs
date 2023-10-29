@@ -538,3 +538,73 @@ impl Expression {
         }
     }
 }
+
+impl Into<Expression> for f32 {
+    fn into(self) -> Expression {
+        Expression::Literal {
+            value: LiteralValue::Number(self),
+            raw: self.to_string(),
+        }
+    }
+}
+impl Into<f32> for Expression {
+    fn into(self) -> f32 {
+        match self {
+            Expression::Literal { value, .. } => match value {
+                LiteralValue::Number(x) => x,
+                _ => unreachable!(
+                    "Cannot transform i32 into something Other Than Expression::Literal::Number"
+                ),
+            },
+            _ => unreachable!(
+                "Cannot transform i32 into something Other Than Expression::Literal::Number"
+            ),
+        }
+    }
+}
+impl Into<Expression> for bool {
+    fn into(self) -> Expression {
+        Expression::Literal {
+            value: LiteralValue::Boolean(self),
+            raw: self.to_string(),
+        }
+    }
+}
+impl Into<bool> for Expression {
+    fn into(self) -> bool {
+        match self {
+            Expression::Literal { value, .. } => match value {
+                LiteralValue::Boolean(b) => b,
+                _ => unreachable!(
+                    "Cannot transform bool into something Other Than Expression::Literal::Boolean"
+                ),
+            },
+            _ => unreachable!(
+                "Cannot transform bool into something Other Than Expression::Literal::Boolean"
+            ),
+        }
+    }
+}
+impl Into<Expression> for String {
+    fn into(self) -> Expression {
+        Expression::Literal {
+            value: LiteralValue::Str(self.to_owned()),
+            raw: self,
+        }
+    }
+}
+impl Into<String> for Expression {
+    fn into(self) -> String {
+        match self {
+            Expression::Literal { value, .. } => match value {
+                LiteralValue::Str(s) => s,
+                _ => unreachable!(
+                    "Cannot transform String into something Other Than Expression::Literal::Str"
+                ),
+            },
+            _ => unreachable!(
+                "Cannot transform String into something Other Than Expression::Literal::Str"
+            ),
+        }
+    }
+}

@@ -4,8 +4,8 @@ use super::identifier::Identifier;
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ImportSpecifier {
-    pub local: Identifier,
-    pub imported: Identifier, // name locally
+    pub local: Identifier, // name locally
+    pub imported: Identifier,
 }
 #[derive(Debug, Clone, PartialEq)]
 pub struct ImportSource {
@@ -24,5 +24,11 @@ impl fmt::Display for ImportSpecifier {
 impl fmt::Display for ImportSource {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         write!(f, "{}", self.value)
+    }
+}
+
+impl ImportSource {
+    pub fn console_print(&self) -> String {
+        self.value[1..self.value.len() - 1].to_owned()
     }
 }
