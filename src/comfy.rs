@@ -34,7 +34,9 @@ pub fn input(symbol_table: &SymbolTable, args: Vec<Expression>) -> Result<Expres
         return Err("Expected exactly 1 or 2 arguments for function `input`".into());
     }
 
-    let prompt = symbol_table.evaluate_expr(args[0].to_owned())?.to_string();
+    let prompt = symbol_table
+        .evaluate_expr(args[0].to_owned())?
+        .console_print();
 
     print!("{}", prompt);
     let _ = io::stdout().flush();

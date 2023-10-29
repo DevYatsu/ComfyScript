@@ -20,7 +20,11 @@ use super::{
     match_block::MatchBlock,
     operations::{assignment::AssignmentOperator, binary::BinaryOperator},
 };
-use std::fmt;
+use std::fmt::{self, Display, Formatter};
+
+pub trait Minify {
+    fn minify_fmt(&self) -> String;
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ASTNode {
@@ -141,8 +145,8 @@ pub enum Expression {
 }
 
 // display is used to minify the content
-impl fmt::Display for ASTNode {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+impl Display for ASTNode {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
             ASTNode::Program { body, .. } => Ok(for node in body {
                 write!(f, "{}", node)?;
@@ -522,6 +526,15 @@ impl PartialEq for Expression {
             }
             (Self::FallibleExpression(l0), Self::FallibleExpression(r0)) => l0 == r0,
             _ => false,
+        }
+    }
+}
+
+impl Expression {
+    pub fn console_print(&self) -> String {
+        match self {
+            Expression::Literal { value, .. } => value.to_string(),
+            _ => self.to_string(),
         }
     }
 }

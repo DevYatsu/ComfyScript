@@ -191,7 +191,7 @@ impl SymbolTable {
                             string.push(c)
                         }
                         expression::template_literal::TemplateLiteralFragment::Expression(expr) => {
-                            string.push_str(&self.evaluate_expr(expr)?.to_string())
+                            string.push_str(&self.evaluate_expr(expr)?.console_print())
                         }
                         expression::template_literal::TemplateLiteralFragment::EscapedWS => (),
                     }

@@ -7,10 +7,10 @@ let bool = x == y
 
 print(z)
 
-fn test_fn(x) -> String {
-    >> #"str {x}"
+fn test_fn(prompt: String, x) -> String {
+    >> #"{prompt}{x}"
 }
-let value = input("test")
+let value = input("Favorite fast food: ", true)
 
-let t = test_fn("str")
+let t = test_fn("Your favorite fastFood is: ", value)
 print(t)
