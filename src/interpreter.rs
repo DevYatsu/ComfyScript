@@ -64,8 +64,8 @@ impl SymbolTable {
                         let expr = self.evaluate_expr(declaration.init)?;
 
                         match kind {
-                            VariableKeyword::Var => self.variables.insert(name, expr),
-                            VariableKeyword::Let => self.constants.insert(name, expr),
+                            VariableKeyword::Var => self.add_variable(name, expr),
+                            VariableKeyword::Let => self.add_constant(name, expr),
                         };
                     }
                 }
@@ -641,6 +641,15 @@ impl SymbolTable {
     fn reassign_variable(&mut self, name: String, expr: Expression) {
         self.variables.insert(name, expr);
     }
+    fn add_variable(&mut self, name: String, expr: Expression) {
+        self.constants.remove(&name);
+        self.variables.insert(name, expr);
+    }
+
+    fn add_constant(&mut self, name: String, expr: Expression) {
+        self.variables.remove(&name);
+        self.constants.insert(name, expr);
+    }
 
     fn add_function(&mut self, function: ASTNode) {
         let node = function.clone();
@@ -671,11 +680,8 @@ impl SymbolTable {
                         for (i, param) in params.iter().enumerate() {
                             let value = actual_symbol_table.evaluate_expr(args[i].to_owned())?;
 
-                            local_symbol_table
-                                .variables
-                                .insert(param.id.to_owned().name, value);
+                            local_symbol_table.add_variable(param.id.to_owned().name, value);
                         }
-                        println!("local {:?}", local_symbol_table);
 
                         let result = match *body.to_owned() {
                             ASTNode::BlockStatement { body } => {
