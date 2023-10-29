@@ -4,7 +4,12 @@ use crate::{
     comfy::{self, math::import_math_fn},
     parser::{
         assignment::initial::VariableKeyword,
-        ast::{identifier::Identifier, literal_value::LiteralValue, ASTNode, Expression},
+        ast::{
+            identifier::Identifier,
+            import::{ImportSource, ImportSpecifier},
+            literal_value::LiteralValue,
+            ASTNode, Expression,
+        },
         expression,
         operations::{assignment::AssignmentOperator, binary::BinaryOperator},
     },
@@ -52,32 +57,7 @@ impl SymbolTable {
             match node {
                 ASTNode::Program { body } => todo!(),
                 ASTNode::ImportDeclaration { specifiers, source } => {
-                    match source.console_print().as_str() {
-                        "fs" => {}
-                        "math" => {
-                            let maths_fn = specifiers
-                                .into_iter()
-                                .map(|specifier| {
-                                    import_math_fn(specifier.imported.name)
-                                        .map(|x| (specifier.local.name, x))
-                                })
-                                .collect::<Result<Vec<(String, InterpretedFn)>, String>>()?;
-
-                            maths_fn.into_iter().for_each(|(name, f)| {
-                                self.functions.insert(name, f);
-                            })
-                        }
-                        "json" => {}
-                        "thread" => {}
-                        "time" => {}
-                        "http" => {}
-                        "env" => {}
-                        "collections" => {}
-                        "input_output" => {}
-                        _ => {
-                            // check for importing in another file
-                        }
-                    }
+                    self.add_import(source.console_print().as_str(), specifiers)?;
                 }
                 ASTNode::VariableDeclaration { declarations, kind } => {
                     // let target_table = match kind {
@@ -727,6 +707,39 @@ impl SymbolTable {
             }
             _ => unreachable!(),
         }
+    }
+
+    fn add_import(&mut self, source: &str, specifiers: Vec<ImportSpecifier>) -> Result<(), String> {
+        match source {
+            "fs" => {
+                todo!()
+            }
+            "math" => {
+                let maths_fn = specifiers
+                    .into_iter()
+                    .map(|specifier| {
+                        import_math_fn(specifier.imported.name).map(|x| (specifier.local.name, x))
+                    })
+                    .collect::<Result<Vec<(String, InterpretedFn)>, String>>()?;
+
+                maths_fn.into_iter().for_each(|(name, f)| {
+                    self.functions.insert(name, f);
+                })
+            }
+            "json" => todo!(),
+            "thread" => todo!(),
+            "time" => todo!(),
+            "http" => todo!(),
+            "env" => todo!(),
+            "collections" => todo!(),
+            "input_output" => todo!(),
+            _ => {
+                todo!()
+                // check for importing in another file
+            }
+        }
+
+        Ok(())
     }
 }
 
