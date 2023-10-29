@@ -141,7 +141,10 @@ pub enum Expression {
         return_type: Option<FunctionReturnType>,
     },
 
-    FallibleExpression(Box<Expression>), // An expression that can fail
+    ErrorPropagation(Box<Expression>), // An expression propaging the error if it fails
+
+    Err(String),         // An expression that failed
+    Ok(Box<Expression>), // An expression that succeed
 }
 
 // display is used to minify the content
@@ -375,8 +378,14 @@ impl fmt::Display for Expression {
 
                 write!(f, "")
             }
-            Expression::FallibleExpression(expr) => {
+            Expression::ErrorPropagation(expr) => {
                 write!(f, "{}?", expr)
+            }
+            Expression::Err(s) => {
+                write!(f, "{}", s)
+            }
+            Expression::Ok(expr) => {
+                write!(f, "{}", expr)
             }
         }
     }
@@ -524,7 +533,9 @@ impl PartialEq for Expression {
                     && l_is_shortcut == r_is_shortcut
                     && l_return_type == r_return_type
             }
-            (Self::FallibleExpression(l0), Self::FallibleExpression(r0)) => l0 == r0,
+            (Self::ErrorPropagation(r0), Self::ErrorPropagation(r1)) => r0 == r1,
+            (Self::Err(r0), Self::Err(r1)) => r0 == r1,
+            (Self::Ok(r0), Self::Ok(r1)) => r0 == r1,
             _ => false,
         }
     }

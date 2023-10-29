@@ -1,14 +1,12 @@
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
 use crate::{
-    comfy::{self, math::import_math_fn},
+    comfy::{self, fs::import_fs_fns, math::import_math_fn},
     parser::{
         assignment::initial::VariableKeyword,
         ast::{
-            identifier::Identifier,
-            import::{ImportSource, ImportSpecifier},
-            literal_value::LiteralValue,
-            ASTNode, Expression,
+            identifier::Identifier, import::ImportSpecifier, literal_value::LiteralValue, ASTNode,
+            Expression,
         },
         expression,
         operations::{assignment::AssignmentOperator, binary::BinaryOperator},
@@ -183,8 +181,16 @@ impl SymbolTable {
             }),
             Expression::Object { .. } => Ok(expression),
             Expression::Range { .. } => Ok(expression),
-            Expression::FallibleExpression(expr) => Ok(self.evaluate_expr(*expr)?),
             Expression::FnExpression { .. } => Ok(expression),
+            Expression::ErrorPropagation(expr) => {
+                let expr = self.evaluate_expr(*expr)?;
+                match expr {
+                    Expression::Err(e) => return Err(e),
+                    expr => Ok(expr),
+                }
+            }
+            Expression::Err(_) => Ok(expression),
+            Expression::Ok(_) => Ok(expression),
 
             Expression::TemplateLiteral { value, .. } => {
                 let mut string = String::new();
@@ -601,7 +607,6 @@ impl SymbolTable {
                     is_shortcut,
                     return_type,
                 } => todo!(),
-                Expression::FallibleExpression(_) => todo!(),
                 Expression::Parenthesized(expr) => {
                     let expr = self.evaluate_expr(*expr)?;
                     Ok(Expression::Literal {
@@ -712,17 +717,26 @@ impl SymbolTable {
     fn add_import(&mut self, source: &str, specifiers: Vec<ImportSpecifier>) -> Result<(), String> {
         match source {
             "fs" => {
-                todo!()
+                let fs_fns = specifiers
+                    .into_iter()
+                    .map(|specifier| {
+                        import_fs_fns(specifier.imported.name).map(|x| (specifier.local.name, x))
+                    })
+                    .collect::<Result<Vec<(String, InterpretedFn)>, String>>()?;
+
+                fs_fns.into_iter().for_each(|(name, f)| {
+                    self.functions.insert(name, f);
+                })
             }
             "math" => {
-                let maths_fn = specifiers
+                let maths_fns = specifiers
                     .into_iter()
                     .map(|specifier| {
                         import_math_fn(specifier.imported.name).map(|x| (specifier.local.name, x))
                     })
                     .collect::<Result<Vec<(String, InterpretedFn)>, String>>()?;
 
-                maths_fn.into_iter().for_each(|(name, f)| {
+                maths_fns.into_iter().for_each(|(name, f)| {
                     self.functions.insert(name, f);
                 })
             }

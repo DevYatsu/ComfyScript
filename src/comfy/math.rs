@@ -8,6 +8,9 @@ use crate::parser::ast::literal_value::LiteralValue;
 use crate::parser::ast::Expression;
 use std::f32::consts;
 use std::rc::Rc;
+
+use super::{expected_number_arg, expected_x_args};
+
 lazy_static! {
     static ref PI: Expression = {
         Expression::Literal {
@@ -582,7 +585,12 @@ pub fn import_math_fn(value: String) -> Result<InterpretedFn, String> {
                 ),
             }
         }
-        _ => return Err(format!("Math function '{}' not found", value)),
+        _ => {
+            return Err(format!(
+                "'math' package does not export a `{}` member",
+                value
+            ))
+        }
     };
 
     Ok(result)
@@ -594,41 +602,13 @@ fn sanitize_math_args(
     expected_length: usize,
     args: Vec<Expression>,
 ) -> Result<Vec<Expression>, String> {
-    if args.len() != expected_length {
-        if expected_length < 2 {
-            return Err(format!(
-                "Expected {} argument for function `{}`",
-                expected_length, fn_name
-            ));
-        } else {
-            return Err(format!(
-                "Expected {} arguments for function `{}`",
-                expected_length, fn_name
-            ));
-        }
-    }
+    expected_x_args(fn_name, expected_length, &args)?;
 
     let args = args
         .into_iter()
         .map(|arg| {
             let arg = symbol_table.evaluate_expr(arg)?;
-            match &arg {
-                Expression::Literal { value, .. } => match value {
-                    LiteralValue::Number(_) => (),
-                    _ => {
-                        return Err(format!(
-                            "Expected arguments of type 'Number' for function `{}`",
-                            fn_name
-                        ))
-                    }
-                },
-                _ => {
-                    return Err(format!(
-                        "Expected arguments of type 'Number' for function `{}`",
-                        fn_name
-                    ))
-                }
-            }
+            expected_number_arg(fn_name, &arg)?;
 
             Ok(arg)
         })

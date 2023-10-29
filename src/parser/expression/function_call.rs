@@ -35,7 +35,7 @@ pub fn parse_fn_call(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> 
         char('?').preceded_by(multispace0).opt().parse(input)?;
 
     if opt_propagation_operator.is_some() {
-        return Ok((input, Expression::FallibleExpression(Box::new(expr))));
+        return Ok((input, Expression::ErrorPropagation(Box::new(expr))));
     }
 
     Ok((input, expr))

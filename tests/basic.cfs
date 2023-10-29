@@ -1,3 +1,9 @@
+import read_to_string from "fs"
+
+let x = read_to_string("test.cfs")?
+
+print(x)
+
 let x = 2
 var y: Number = 2.000
 let arr: Array = [1.,2.0]
@@ -7,4 +13,4 @@ import random as test, floor from "math"
 
 let zz = test()
 let a = floor(zz * 10)
-print(a)
+

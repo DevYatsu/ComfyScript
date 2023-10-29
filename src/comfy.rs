@@ -1,7 +1,7 @@
 // standard library
 mod collections;
 mod env;
-mod fs;
+pub mod fs;
 mod http;
 mod input_output;
 mod json;
@@ -64,4 +64,66 @@ pub fn input(symbol_table: &SymbolTable, args: Vec<Expression>) -> Result<Expres
         value: LiteralValue::Str(input.trim().to_owned()),
         raw: input,
     })
+}
+
+pub fn expected_x_args(
+    fn_name: &str,
+    expected_length: usize,
+    args: &Vec<Expression>,
+) -> Result<(), String> {
+    if args.len() != expected_length {
+        if expected_length < 2 {
+            return Err(format!(
+                "Expected {} argument for function `{}`",
+                expected_length, fn_name
+            ));
+        } else {
+            return Err(format!(
+                "Expected {} arguments for function `{}`",
+                expected_length, fn_name
+            ));
+        }
+    }
+
+    Ok(())
+}
+
+pub fn expected_number_arg(fn_name: &str, arg: &Expression) -> Result<(), String> {
+    match &arg {
+        Expression::Literal { value, .. } => match value {
+            LiteralValue::Number(_) => Ok(()),
+            _ => {
+                return Err(format!(
+                    "Expected arguments of type 'Number' for function `{}`",
+                    fn_name
+                ))
+            }
+        },
+        _ => {
+            return Err(format!(
+                "Expected arguments of type 'Number' for function `{}`",
+                fn_name
+            ))
+        }
+    }
+}
+
+pub fn expected_string_arg(fn_name: &str, arg: &Expression) -> Result<(), String> {
+    match &arg {
+        Expression::Literal { value, .. } => match value {
+            LiteralValue::Str(_) => Ok(()),
+            _ => {
+                return Err(format!(
+                    "Expected arguments of type 'String' for function `{}`",
+                    fn_name
+                ))
+            }
+        },
+        _ => {
+            return Err(format!(
+                "Expected arguments of type 'String' for function `{}`",
+                fn_name
+            ))
+        }
+    }
 }
