@@ -13,15 +13,15 @@ pub fn import_fs_fn(name: String) -> Result<InterpretedFn, String> {
     let result = match name.as_str() {
         "read_to_string" => InterpretedFn {
             name: name.to_owned(),
-            executable: Rc::new(read_to_string(name)),
+            executable: Rc::new(read_to_string()),
         },
         "rename" => InterpretedFn {
             name: name.to_owned(),
-            executable: Rc::new(rename(name)),
+            executable: Rc::new(rename()),
         },
         "write" => InterpretedFn {
             name: name.to_owned(),
-            executable: Rc::new(write(name)),
+            executable: Rc::new(write()),
         },
         _ => return Err(format!("'fs' package does not export a `{}` member", name)),
     };
@@ -29,18 +29,16 @@ pub fn import_fs_fn(name: String) -> Result<InterpretedFn, String> {
     Ok(result)
 }
 
-fn read_to_string(
-    value: String,
-) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn read_to_string() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        expected_x_args(&value, 1, &args)?;
+        expected_x_args("read_to_string", 1, &args)?;
 
         let file_path: String =
-            expected_string_arg(symbol_table, &value, args[0].to_owned())?.into();
+            expected_string_arg(symbol_table, "read_to_string", args[0].to_owned())?.into();
 
         match fs::read_to_string(&file_path) {
             Ok(content) => Ok(Expression::Ok(Box::new(content.into()))),
-            Err(e) => Ok(Expression::Err(format!(
+            Err(_) => Ok(Expression::Err(format!(
                 "Cannot read `{}`. File does not exist",
                 file_path
             ))),
@@ -48,21 +46,21 @@ fn read_to_string(
     }
 }
 
-fn rename(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn rename() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        expected_x_args(&value, 2, &args)?;
+        expected_x_args("rename", 2, &args)?;
 
         let file_path: String =
-            expected_string_arg(symbol_table, &value, args[0].to_owned())?.into();
+            expected_string_arg(symbol_table, "rename", args[0].to_owned())?.into();
         let new_name: String =
-            expected_string_arg(symbol_table, &value, args[1].to_owned())?.into();
+            expected_string_arg(symbol_table, "rename", args[1].to_owned())?.into();
 
         match fs::rename(&file_path, new_name) {
             Ok(_) => Ok(Expression::Literal {
                 value: LiteralValue::Nil,
                 raw: "nil".to_owned(),
             }),
-            Err(e) => Ok(Expression::Err(format!(
+            Err(_) => Ok(Expression::Err(format!(
                 "Cannot rename `{}`. File does not exist",
                 file_path
             ))),
@@ -70,13 +68,14 @@ fn rename(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Exp
     }
 }
 
-fn write(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn write() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        expected_x_args(&value, 2, &args)?;
+        expected_x_args("write", 2, &args)?;
 
         let file_path: String =
-            expected_string_arg(symbol_table, &value, args[0].to_owned())?.into();
-        let content: String = expected_string_arg(symbol_table, &value, args[1].to_owned())?.into();
+            expected_string_arg(symbol_table, "write", args[0].to_owned())?.into();
+        let content: String =
+            expected_string_arg(symbol_table, "write", args[1].to_owned())?.into();
 
         match fs::write(&file_path, content) {
             Ok(_) => Ok(Expression::Literal {

@@ -4,7 +4,7 @@ mod import;
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
 use crate::{
-    comfy,
+    comfy::{self, init_std_functions},
     parser::{
         assignment::initial::VariableKeyword,
         ast::{
@@ -64,6 +64,9 @@ pub struct InterpretedFn {
 
 impl SymbolTable {
     pub fn new() -> Self {
+        let mut functions = HashMap::new();
+        init_std_functions(&mut functions);
+
         Self {
             functions: HashMap::new(),
             constants: HashMap::new(),
@@ -934,18 +937,10 @@ impl SymbolTable {
                             }
                         }
                     }
-                    Expression::Object { properties } => {
-                        
-                    }
-                    Expression::Range { from, limits, to } => {
-                    
-                    }
-                    Expression::Err(_) => {
-                    
-                    }
-                    Expression::Ok(_) => {
-                    
-                    }
+                    Expression::Object { properties } => {}
+                    Expression::Range { from, limits, to } => {}
+                    Expression::Err(_) => {}
+                    Expression::Ok(_) => {}
                     x => {
                         return Err(format!(
                             "Cannot index {} as it's of type {}",
@@ -962,10 +957,7 @@ impl SymbolTable {
                     property,
                     computed,
                 } => todo!(),
-                Expression::CallExpression { callee, args } => todo!(),
                 Expression::IdentifierExpression(Identifier { name }) => match name.as_str() {
-                    "print" => Ok(comfy::print(self, args)?),
-                    "input" => Ok(comfy::input(self, args)?),
                     name => {
                         let x = self.get_function(name)?;
 
