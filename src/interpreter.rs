@@ -43,7 +43,6 @@ pub fn interpret_import(program: ASTNode) -> Result<SymbolTable, String> {
 
     symbol_table.interpret_import(nodes)?;
 
-    println!("{:?}", symbol_table);
     Ok(symbol_table)
 }
 
@@ -183,7 +182,9 @@ impl SymbolTable {
                 ASTNode::ImportDeclaration { specifiers, source } => {
                     self.import(source, specifiers)?;
                 }
-                ASTNode::VariableDeclaration { declarations, kind } => {}
+                ASTNode::VariableDeclaration { declarations, kind } => {
+                    self.add_declarations(kind, declarations)?;
+                }
                 ASTNode::Assignment {
                     operator,
                     id,
@@ -194,12 +195,11 @@ impl SymbolTable {
                         property,
                         computed,
                     } => todo!(),
-                    Expression::CallExpression { callee, args } => todo!(),
                     Expression::IdentifierExpression(Identifier { name }) => {
-                        let var = self.get_variable(&name)?;
+                        let current_value = self.get_variable(&name)?;
 
                         if self.constants.get(&name).is_some() {
-                            return Err(format!("Cannot reassign constant '{}'", name));
+                            return Err(format!("Cannot reassign constant '{}' in import", name));
                         }
 
                         match operator {
@@ -208,7 +208,7 @@ impl SymbolTable {
                             }
                             AssignmentOperator::PlusEqual => {
                                 let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(var.to_owned()),
+                                    left: Box::new(current_value.to_owned()),
                                     operator: BinaryOperator::Plus,
                                     right: Box::new(assigned),
                                 })?;
@@ -216,7 +216,7 @@ impl SymbolTable {
                             }
                             AssignmentOperator::MinusEqual => {
                                 let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(var.to_owned()),
+                                    left: Box::new(current_value.to_owned()),
                                     operator: BinaryOperator::Minus,
                                     right: Box::new(assigned),
                                 })?;
@@ -224,7 +224,7 @@ impl SymbolTable {
                             }
                             AssignmentOperator::TimesEqual => {
                                 let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(var.to_owned()),
+                                    left: Box::new(current_value.to_owned()),
                                     operator: BinaryOperator::Times,
                                     right: Box::new(assigned),
                                 })?;
@@ -232,7 +232,7 @@ impl SymbolTable {
                             }
                             AssignmentOperator::DivideEqual => {
                                 let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(var.to_owned()),
+                                    left: Box::new(current_value.to_owned()),
                                     operator: BinaryOperator::Divide,
                                     right: Box::new(assigned),
                                 })?;
@@ -240,7 +240,7 @@ impl SymbolTable {
                             }
                             AssignmentOperator::ModuloEqual => {
                                 let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(var.to_owned()),
+                                    left: Box::new(current_value.to_owned()),
                                     operator: BinaryOperator::Modulo,
                                     right: Box::new(assigned),
                                 })?;
@@ -250,9 +250,7 @@ impl SymbolTable {
                     }
                     _ => unreachable!(),
                 },
-                ASTNode::ExpressionStatement { expression } => {
-                    self.evaluate_expr(expression)?;
-                }
+                ASTNode::ExpressionStatement { .. } => (),
                 ASTNode::FunctionDeclaration { .. } => self.add_function(node),
                 ASTNode::ForStatement {
                     declarations,
@@ -780,10 +778,7 @@ impl SymbolTable {
             return Ok(value);
         }
 
-        Err(format!(
-            "Cannot export function '{}' as it is undefined",
-            name
-        ))
+        Err(format!("No function '{}' exported", name))
     }
     fn add_function(&mut self, function: ASTNode) {
         match function {
