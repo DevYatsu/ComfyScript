@@ -11,6 +11,7 @@ use crate::{
             identifier::Identifier,
             import::{ImportSource, ImportSpecifier},
             literal_value::LiteralValue,
+            range::RangeType,
             vars::VariableDeclarator,
             ASTNode, Expression,
         },
@@ -289,12 +290,26 @@ impl SymbolTable {
                     .collect::<Result<Vec<Expression>, String>>()?,
             }),
             Expression::Object { .. } => Ok(expression),
-            Expression::Range { .. } => Ok(expression),
+            Expression::Range { from, to, limits } => {
+                let from = if from.is_none() {
+                    from
+                } else {
+                    Some(Box::new(self.evaluate_expr(*from.unwrap())?))
+                };
+                let to = if from.is_none() {
+                    to
+                } else {
+                    Some(Box::new(self.evaluate_expr(*to.unwrap())?))
+                };
+
+                Ok(Expression::Range { from, limits, to })
+            }
             Expression::FnExpression { .. } => Ok(expression),
             Expression::ErrorPropagation(expr) => {
                 let expr = self.evaluate_expr(*expr)?;
                 match expr {
                     Expression::Err(e) => return Err(e),
+                    Expression::Ok(val) => return Ok(*val),
                     expr => Ok(expr),
                 }
             }
@@ -693,7 +708,131 @@ impl SymbolTable {
                 indexed,
                 property,
                 computed,
-            } => todo!(),
+            } => {
+                let evaluated_indexed = self.evaluate_expr((*indexed).to_owned())?;
+                match evaluated_indexed {
+                    Expression::Literal { value, .. } => {
+                        let str_value = match value {
+                            LiteralValue::Str(s) => s,
+                            _ => {
+                                return Err(format!(
+                                    "Cannot index {} as it's of type {}",
+                                    indexed,
+                                    value.get_type()
+                                ))
+                            }
+                        };
+
+                        if computed {
+                            let evaluated_property = self.evaluate_expr((*property).to_owned())?;
+                            match evaluated_property {
+                                Expression::Literal { value, .. } => match value {
+                                    LiteralValue::Number(num) => {
+                                        let new_str = str_value.chars().nth(num as usize);
+                                        if new_str.is_none() {
+                                            return Err(format!("Index out of range, tried to index at index {}, but length is {}", num.floor(), str_value.len()));
+                                        }
+
+                                        let raw = format!("\"{}\"", new_str.unwrap());
+                                        return Ok(Expression::Literal {
+                                            value: LiteralValue::Str(new_str.unwrap().into()),
+                                            raw,
+                                        });
+                                    }
+                                    _ => {
+                                        return Err(format!(
+                                            "Expected a `Number` or a `Range` to index {}",
+                                            indexed
+                                        ))
+                                    }
+                                },
+                                Expression::Range { from, limits, to } => {
+                                    let max_index = (str_value.len() - 1) as isize;
+
+                                    let start_index = match from {
+                                        Some(expr) => {
+                                            match *expr {
+                                                Expression::Literal { value, .. } => {
+                                                    match value {
+                                                        LiteralValue::Number(num) => num as isize,
+                                                        val => return Err(format!(
+                                                            "Range start index expected to be of type `Number`, found {}",
+                                                                val
+                                                        ))
+                                                        
+                                                    }
+                                                },
+                                                _ => return Err(format!("Range start index expected to be of type `Number`, found {}", expr))
+                                            } 
+                                        },
+                                        None => 0,
+                                    };
+                                    let end_index = match to {
+                                        Some(expr) => {
+                                            match *expr {
+                                                Expression::Literal { value, .. } => {
+                                                    match value {
+                                                        LiteralValue::Number(num) => num as isize,
+                                                        val => return Err(format!(
+                                                            "Range end index expected to be of type `Number`, found {}",
+                                                                val
+                                                        ))
+                                                        
+                                                    }
+                                                },
+                                                _ => return Err(format!("Range end index expected to be of type `Number`, found {}", expr)) 
+                                            } 
+                                        },
+                                        None => max_index,
+                                    };
+
+                                    if start_index < 0 || start_index > max_index {
+                                        return Err(format!("Index out of range, Range start index is {}, but length is {}", start_index, str_value.len()));
+                                    }
+
+                                    let new_str = match limits {
+                                        RangeType::Dot => {
+                                            if end_index < 0 || end_index > (max_index + 1) {
+                                                return Err(format!("Index out of range, Range end index is {}, but length is {}", end_index, str_value.len()));
+                                            }
+
+                                            &str_value
+                                                [start_index as usize..(end_index - 1) as usize]
+                                        }
+                                        RangeType::DotEqual => {
+                                            if end_index < 0 || end_index > max_index {
+                                                return Err(format!("Index out of range, Range end index is {}, but length is {}", end_index, str_value.len()));
+                                            }
+
+                                            &str_value[start_index as usize..end_index as usize]
+                                        }
+                                    };
+
+                                    return Ok(Expression::Literal {
+                                        value: LiteralValue::Str(new_str.to_owned()),
+                                        raw: new_str.to_owned(),
+                                    });
+                                }
+                                _ => {
+                                    return Err(format!(
+                                        "Expected a `Number` or a `Range` to index {}",
+                                        indexed
+                                    ))
+                                }
+                            }
+                        }
+                    }
+                    Expression::Array { elements } => todo!(),
+                    x => {
+                        return Err(format!(
+                            "Cannot index {} as it's of type {}",
+                            indexed,
+                            x.get_type()
+                        ))
+                    }
+                };
+                todo!()
+            }
             Expression::CallExpression { callee, args } => match *callee {
                 Expression::MemberExpression {
                     indexed,

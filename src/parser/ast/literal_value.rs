@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use crate::parser::data_type::DataType;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum LiteralValue {
     Number(f32),
@@ -28,6 +30,14 @@ impl LiteralValue {
             LiteralValue::Str(s) => s.is_empty(),
             LiteralValue::Boolean(b) => *b,
             LiteralValue::Nil => true,
+        }
+    }
+    pub fn get_type(&self) -> DataType {
+        match self {
+            LiteralValue::Number(_) => DataType::Number,
+            LiteralValue::Str(_) => DataType::String,
+            LiteralValue::Boolean(_) => DataType::Bool,
+            LiteralValue::Nil => DataType::Nil,
         }
     }
 }

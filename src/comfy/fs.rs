@@ -38,9 +38,12 @@ fn read_to_string(
         let file_path: String =
             expected_string_arg(symbol_table, &value, args[0].to_owned())?.into();
 
-        match fs::read_to_string(file_path) {
+        match fs::read_to_string(&file_path) {
             Ok(content) => Ok(Expression::Ok(Box::new(content.into()))),
-            Err(e) => Ok(Expression::Err(e.to_string())),
+            Err(e) => Ok(Expression::Err(format!(
+                "Cannot read `{}`. File does not exist",
+                file_path
+            ))),
         }
     }
 }
@@ -54,12 +57,15 @@ fn rename(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Exp
         let new_name: String =
             expected_string_arg(symbol_table, &value, args[1].to_owned())?.into();
 
-        match fs::rename(file_path, new_name) {
+        match fs::rename(&file_path, new_name) {
             Ok(_) => Ok(Expression::Literal {
                 value: LiteralValue::Nil,
                 raw: "nil".to_owned(),
             }),
-            Err(e) => Ok(Expression::Err(e.to_string())),
+            Err(e) => Ok(Expression::Err(format!(
+                "Cannot rename `{}`. File does not exist",
+                file_path
+            ))),
         }
     }
 }
@@ -72,7 +78,7 @@ fn write(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
             expected_string_arg(symbol_table, &value, args[0].to_owned())?.into();
         let content: String = expected_string_arg(symbol_table, &value, args[1].to_owned())?.into();
 
-        match fs::write(file_path, content) {
+        match fs::write(&file_path, content) {
             Ok(_) => Ok(Expression::Literal {
                 value: LiteralValue::Nil,
                 raw: "nil".to_owned(),

@@ -149,7 +149,7 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
     .parse(i)?;
 
     let (i, expr) = match found {
-        "\"" | "'" => {
+        "\"" => {
             let (i, base_expr) = parse_string.parse(i)?;
 
             let (i, open_tag) = char('[').preceded_by(multispace0).opt().parse(i)?;

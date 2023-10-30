@@ -8,6 +8,8 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
+use super::ast::Expression;
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum DataType {
     String,
@@ -19,6 +21,9 @@ pub enum DataType {
     Range,
     Fn,
     Class(String),
+    Fallible(Box<Expression>),
+    Err(String),
+    Ok(Box<Expression>),
 }
 
 pub fn parse_data_type(i: &str) -> IResult<&str, DataType, ErrorTree<&str>> {
@@ -67,6 +72,9 @@ impl Display for DataType {
             DataType::Range => write!(f, "Range"),
             DataType::Fn => write!(f, "Fn"),
             DataType::Class(value) => write!(f, "{}", value),
+            DataType::Fallible(expr) => write!(f, "{}?", expr),
+            DataType::Err(s) => write!(f, "Err({})", s),
+            DataType::Ok(expr) => write!(f, "Ok({})", expr),
         }
     }
 }

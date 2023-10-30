@@ -15,7 +15,7 @@ pub fn parse_opt_range(
     move |i| {
         let (i, opt_range_type) = alt((
             value(RangeType::DotEqual, tag("..=").complete()),
-            value(RangeType::Dot, tag("..")).complete(),
+            value(RangeType::Dot, tag("..").complete()),
         ))
         .preceded_by(multispace0)
         .opt()
@@ -45,7 +45,7 @@ pub fn parse_opt_range(
 pub fn parse_range(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, range_type) = alt((
         value(RangeType::DotEqual, tag("..=").complete()),
-        value(RangeType::Dot, tag("..")).complete(),
+        value(RangeType::Dot, tag("..").complete()),
     ))
     .preceded_by(multispace0)
     .parse(i)?;

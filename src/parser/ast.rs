@@ -15,6 +15,7 @@ use self::{
 };
 use super::{
     assignment::initial::VariableKeyword,
+    data_type::DataType,
     expression::template_literal::TemplateLiteralFragment,
     function::{FunctionParam, ReturnType},
     match_block::MatchBlock,
@@ -547,6 +548,35 @@ impl Expression {
         match self {
             Expression::Literal { value, .. } => value.to_string(),
             _ => self.to_string(),
+        }
+    }
+    pub fn get_type(self) -> DataType {
+        match self {
+            Expression::Literal { value, .. } => value.get_type(),
+            Expression::TemplateLiteral { .. } => DataType::String,
+            Expression::Range { .. } => DataType::Range,
+            Expression::Array { .. } => DataType::Array,
+            Expression::Object { .. } => DataType::Object,
+            Expression::BinaryExpression { .. } => {
+                unreachable!("Cannot know the type of binary expression before interpretation")
+            }
+            Expression::MemberExpression { .. } => {
+                unreachable!("Cannot know the type of member expression before interpretation")
+            }
+            Expression::CallExpression { .. } => {
+                unreachable!("Cannot know the type of call expression before interpretation")
+            }
+            Expression::IdentifierExpression(_) => {
+                unreachable!("Cannot know the type of identifier expression before interpretation")
+            }
+            Expression::Parenthesized(_) => unreachable!(
+                "Cannot know the type of parenthesized expression before interpretation"
+            ),
+            Expression::Comment { .. } => unreachable!("Comment has no data type"),
+            Expression::FnExpression { .. } => DataType::Fn,
+            Expression::ErrorPropagation(x) => DataType::Fallible(x),
+            Expression::Err(x) => DataType::Err(x),
+            Expression::Ok(ok) => DataType::Ok(ok),
         }
     }
 }

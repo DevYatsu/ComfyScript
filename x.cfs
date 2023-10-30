@@ -1,6 +1,7 @@
-import write from "fs"
+import read_to_string from "fs"
 
-let file_name = input("Enter file name \u{1F600}: ")
-let content = input("Enter file content: ")
+let file_name = input("File to read: ")
 
-write(file_name, content)?
+let content: String = read_to_string(file_name)?
+
+print(#"File content:\n{content[0..=6]}")

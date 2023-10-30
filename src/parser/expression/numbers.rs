@@ -11,7 +11,9 @@ use crate::parser::ast::Expression;
 
 pub fn parse_number(initial_i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     // is normal to avoid having things such as Infinity considered numbers
-    let (i, num) = float.verify(|num| num.is_normal()).parse(initial_i)?;
+    let (i, num) = float
+        .verify(|num| num == &0.0 || num.is_normal())
+        .parse(initial_i)?;
     let (_, other_dot) = char('.').opt().parse(i)?;
     let (_, member_expr) = alphanumeric1.opt().parse(i)?;
 
