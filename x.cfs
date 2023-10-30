@@ -4,4 +4,8 @@ let file_name = input("File to read: ")
 
 let content: String = read_to_string(file_name)?
 
+let x = "str"
 print(#"File content:\n{content[0..=6]}")
+
+print(#"{x[0..3]}")
+print(#"{x[0..=2]}")

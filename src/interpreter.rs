@@ -797,14 +797,14 @@ impl SymbolTable {
                                             }
 
                                             &str_value
-                                                [start_index as usize..(end_index - 1) as usize]
+                                                [start_index as usize..=(end_index - 1) as usize]
                                         }
                                         RangeType::DotEqual => {
                                             if end_index < 0 || end_index > max_index {
                                                 return Err(format!("Index out of range, Range end index is {}, but length is {}", end_index, str_value.len()));
                                             }
 
-                                            &str_value[start_index as usize..end_index as usize]
+                                            &str_value[start_index as usize..=end_index as usize]
                                         }
                                     };
 
