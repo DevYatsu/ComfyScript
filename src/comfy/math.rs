@@ -165,8 +165,6 @@ fn cos(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.cos();
@@ -182,8 +180,6 @@ fn sin(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.sin();
@@ -199,8 +195,6 @@ fn tan(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.tan();
@@ -216,8 +210,6 @@ fn acos(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.acos();
@@ -233,8 +225,6 @@ fn asin(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.asin();
@@ -250,8 +240,6 @@ fn atan(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.atan();
@@ -267,8 +255,6 @@ fn ceil(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.ceil();
@@ -284,8 +270,6 @@ fn floor(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.floor();
@@ -301,8 +285,6 @@ fn log(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 2, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
         let base: f32 = args[1].to_owned().into();
 
@@ -319,8 +301,6 @@ fn ln(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Express
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.ln();
@@ -336,8 +316,6 @@ fn sqrt(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.sqrt();
@@ -352,8 +330,6 @@ fn power(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 2, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
         let power: f32 = args[1].to_owned().into();
 
@@ -381,8 +357,6 @@ fn abs(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.abs();
@@ -397,8 +371,6 @@ fn exp(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.exp();
@@ -413,8 +385,6 @@ fn max(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 2, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
         let max: f32 = args[1].to_owned().into();
 
@@ -430,8 +400,6 @@ fn min(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 2, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
         let min: f32 = args[1].to_owned().into();
 
@@ -447,8 +415,6 @@ fn round(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.round();
@@ -463,8 +429,6 @@ fn trunc(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.trunc();
@@ -479,8 +443,6 @@ fn clamp(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 3, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
         let min: f32 = args[1].to_owned().into();
         let max: f32 = args[2].to_owned().into();
@@ -497,8 +459,6 @@ fn signum(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Exp
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.signum();
@@ -515,8 +475,6 @@ fn to_radians(
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.to_radians();
@@ -533,8 +491,6 @@ fn to_degrees(
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
         let args = sanitize_math_args(symbol_table, &value, 1, args)?;
 
-        // here we can do that only because we check up here
-        // that args are all Number Expressions
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
         let result = num.to_degrees();
