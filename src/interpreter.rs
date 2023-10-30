@@ -934,6 +934,18 @@ impl SymbolTable {
                             }
                         }
                     }
+                    Expression::Object { properties } => {
+                        
+                    }
+                    Expression::Range { from, limits, to } => {
+                    
+                    }
+                    Expression::Err(_) => {
+                    
+                    }
+                    Expression::Ok(_) => {
+                    
+                    }
                     x => {
                         return Err(format!(
                             "Cannot index {} as it's of type {}",
