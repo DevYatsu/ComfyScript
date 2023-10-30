@@ -1,0 +1,7 @@
+let s: String = "hey, how r u ? \u{1F600}"
+
+print(s)
+
+import test from "tests/basic.cfs"
+
+test(s)
