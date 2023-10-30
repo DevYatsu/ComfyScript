@@ -1,5 +1,6 @@
-let s: String = "hey, how r u ? \u{1F600}"
+import write from "fs"
 
-import test as print from "tests/basic"
+let file_name = input("Enter file name \u{1F600}: ")
+let content = input("Enter file content: ")
 
-print(s)
+write(file_name, content)?

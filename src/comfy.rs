@@ -69,7 +69,7 @@ pub fn input(symbol_table: &SymbolTable, args: Vec<Expression>) -> Result<Expres
     })
 }
 
-pub fn expected_x_args(
+fn expected_x_args(
     fn_name: &str,
     expected_length: usize,
     args: &Vec<Expression>,
@@ -91,10 +91,16 @@ pub fn expected_x_args(
     Ok(())
 }
 
-pub fn expected_number_arg(fn_name: &str, arg: &Expression) -> Result<(), String> {
+fn expected_number_arg(
+    symbol_table: &SymbolTable,
+    fn_name: &str,
+    arg: Expression,
+) -> Result<Expression, String> {
+    let arg = symbol_table.evaluate_expr(arg)?;
+
     match &arg {
         Expression::Literal { value, .. } => match value {
-            LiteralValue::Number(_) => Ok(()),
+            LiteralValue::Number(_) => (),
             _ => {
                 return Err(format!(
                     "Expected arguments of type 'Number' for function `{}`",
@@ -109,12 +115,20 @@ pub fn expected_number_arg(fn_name: &str, arg: &Expression) -> Result<(), String
             ))
         }
     }
+
+    Ok(arg)
 }
 
-pub fn expected_string_arg(fn_name: &str, arg: &Expression) -> Result<(), String> {
+fn expected_string_arg(
+    symbol_table: &SymbolTable,
+    fn_name: &str,
+    arg: Expression,
+) -> Result<Expression, String> {
+    let arg = symbol_table.evaluate_expr(arg)?;
+
     match &arg {
         Expression::Literal { value, .. } => match value {
-            LiteralValue::Str(_) => Ok(()),
+            LiteralValue::Str(_) => (),
             _ => {
                 return Err(format!(
                     "Expected arguments of type 'String' for function `{}`",
@@ -129,4 +143,6 @@ pub fn expected_string_arg(fn_name: &str, arg: &Expression) -> Result<(), String
             ))
         }
     }
+
+    Ok(arg)
 }

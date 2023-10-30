@@ -48,7 +48,7 @@ pub fn import(
                         Ok(mut importing_table) => {
                             for specifier in specifiers {
                                 let exported_fn =
-                                    importing_table.export_function(&specifier.local.name)?;
+                                    importing_table.export_function(&specifier.imported.name)?;
 
                                 symbol_table
                                     .functions

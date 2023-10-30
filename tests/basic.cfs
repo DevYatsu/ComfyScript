@@ -4,6 +4,6 @@ let x: String = read_to_string("test.cfs")?
 
 print(x)
 
-export fn test(x) {
+export fn printer(x) {
     print(x)
 }

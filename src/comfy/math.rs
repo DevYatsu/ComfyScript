@@ -513,8 +513,7 @@ fn sanitize_math_args(
     let args = args
         .into_iter()
         .map(|arg| {
-            let arg = symbol_table.evaluate_expr(arg)?;
-            expected_number_arg(fn_name, &arg)?;
+            let arg = expected_number_arg(symbol_table, fn_name, arg)?;
 
             Ok(arg)
         })
