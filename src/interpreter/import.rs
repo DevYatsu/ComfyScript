@@ -1,7 +1,7 @@
 use std::fs;
 
 use crate::{
-    comfy::{fs::import_fs_fn, math::import_math_fn},
+    comfy::{fs::import_fs_fn, math::import_math_fn, time::import_time_fn},
     parser::ast::import::{ImportSource, ImportSpecifier},
     script::ComfyScript,
 };
@@ -28,7 +28,12 @@ pub fn import(
         }
         "json" => todo!(),
         "thread" => todo!(),
-        "time" => todo!(),
+        "time" => {
+            for specifier in specifiers {
+                let f = import_time_fn(specifier.imported.name)?;
+                symbol_table.functions.insert(specifier.local.name, f);
+            }
+        }
         "http" => todo!(),
         "env" => todo!(),
         "collections" => todo!(),

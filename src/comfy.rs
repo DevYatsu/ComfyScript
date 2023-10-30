@@ -1,13 +1,13 @@
 // standard library
-mod collections;
-mod env;
+pub mod collections;
+pub mod env;
 pub mod fs;
-mod http;
-mod input_output;
-mod json;
+pub mod http;
+pub mod input_output;
+pub mod json;
 pub mod math;
-mod thread;
-mod time;
+pub mod thread;
+pub mod time;
 
 use std::{
     io::{self, Write},
