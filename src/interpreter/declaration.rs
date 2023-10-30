@@ -8,8 +8,8 @@ use super::SymbolTable;
         declarations: Vec<VariableDeclarator>,
     ) -> Result<(), String> {
         match kind {
-            VariableKeyword::Var => symbol_table.add_variables_declarations(declarations)?,
-            VariableKeyword::Let => symbol_table.add_constants_declarations(declarations)?,
+            VariableKeyword::Var => add_variables_declarations(symbol_table, declarations)?,
+            VariableKeyword::Let => add_constants_declarations(symbol_table, declarations)?,
         };
 
         Ok(())
