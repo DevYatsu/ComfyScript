@@ -859,24 +859,6 @@ impl SymbolTable {
                                         },
                                         None => 0,
                                     };
-                                    let end_index = match to {
-                                        Some(expr) => {
-                                            match *expr {
-                                                Expression::Literal { value, .. } => {
-                                                    match value {
-                                                        LiteralValue::Number(num) => num as isize,
-                                                        val => return Err(format!(
-                                                            "Range end index expected to be of type `Number`, found {}",
-                                                                val
-                                                        ))
-                                                        
-                                                    }
-                                                },
-                                                _ => return Err(format!("Range end index expected to be of type `Number`, found {}", expr)) 
-                                            } 
-                                        },
-                                        None => max_index,
-                                    };
 
                                     if start_index < 0 || start_index > max_index {
                                         return Err(format!("Index out of range, Range start index is {}, but length is {}", start_index, elements.len()));
@@ -884,6 +866,25 @@ impl SymbolTable {
 
                                     let new_value = match limits {
                                         RangeType::Dot => {
+                                            let end_index = match to {
+                                                Some(expr) => {
+                                                        match *expr {
+                                                            Expression::Literal { value, .. } => {
+                                                                match value {
+                                                                    LiteralValue::Number(num) => num as isize,
+                                                                    val => return Err(format!(
+                                                                        "Range end index expected to be of type `Number`, found {}",
+                                                                            val
+                                                                    ))
+                                                                    
+                                                                }
+                                                            },
+                                                            _ => return Err(format!("Range end index expected to be of type `Number`, found {}", expr)) 
+                                                        } 
+                                                    },
+                                                None => max_index + 1,
+                                            };
+
                                             if end_index < 0 || end_index > (max_index + 1) {
                                                 return Err(format!("Index out of range, Range end index is {}, but length is {}", end_index, elements.len()));
                                             }
@@ -892,6 +893,25 @@ impl SymbolTable {
                                                 .to_vec()
                                         }
                                         RangeType::DotEqual => {
+                                            let end_index = match to {
+                                                Some(expr) => {
+                                                    match *expr {
+                                                        Expression::Literal { value, .. } => {
+                                                            match value {
+                                                                LiteralValue::Number(num) => num as isize,
+                                                                val => return Err(format!(
+                                                                    "Range end index expected to be of type `Number`, found {}",
+                                                                        val
+                                                                ))
+                                                                
+                                                            }
+                                                        },
+                                                        _ => return Err(format!("Range end index expected to be of type `Number`, found {}", expr)) 
+                                                    } 
+                                                },
+                                                None => max_index,
+                                            };
+
                                             if end_index < 0 || end_index > max_index {
                                                 return Err(format!("Index out of range, Range end index is {}, but length is {}", end_index, elements.len()));
                                             }
