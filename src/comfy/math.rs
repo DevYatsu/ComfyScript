@@ -58,533 +58,98 @@ lazy_static! {
 
 pub fn import_math_fn(value: String) -> Result<InterpretedFn, String> {
     let result = match value.as_str() {
-        "cos" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.cos();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "sin" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.sin();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "tan" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.tan();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "acos" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.acos();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "asin" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.asin();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "atan" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.atan();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "ceil" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.ceil();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "floor" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.floor();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "log" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 2, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-                        let base: f32 = args[1].to_owned().into();
-
-                        let result = num.log(base);
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "ln" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.ln();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "sqrt" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.sqrt();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "power" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 2, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-                        let power: f32 = args[1].to_owned().into();
-
-                        let result = num.powf(power);
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
+        "cos" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(cos(value)),
+        },
+        "sin" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(sin(value)),
+        },
+        "tan" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(tan(value)),
+        },
+        "acos" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(acos(value)),
+        },
+        "asin" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(asin(value)),
+        },
+        "atan" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(atan(value)),
+        },
+        "ceil" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(ceil(value)),
+        },
+        "floor" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(floor(value)),
+        },
+        "log" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(log(value)),
+        },
+        "ln" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(ln(value)),
+        },
+        "sqrt" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(sqrt(value)),
+        },
+        "power" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(power(value)),
+        },
         "random" => InterpretedFn {
             name: value.to_owned(),
-            executable: Rc::new(
-                move |s: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-                    sanitize_math_args(s, &value, 0, args)?;
-
-                    let result = rand::thread_rng().gen();
-
-                    Ok(Expression::Literal {
-                        value: LiteralValue::Number(result),
-                        raw: result.to_string(),
-                    })
-                },
-            ),
+            executable: Rc::new(random(value)),
         },
-        "abs" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.abs();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "exp" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.exp();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "max" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 2, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-                        let max: f32 = args[1].to_owned().into();
-
-                        let result = num.max(max);
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "min" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 2, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-                        let min: f32 = args[1].to_owned().into();
-
-                        let result = num.min(min);
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "round" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.round();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "trunc" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.trunc();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "clamp" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 3, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-                        let min: f32 = args[1].to_owned().into();
-                        let max: f32 = args[2].to_owned().into();
-
-                        let result = num.clamp(min, max);
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "signum" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.signum();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "to_radians" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.to_radians();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
-        "to_degrees" => {
-            InterpretedFn {
-                name: value.to_owned(),
-                executable: Rc::new(
-                    move |symbol_table: &SymbolTable,
-                          args: Vec<Expression>|
-                          -> Result<Expression, String> {
-                        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
-
-                        // here we can do that only because we check up here
-                        // that args are all Number Expressions
-                        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
-
-                        let result = num.to_degrees();
-
-                        Ok(Expression::Literal {
-                            value: LiteralValue::Number(result),
-                            raw: result.to_string(),
-                        })
-                    },
-                ),
-            }
-        }
+        "abs" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(abs(value)),
+        },
+        "exp" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(exp(value)),
+        },
+        "max" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(max(value)),
+        },
+        "min" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(min(value)),
+        },
+        "round" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(round(value)),
+        },
+        "trunc" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(trunc(value)),
+        },
+        "clamp" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(clamp(value)),
+        },
+        "signum" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(signum(value)),
+        },
+        "to_radians" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(to_radians(value)),
+        },
+        "to_degrees" => InterpretedFn {
+            name: value.to_owned(),
+            executable: Rc::new(to_degrees(value)),
+        },
         _ => {
             return Err(format!(
                 "'math' package does not export a `{}` member",
@@ -594,6 +159,391 @@ pub fn import_math_fn(value: String) -> Result<InterpretedFn, String> {
     };
 
     Ok(result)
+}
+
+fn cos(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.cos();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+
+fn sin(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.sin();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+
+fn tan(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.tan();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+
+fn acos(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.acos();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+
+fn asin(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.asin();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+
+fn atan(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.atan();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+
+fn ceil(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.ceil();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+
+fn floor(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.floor();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+
+fn log(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 2, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+        let base: f32 = args[1].to_owned().into();
+
+        let result = num.log(base);
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+
+fn ln(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.ln();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+
+fn sqrt(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.sqrt();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+fn power(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 2, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+        let power: f32 = args[1].to_owned().into();
+
+        let result = num.powf(power);
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+fn random(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |s: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        sanitize_math_args(s, &value, 0, args)?;
+
+        let result = rand::thread_rng().gen();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+fn abs(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.abs();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+fn exp(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.exp();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+fn max(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 2, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+        let max: f32 = args[1].to_owned().into();
+
+        let result = num.max(max);
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+fn min(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 2, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+        let min: f32 = args[1].to_owned().into();
+
+        let result = num.min(min);
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+fn round(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.round();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+fn trunc(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.trunc();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+fn clamp(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 3, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+        let min: f32 = args[1].to_owned().into();
+        let max: f32 = args[2].to_owned().into();
+
+        let result = num.clamp(min, max);
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+fn signum(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.signum();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+fn to_radians(
+    value: String,
+) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.to_radians();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
+}
+fn to_degrees(
+    value: String,
+) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+
+        // here we can do that only because we check up here
+        // that args are all Number Expressions
+        let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
+
+        let result = num.to_degrees();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(result),
+            raw: result.to_string(),
+        })
+    }
 }
 
 fn sanitize_math_args(

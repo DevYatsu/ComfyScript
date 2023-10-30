@@ -1,5 +1,5 @@
-mod import;
 mod declaration;
+mod import;
 
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
@@ -773,6 +773,7 @@ impl SymbolTable {
         Err(format!("Undefined function '{}'", name))
     }
     fn export_function(&mut self, name: &str) -> Result<InterpretedFn, String> {
+        // when importing another symbol table, thus after reading, parsing and importing another file
         let value = self.exported.remove(name);
 
         if let Some(value) = value {
@@ -860,7 +861,6 @@ impl SymbolTable {
     ) -> Result<(), String> {
         declaration::add_declarations(self, kind, declarations)
     }
-
 }
 
 impl Debug for InterpretedFn {
