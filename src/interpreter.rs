@@ -1,4 +1,5 @@
 mod import;
+mod declaration;
 
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
@@ -852,45 +853,14 @@ impl SymbolTable {
     ) -> Result<(), String> {
         import::import(self, source, specifiers)
     }
-
     fn add_declarations(
         &mut self,
         kind: VariableKeyword,
         declarations: Vec<VariableDeclarator>,
     ) -> Result<(), String> {
-        match kind {
-            VariableKeyword::Var => self.add_variables_declarations(declarations)?,
-            VariableKeyword::Let => self.add_constants_declarations(declarations)?,
-        };
-
-        Ok(())
+        declaration::add_declarations(self, kind, declarations)
     }
-    fn add_variables_declarations(
-        &mut self,
-        declarations: Vec<VariableDeclarator>,
-    ) -> Result<(), String> {
-        for declaration in declarations {
-            let name = declaration.id.name.to_owned();
-            let expr = self.evaluate_expr(declaration.init)?;
 
-            self.add_variable(name, expr)
-        }
-
-        Ok(())
-    }
-    fn add_constants_declarations(
-        &mut self,
-        declarations: Vec<VariableDeclarator>,
-    ) -> Result<(), String> {
-        for declaration in declarations {
-            let name = declaration.id.name.to_owned();
-            let expr = self.evaluate_expr(declaration.init)?;
-
-            self.add_constant(name, expr)
-        }
-
-        Ok(())
-    }
 }
 
 impl Debug for InterpretedFn {
