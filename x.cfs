@@ -1,7 +1,5 @@
 let s: String = "hey, how r u ? \u{1F600}"
 
+import test as print from "tests/basic"
+
 print(s)
-
-import test from "tests/basic"
-
-test(s)
