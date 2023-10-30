@@ -50,14 +50,28 @@ pub fn parse_range(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     .preceded_by(multispace0)
     .parse(i)?;
 
-    let (i, final_expr) = parse_basic_expression.preceded_by(multispace0).parse(i)?;
+    let (i, final_expr) = parse_basic_expression
+        .preceded_by(multispace0)
+        .opt()
+        .parse(i)?;
+
+    if let Some(final_expr) = final_expr {
+        return Ok((
+            i,
+            Expression::Range {
+                from: None,
+                limits: range_type,
+                to: Some(Box::new(final_expr)),
+            },
+        ));
+    }
 
     Ok((
         i,
         Expression::Range {
             from: None,
             limits: range_type,
-            to: Some(Box::new(final_expr)),
+            to: None,
         },
     ))
 }

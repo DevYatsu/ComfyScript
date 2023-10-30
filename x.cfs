@@ -3,3 +3,7 @@ import read_to_string from "fs"
 let content: String = read_to_string("test.cfs")?
 
 print(#"File content:\n{ content[..=5] }")
+
+let x = [1, 2, 3, 4, 5,]
+
+print(#"copy: { x[..] } ")
