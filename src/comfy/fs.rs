@@ -9,7 +9,7 @@ use crate::{
 
 use super::{expected_string_arg, expected_x_args};
 
-pub fn import_fs_fns(value: String) -> Result<InterpretedFn, String> {
+pub fn import_fs_fn(value: String) -> Result<InterpretedFn, String> {
     let result = match value.as_str() {
         "read_to_string" => InterpretedFn {
             name: value.to_owned(),

@@ -45,7 +45,7 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 }
 
 fn parse_assigned(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
-    let (i, expr) = alt((parse_indexing, parse_fn_call, parse_identifier_expression)).parse(i)?;
+    let (i, expr) = alt((parse_indexing, parse_identifier_expression)).parse(i)?;
 
     let (i, expr) = parse_opt_member_expr(expr)(i)?;
 

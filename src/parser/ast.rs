@@ -16,15 +16,11 @@ use self::{
 use super::{
     assignment::initial::VariableKeyword,
     expression::template_literal::TemplateLiteralFragment,
-    function::{FunctionParam, FunctionReturnType},
+    function::{FunctionParam, ReturnType},
     match_block::MatchBlock,
     operations::{assignment::AssignmentOperator, binary::BinaryOperator},
 };
 use std::fmt::{self, Display, Formatter};
-
-pub trait Minify {
-    fn minify_fmt(&self) -> String;
-}
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum ASTNode {
@@ -51,10 +47,10 @@ pub enum ASTNode {
 
     FunctionDeclaration {
         id: Identifier,
-        // if None then anon func
+        is_exported: bool,
         params: Vec<FunctionParam>,
         body: Box<ASTNode>,
-        return_type: Option<FunctionReturnType>,
+        return_type: Option<ReturnType>,
         is_shortcut: bool,
         // if is_shortcut == true then body = ASTNode::ReturnStatement
     },
@@ -138,7 +134,7 @@ pub enum Expression {
         params: Vec<FunctionParam>,
         body: Box<ASTNode>,
         is_shortcut: bool,
-        return_type: Option<FunctionReturnType>,
+        return_type: Option<ReturnType>,
     },
 
     ErrorPropagation(Box<Expression>), // An expression propaging the error if it fails
@@ -197,8 +193,13 @@ impl Display for ASTNode {
                 params,
                 body,
                 return_type,
+                is_exported,
                 ..
             } => {
+                if *is_exported {
+                    write!(f, "export ")?;
+                }
+
                 write!(f, "fn {}(", id.clone())?;
 
                 for (i, param) in params.into_iter().enumerate() {

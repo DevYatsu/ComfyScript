@@ -24,52 +24,57 @@ pub struct FunctionParam {
     pub param_type: Option<DataType>,
 }
 #[derive(Debug, Clone, PartialEq)]
-pub struct FunctionReturnType {
+pub struct ReturnType {
     pub return_type: DataType,
     pub is_fallible: bool, // may fail or not
 }
 
-pub fn parse_function(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
-    let (input, _) = multispace1(input)?;
+pub fn parse_function(
+    is_exported: bool,
+) -> impl Fn(&str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
+    move |input| {
+        let (input, _) = multispace1(input)?;
 
-    let (input, id) = parse_identifier
-        .verify(|id| !DEFINED_FUNCTIONS.contains(&id.name.as_str()))
-        .context("invalid function name")
-        .cut()
-        .parse(input)?;
+        let (input, id) = parse_identifier
+            .verify(|id| !DEFINED_FUNCTIONS.contains(&id.name.as_str()))
+            .context("invalid function name")
+            .cut()
+            .parse(input)?;
 
-    let (input, _) = multispace0(input)?;
-    let (input, _) = parse_char('(')
-        .cut()
-        .context("open parenthesis")
-        .parse(input)?;
-    let (input, _) = multispace0(input)?;
+        let (input, _) = multispace0(input)?;
+        let (input, _) = parse_char('(')
+            .cut()
+            .context("open parenthesis")
+            .parse(input)?;
+        let (input, _) = multispace0(input)?;
 
-    let (input, params) = parse_fn_params(input)?;
+        let (input, params) = parse_fn_params(input)?;
 
-    let (input, _) = multispace0(input)?;
-    let (input, _) = parse_char(')').cut().parse(input)?;
-    let (input, _) = multispace0(input)?;
+        let (input, _) = multispace0(input)?;
+        let (input, _) = parse_char(')').cut().parse(input)?;
+        let (input, _) = multispace0(input)?;
 
-    let (input, return_type) = parse_fn_return_type
-        .terminated(multispace0)
-        .opt()
-        .parse(input)?;
+        let (input, return_type) = parse_fn_return_type
+            .terminated(multispace0)
+            .opt()
+            .parse(input)?;
 
-    let (input, (body, is_shortcut)) = parse_fn_body
-        .cut()
-        .map(|(b, s)| (Box::new(b), s))
-        .parse(input)?;
+        let (input, (body, is_shortcut)) = parse_fn_body
+            .cut()
+            .map(|(b, s)| (Box::new(b), s))
+            .parse(input)?;
 
-    let node = ASTNode::FunctionDeclaration {
-        id,
-        params,
-        body,
-        is_shortcut,
-        return_type,
-    };
+        let node = ASTNode::FunctionDeclaration {
+            id,
+            params,
+            body,
+            is_shortcut,
+            return_type,
+            is_exported,
+        };
 
-    Ok((input, node))
+        Ok((input, node))
+    }
 }
 
 pub fn parse_fn_expression(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
@@ -124,7 +129,7 @@ fn parse_fn_param(input: &str) -> IResult<&str, FunctionParam, ErrorTree<&str>> 
     Ok((input, FunctionParam { id, param_type }))
 }
 
-fn parse_fn_return_type(input: &str) -> IResult<&str, FunctionReturnType, ErrorTree<&str>> {
+fn parse_fn_return_type(input: &str) -> IResult<&str, ReturnType, ErrorTree<&str>> {
     let (input, _) = tag("->").complete().preceded_by(multispace0).parse(input)?;
     let (input, return_type) = parse_data_type
         .cut()
@@ -140,7 +145,7 @@ fn parse_fn_return_type(input: &str) -> IResult<&str, FunctionReturnType, ErrorT
 
     Ok((
         input,
-        FunctionReturnType {
+        ReturnType {
             return_type,
             is_fallible,
         },
@@ -158,7 +163,7 @@ impl Display for FunctionParam {
         write!(f, "")
     }
 }
-impl Display for FunctionReturnType {
+impl Display for ReturnType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.return_type)?;
 

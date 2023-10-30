@@ -31,7 +31,7 @@ use crate::parser::import::parse_import;
 use nom::{
     branch::alt,
     bytes::complete::take_while1,
-    character::complete::{alphanumeric0, char, multispace0, space0},
+    character::complete::{alphanumeric0, char, multispace0, multispace1, space0},
     multi::many0,
     IResult, Parser,
 };
@@ -91,7 +91,17 @@ fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
             (input, ASTNode::VariableDeclaration { declarations, kind })
         }
         "import" => parse_import(input)?,
-        "fn" => parse_function(input)?,
+        "export" => {
+            let (input, _) = multispace1(input)?;
+            let (input, _) = tag("fn")
+                .complete()
+                .cut()
+                .context("expected")
+                .parse(input)?;
+
+            parse_function(true)(input)?
+        }
+        "fn" => parse_function(false)(input)?,
         "if" => parse_if_statement(input)?,
         "for" => parse_for_statement(input)?,
         "while" => parse_while_statement(input)?,

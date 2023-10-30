@@ -1,5 +1,5 @@
 use crate::{
-    interpreter::interpret,
+    interpreter::{interpret, interpret_import, SymbolTable},
     parser::{
         ast::{self, identifier::parse_raw_id},
         comment::jump_comments,
@@ -48,10 +48,53 @@ impl<Name: Display + Clone> ComfyScript<Name> {
         // _nodes.iter().for_each(|node| println!("{:?}", node));
 
         match interpret(program) {
-            Ok(_) => println!("worked!"),
-            Err(e) => eprintln!("error {}!", e),
+            Ok(_) => {
+                println!("worked!");
+            }
+            Err(e) => {
+                eprintln!("error {}!", e);
+                std::process::exit(1)
+            }
         };
+
         Ok(())
+    }
+
+    pub fn execute_as_import(
+        &self,
+    ) -> Result<SymbolTable, (SyntaxError<()>, SimpleFile<Name, String>)> {
+        let content = &self.content;
+        let file = SimpleFile::new(self.name.to_owned(), content.to_owned());
+
+        if content.is_empty() {
+            return Ok(SymbolTable::new());
+        }
+
+        let program = match parse_input(&content) {
+            Ok(r) => r,
+            Err(e) => {
+                return Err((self.match_error(&e), file));
+            }
+        };
+
+        // let _nodes = match &program {
+        //     ast::ASTNode::Program { body } => body,
+        //     _ => unreachable!(),
+        // };
+        // _nodes.iter().for_each(|node| println!("{:?}", node));
+
+        let symbol_table = match interpret_import(program) {
+            Ok(symbol_table) => {
+                println!("worked!");
+                symbol_table
+            }
+            Err(e) => {
+                eprintln!("error {}!", e);
+                std::process::exit(1)
+            }
+        };
+
+        Ok(symbol_table)
     }
 
     fn match_error(

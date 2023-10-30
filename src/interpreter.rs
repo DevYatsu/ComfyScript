@@ -1,12 +1,17 @@
+mod import;
+
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
 use crate::{
-    comfy::{self, fs::import_fs_fns, math::import_math_fn},
+    comfy,
     parser::{
         assignment::initial::VariableKeyword,
         ast::{
-            identifier::Identifier, import::ImportSpecifier, literal_value::LiteralValue, ASTNode,
-            Expression,
+            identifier::Identifier,
+            import::{ImportSource, ImportSpecifier},
+            literal_value::LiteralValue,
+            vars::VariableDeclarator,
+            ASTNode, Expression,
         },
         expression,
         operations::{assignment::AssignmentOperator, binary::BinaryOperator},
@@ -14,7 +19,7 @@ use crate::{
 };
 use hashbrown::HashMap;
 
-pub fn interpret(program: ASTNode) -> Result<(), String> {
+pub fn interpret(program: ASTNode) -> Result<SymbolTable, String> {
     let nodes = match program {
         ASTNode::Program { body } => body,
         _ => unreachable!(),
@@ -25,7 +30,21 @@ pub fn interpret(program: ASTNode) -> Result<(), String> {
     symbol_table.interpret(nodes)?;
 
     println!("{:?}", symbol_table);
-    Ok(())
+    Ok(symbol_table)
+}
+
+pub fn interpret_import(program: ASTNode) -> Result<SymbolTable, String> {
+    let nodes = match program {
+        ASTNode::Program { body } => body,
+        _ => unreachable!(),
+    };
+
+    let mut symbol_table = SymbolTable::new();
+
+    symbol_table.interpret_import(nodes)?;
+
+    println!("{:?}", symbol_table);
+    Ok(symbol_table)
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -33,6 +52,7 @@ pub struct SymbolTable {
     pub functions: HashMap<String, InterpretedFn>,
     pub constants: HashMap<String, Expression>,
     pub variables: HashMap<String, Expression>,
+    pub exported: HashMap<String, InterpretedFn>,
 }
 
 #[derive(Clone)]
@@ -47,33 +67,123 @@ impl SymbolTable {
             functions: HashMap::new(),
             constants: HashMap::new(),
             variables: HashMap::new(),
+            exported: HashMap::new(),
         }
     }
 
     pub fn interpret(&mut self, nodes: Vec<ASTNode>) -> Result<Expression, String> {
         for node in nodes {
             match node {
-                ASTNode::Program { body } => todo!(),
+                ASTNode::Program { .. } => unreachable!(),
                 ASTNode::ImportDeclaration { specifiers, source } => {
-                    self.add_import(source.console_print().as_str(), specifiers)?;
+                    self.import(source, specifiers)?;
                 }
                 ASTNode::VariableDeclaration { declarations, kind } => {
-                    // let target_table = match kind {
-                    //     VariableKeyword::Var => &mut self.variables,
-                    //     VariableKeyword::Let => &mut self.constants,
-                    // };
-
-                    // need to update this code to only match kind once
-                    for declaration in declarations {
-                        let name = declaration.id.name.to_owned();
-                        let expr = self.evaluate_expr(declaration.init)?;
-
-                        match kind {
-                            VariableKeyword::Var => self.add_variable(name, expr),
-                            VariableKeyword::Let => self.add_constant(name, expr),
-                        };
-                    }
+                    self.add_declarations(kind, declarations)?;
                 }
+                ASTNode::Assignment {
+                    operator,
+                    id,
+                    assigned,
+                } => match id {
+                    Expression::MemberExpression {
+                        indexed,
+                        property,
+                        computed,
+                    } => todo!(),
+                    Expression::IdentifierExpression(Identifier { name }) => {
+                        let current_value = self.get_variable(&name)?;
+
+                        if self.constants.get(&name).is_some() {
+                            return Err(format!("Cannot reassign constant '{}'", name));
+                        }
+
+                        match operator {
+                            AssignmentOperator::Equal => {
+                                self.reassign_variable(name, assigned);
+                            }
+                            AssignmentOperator::PlusEqual => {
+                                let expr = self.evaluate_expr(Expression::BinaryExpression {
+                                    left: Box::new(current_value.to_owned()),
+                                    operator: BinaryOperator::Plus,
+                                    right: Box::new(assigned),
+                                })?;
+                                self.reassign_variable(name, expr);
+                            }
+                            AssignmentOperator::MinusEqual => {
+                                let expr = self.evaluate_expr(Expression::BinaryExpression {
+                                    left: Box::new(current_value.to_owned()),
+                                    operator: BinaryOperator::Minus,
+                                    right: Box::new(assigned),
+                                })?;
+                                self.reassign_variable(name, expr);
+                            }
+                            AssignmentOperator::TimesEqual => {
+                                let expr = self.evaluate_expr(Expression::BinaryExpression {
+                                    left: Box::new(current_value.to_owned()),
+                                    operator: BinaryOperator::Times,
+                                    right: Box::new(assigned),
+                                })?;
+                                self.reassign_variable(name, expr);
+                            }
+                            AssignmentOperator::DivideEqual => {
+                                let expr = self.evaluate_expr(Expression::BinaryExpression {
+                                    left: Box::new(current_value.to_owned()),
+                                    operator: BinaryOperator::Divide,
+                                    right: Box::new(assigned),
+                                })?;
+                                self.reassign_variable(name, expr);
+                            }
+                            AssignmentOperator::ModuloEqual => {
+                                let expr = self.evaluate_expr(Expression::BinaryExpression {
+                                    left: Box::new(current_value.to_owned()),
+                                    operator: BinaryOperator::Modulo,
+                                    right: Box::new(assigned),
+                                })?;
+                                self.reassign_variable(name, expr);
+                            }
+                        }
+                    }
+                    _ => unreachable!(),
+                },
+                ASTNode::ExpressionStatement { expression } => {
+                    self.evaluate_expr(expression)?;
+                }
+                ASTNode::FunctionDeclaration { .. } => self.add_function(node),
+                ASTNode::ForStatement {
+                    declarations,
+                    kind,
+                    source,
+                    body,
+                } => todo!(),
+                ASTNode::WhileStatement { test, body } => todo!(),
+                ASTNode::IfStatement {
+                    test,
+                    body,
+                    alternate,
+                } => todo!(),
+                ASTNode::MatchStatement { test, body } => todo!(),
+                ASTNode::BlockStatement { body } => todo!(),
+                ASTNode::ReturnStatement { argument, .. } => {
+                    return Ok(self.evaluate_expr(argument)?)
+                }
+            }
+        }
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Nil,
+            raw: "nil".to_string(),
+        })
+    }
+
+    pub fn interpret_import(&mut self, nodes: Vec<ASTNode>) -> Result<Expression, String> {
+        for node in nodes {
+            match node {
+                ASTNode::Program { .. } => unreachable!(),
+                ASTNode::ImportDeclaration { specifiers, source } => {
+                    self.import(source, specifiers)?;
+                }
+                ASTNode::VariableDeclaration { declarations, kind } => {}
                 ASTNode::Assignment {
                     operator,
                     id,
@@ -641,15 +751,6 @@ impl SymbolTable {
 
         Err(format!("Undefined variable '{}'", name))
     }
-    fn get_function(&self, name: &str) -> Result<&InterpretedFn, String> {
-        let value = self.functions.get(name);
-
-        if let Some(value) = value {
-            return Ok(value);
-        }
-
-        Err(format!("Undefined function '{}'", name))
-    }
     fn reassign_variable(&mut self, name: String, expr: Expression) {
         self.variables.insert(name, expr);
     }
@@ -663,10 +764,35 @@ impl SymbolTable {
         self.constants.insert(name, expr);
     }
 
+    fn get_function(&self, name: &str) -> Result<&InterpretedFn, String> {
+        let value = self.functions.get(name);
+
+        if let Some(value) = value {
+            return Ok(value);
+        }
+
+        Err(format!("Undefined function '{}'", name))
+    }
+    fn export_function(&mut self, name: &str) -> Result<InterpretedFn, String> {
+        let value = self.exported.remove(name);
+
+        if let Some(value) = value {
+            return Ok(value);
+        }
+
+        Err(format!(
+            "Cannot export function '{}' as it is undefined",
+            name
+        ))
+    }
     fn add_function(&mut self, function: ASTNode) {
         match function {
             ASTNode::FunctionDeclaration {
-                id, params, body, ..
+                id,
+                params,
+                body,
+                is_exported,
+                ..
             } => {
                 let name = id.to_owned().name;
                 let symbol_table = Rc::new(RefCell::new(self.clone()));
@@ -707,6 +833,16 @@ impl SymbolTable {
                     },
                 );
 
+                if is_exported {
+                    self.exported.insert(
+                        name.to_owned(),
+                        InterpretedFn {
+                            name: name.to_owned(),
+                            executable: executable.to_owned(),
+                        },
+                    );
+                }
+
                 self.functions
                     .insert(name.to_owned(), InterpretedFn { name, executable });
             }
@@ -714,43 +850,48 @@ impl SymbolTable {
         }
     }
 
-    fn add_import(&mut self, source: &str, specifiers: Vec<ImportSpecifier>) -> Result<(), String> {
-        match source {
-            "fs" => {
-                let fs_fns = specifiers
-                    .into_iter()
-                    .map(|specifier| {
-                        import_fs_fns(specifier.imported.name).map(|x| (specifier.local.name, x))
-                    })
-                    .collect::<Result<Vec<(String, InterpretedFn)>, String>>()?;
+    fn import(
+        &mut self,
+        source: ImportSource,
+        specifiers: Vec<ImportSpecifier>,
+    ) -> Result<(), String> {
+        import::import(self, source, specifiers)
+    }
 
-                fs_fns.into_iter().for_each(|(name, f)| {
-                    self.functions.insert(name, f);
-                })
-            }
-            "math" => {
-                let maths_fns = specifiers
-                    .into_iter()
-                    .map(|specifier| {
-                        import_math_fn(specifier.imported.name).map(|x| (specifier.local.name, x))
-                    })
-                    .collect::<Result<Vec<(String, InterpretedFn)>, String>>()?;
+    fn add_declarations(
+        &mut self,
+        kind: VariableKeyword,
+        declarations: Vec<VariableDeclarator>,
+    ) -> Result<(), String> {
+        match kind {
+            VariableKeyword::Var => self.add_variables_declarations(declarations)?,
+            VariableKeyword::Let => self.add_constants_declarations(declarations)?,
+        };
 
-                maths_fns.into_iter().for_each(|(name, f)| {
-                    self.functions.insert(name, f);
-                })
-            }
-            "json" => todo!(),
-            "thread" => todo!(),
-            "time" => todo!(),
-            "http" => todo!(),
-            "env" => todo!(),
-            "collections" => todo!(),
-            "input_output" => todo!(),
-            _ => {
-                todo!()
-                // check for importing in another file
-            }
+        Ok(())
+    }
+    fn add_variables_declarations(
+        &mut self,
+        declarations: Vec<VariableDeclarator>,
+    ) -> Result<(), String> {
+        for declaration in declarations {
+            let name = declaration.id.name.to_owned();
+            let expr = self.evaluate_expr(declaration.init)?;
+
+            self.add_variable(name, expr)
+        }
+
+        Ok(())
+    }
+    fn add_constants_declarations(
+        &mut self,
+        declarations: Vec<VariableDeclarator>,
+    ) -> Result<(), String> {
+        for declaration in declarations {
+            let name = declaration.id.name.to_owned();
+            let expr = self.evaluate_expr(declaration.init)?;
+
+            self.add_constant(name, expr)
         }
 
         Ok(())

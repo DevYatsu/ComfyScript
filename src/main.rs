@@ -35,7 +35,7 @@ fn main() -> Result<(), Box<dyn Error>> {
                 match script.execute() {
                     Ok(_) => (),
                     Err((err, file)) => {
-                        err.print(file).unwrap();
+                        err.print(file)?;
                     }
                 };
             }

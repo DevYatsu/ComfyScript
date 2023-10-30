@@ -21,7 +21,10 @@ pub fn print(symbol_table: &SymbolTable, args: Vec<Expression>) -> Result<Expres
         return Err("Expected 1 argument for function `print`".into());
     }
 
-    println!("{}", symbol_table.evaluate_expr(args[0].to_owned())?);
+    let print = symbol_table
+        .evaluate_expr(args[0].to_owned())?
+        .console_print();
+    println!("{}", print);
 
     Ok(Expression::Literal {
         value: crate::parser::ast::literal_value::LiteralValue::Nil,
