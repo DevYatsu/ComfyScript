@@ -15,7 +15,7 @@ use crate::{
             vars::VariableDeclarator,
             ASTNode, Expression,
         },
-        expression,
+        expression::template_literal::TemplateLiteralFragment,
         operations::{assignment::AssignmentOperator, binary::BinaryOperator},
     },
 };
@@ -321,16 +321,12 @@ impl SymbolTable {
 
                 for fragment in value {
                     match fragment {
-                        expression::template_literal::TemplateLiteralFragment::Literal(literal) => {
-                            string.push_str(&literal)
-                        }
-                        expression::template_literal::TemplateLiteralFragment::EscapedChar(c) => {
-                            string.push(c)
-                        }
-                        expression::template_literal::TemplateLiteralFragment::Expression(expr) => {
+                        TemplateLiteralFragment::Literal(literal) => string.push_str(&literal),
+                        TemplateLiteralFragment::EscapedChar(c) => string.push(c),
+                        TemplateLiteralFragment::Expression(expr) => {
                             string.push_str(&self.evaluate_expr(expr)?.console_print())
                         }
-                        expression::template_literal::TemplateLiteralFragment::EscapedWS => (),
+                        TemplateLiteralFragment::EscapedWS => (),
                     }
                 }
 
@@ -728,14 +724,15 @@ impl SymbolTable {
                             match evaluated_property {
                                 Expression::Literal { value, .. } => match value {
                                     LiteralValue::Number(num) => {
-                                        let new_str = str_value.chars().nth(num as usize);
-                                        if new_str.is_none() {
+                                        let index = num as usize;
+                                        if index > (str_value.len() - 1) {
                                             return Err(format!("Index out of range, tried to index at index {}, but length is {}", num.floor(), str_value.len()));
                                         }
+                                        let new_str = &str_value[index..index + 1];
 
-                                        let raw = format!("\"{}\"", new_str.unwrap());
+                                        let raw = format!("\"{}\"", new_str);
                                         return Ok(Expression::Literal {
-                                            value: LiteralValue::Str(new_str.unwrap().into()),
+                                            value: LiteralValue::Str(new_str.to_owned()),
                                             raw,
                                         });
                                     }
@@ -821,7 +818,102 @@ impl SymbolTable {
                             }
                         }
                     }
-                    Expression::Array { elements } => todo!(),
+                    Expression::Array { elements } => {
+                        if computed {
+                            let evaluated_property = self.evaluate_expr((*property).to_owned())?;
+                            match evaluated_property {
+                                Expression::Literal { value, .. } => match value {
+                                    LiteralValue::Number(num) => {
+                                        let index = num.floor() as usize;
+                                        if index > (elements.len() - 1) {
+                                            return Err(format!("Index out of range, tried to index at index {}, but length is {}", num.floor(), elements.len()));
+                                        }
+                                        let new_value = elements[num as usize].to_owned();
+                                        return Ok(new_value);
+                                    }
+                                    _ => {
+                                        return Err(format!(
+                                            "Expected a `Number` or a `Range` to index {}",
+                                            indexed
+                                        ))
+                                    }
+                                },
+                                Expression::Range { from, limits, to } => {
+                                    let max_index = (elements.len() - 1) as isize;
+
+                                    let start_index = match from {
+                                        Some(expr) => {
+                                            match *expr {
+                                                Expression::Literal { value, .. } => {
+                                                    match value {
+                                                        LiteralValue::Number(num) => num as isize,
+                                                        val => return Err(format!(
+                                                            "Range start index expected to be of type `Number`, found {}",
+                                                                val
+                                                        ))
+                                                        
+                                                    }
+                                                },
+                                                _ => return Err(format!("Range start index expected to be of type `Number`, found {}", expr))
+                                            } 
+                                        },
+                                        None => 0,
+                                    };
+                                    let end_index = match to {
+                                        Some(expr) => {
+                                            match *expr {
+                                                Expression::Literal { value, .. } => {
+                                                    match value {
+                                                        LiteralValue::Number(num) => num as isize,
+                                                        val => return Err(format!(
+                                                            "Range end index expected to be of type `Number`, found {}",
+                                                                val
+                                                        ))
+                                                        
+                                                    }
+                                                },
+                                                _ => return Err(format!("Range end index expected to be of type `Number`, found {}", expr)) 
+                                            } 
+                                        },
+                                        None => max_index,
+                                    };
+
+                                    if start_index < 0 || start_index > max_index {
+                                        return Err(format!("Index out of range, Range start index is {}, but length is {}", start_index, elements.len()));
+                                    }
+
+                                    let new_value = match limits {
+                                        RangeType::Dot => {
+                                            if end_index < 0 || end_index > (max_index + 1) {
+                                                return Err(format!("Index out of range, Range end index is {}, but length is {}", end_index, elements.len()));
+                                            }
+
+                                            elements[start_index as usize..end_index as usize]
+                                                .to_vec()
+                                        }
+                                        RangeType::DotEqual => {
+                                            if end_index < 0 || end_index > max_index {
+                                                return Err(format!("Index out of range, Range end index is {}, but length is {}", end_index, elements.len()));
+                                            }
+
+                                            elements[start_index as usize..=end_index as usize]
+                                                .to_vec()
+                                        }
+                                    };
+
+                                    return Ok(Expression::Array {
+                                        elements: new_value,
+                                    });
+                                }
+                                _ => {
+                                    return Err(format!(
+                                        "Expected a `Number` or a `Range` to index {}",
+                                        indexed
+                                    ))
+                                }
+                            }
+                        }
+                    }
                     x => {
                         return Err(format!(
                             "Cannot index {} as it's of type {}",
