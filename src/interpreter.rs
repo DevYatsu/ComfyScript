@@ -1,7 +1,7 @@
 mod declaration;
 mod import;
 
-use std::{cell::RefCell, fmt::Debug, rc::Rc};
+use std::{fmt::Debug, rc::Rc};
 
 use crate::{
     comfy::{self},
@@ -22,28 +22,18 @@ use crate::{
 use hashbrown::HashMap;
 
 pub fn interpret(program: ASTNode) -> Result<SymbolTable, String> {
-    let nodes = match program {
-        ASTNode::Program { body } => body,
-        _ => unreachable!(),
-    };
-
     let mut symbol_table = SymbolTable::new();
 
-    symbol_table.interpret(nodes)?;
+    symbol_table.interpret(program)?;
 
     println!("{:?}", symbol_table);
     Ok(symbol_table)
 }
 
 pub fn interpret_import(program: ASTNode) -> Result<SymbolTable, String> {
-    let nodes = match program {
-        ASTNode::Program { body } => body,
-        _ => unreachable!(),
-    };
-
     let mut symbol_table = SymbolTable::new();
 
-    symbol_table.interpret_import(nodes)?;
+    symbol_table.interpret_import(program)?;
 
     Ok(symbol_table)
 }
@@ -54,6 +44,7 @@ pub struct SymbolTable {
     pub constants: HashMap<String, Expression>,
     pub variables: HashMap<String, Expression>,
     pub exported: HashMap<String, InterpretedFn>,
+    pub scopes: Vec<SymbolTable>,
 }
 
 #[derive(Clone)]
@@ -68,110 +59,292 @@ impl SymbolTable {
         comfy::init_std_functions(&mut functions);
 
         Self {
+            functions,
+            constants: HashMap::new(),
+            variables: HashMap::new(),
+            exported: HashMap::new(),
+            scopes: Vec::new(),
+        }
+    }
+    pub fn new_scope() -> Self {
+        Self {
             functions: HashMap::new(),
             constants: HashMap::new(),
             variables: HashMap::new(),
             exported: HashMap::new(),
+            scopes: Vec::new(),
         }
     }
+    fn add_scope(&mut self) {
+        self.scopes.push(SymbolTable::new_scope())
+    }
+    fn remove_last_scope(&mut self) {
+        self.scopes.pop();
+    }
 
-    pub fn interpret(&mut self, nodes: Vec<ASTNode>) -> Result<Expression, String> {
-        for node in nodes {
-            match node {
-                ASTNode::Program { .. } => unreachable!(),
-                ASTNode::ImportDeclaration { specifiers, source } => {
-                    self.import(source, specifiers)?;
-                }
-                ASTNode::VariableDeclaration { declarations, kind } => {
-                    self.add_declarations(kind, declarations)?;
-                }
-                ASTNode::Assignment {
-                    operator,
-                    id,
-                    assigned,
-                } => match id {
-                    Expression::MemberExpression {
-                        indexed,
-                        property,
-                        computed,
-                    } => todo!(),
-                    Expression::IdentifierExpression(Identifier { name }) => {
-                        let current_value = self.get_variable(&name)?;
-
-                        if self.constants.get(&name).is_some() {
-                            return Err(format!("Cannot reassign constant '{}'", name));
+    pub fn interpret(&mut self, program: ASTNode) -> Result<Expression, String> {
+        match program {
+            ASTNode::Program { body } => {
+                for node in body {
+                    match node {
+                        ASTNode::Program { .. } => unreachable!(),
+                        ASTNode::ImportDeclaration { specifiers, source } => {
+                            self.import(source, specifiers)?;
                         }
+                        ASTNode::VariableDeclaration { declarations, kind } => {
+                            self.add_declarations(kind, declarations)?;
+                        }
+                        ASTNode::Assignment {
+                            operator,
+                            id,
+                            assigned,
+                        } => match id {
+                            Expression::MemberExpression {
+                                indexed,
+                                property,
+                                computed,
+                            } => todo!(),
+                            Expression::IdentifierExpression(Identifier { name }) => {
+                                let current_value = self.get_variable(&name)?;
 
-                        match operator {
-                            AssignmentOperator::Equal => {
-                                self.reassign_variable(name, assigned);
+                                if self.constants.get(&name).is_some() {
+                                    return Err(format!("Cannot reassign constant '{}'", name));
+                                }
+
+                                match operator {
+                                    AssignmentOperator::Equal => {
+                                        self.reassign_variable(name, assigned)?;
+                                    }
+                                    AssignmentOperator::PlusEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Plus,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                    AssignmentOperator::MinusEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Minus,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                    AssignmentOperator::TimesEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Times,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                    AssignmentOperator::DivideEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Divide,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                    AssignmentOperator::ModuloEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Modulo,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                }
                             }
-                            AssignmentOperator::PlusEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(current_value.to_owned()),
-                                    operator: BinaryOperator::Plus,
-                                    right: Box::new(assigned),
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
-                            AssignmentOperator::MinusEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(current_value.to_owned()),
-                                    operator: BinaryOperator::Minus,
-                                    right: Box::new(assigned),
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
-                            AssignmentOperator::TimesEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(current_value.to_owned()),
-                                    operator: BinaryOperator::Times,
-                                    right: Box::new(assigned),
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
-                            AssignmentOperator::DivideEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(current_value.to_owned()),
-                                    operator: BinaryOperator::Divide,
-                                    right: Box::new(assigned),
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
-                            AssignmentOperator::ModuloEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(current_value.to_owned()),
-                                    operator: BinaryOperator::Modulo,
-                                    right: Box::new(assigned),
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
+                            _ => unreachable!(),
+                        },
+                        ASTNode::ExpressionStatement { expression } => {
+                            self.evaluate_expr(expression)?;
+                        }
+                        ASTNode::FunctionDeclaration { .. } => self.add_function(node),
+                        ASTNode::ForStatement {
+                            declarations,
+                            kind,
+                            source,
+                            body,
+                        } => todo!(),
+                        ASTNode::WhileStatement { .. } => {
+                            self.interpret(node)?;
+                        }
+                        ASTNode::IfStatement { .. } => {
+                            self.interpret(node)?;
+                        }
+                        ASTNode::MatchStatement { test, body } => todo!(),
+                        ASTNode::BlockStatement { body } => {
+                            unreachable!()
+                        }
+                        ASTNode::ReturnStatement { argument, .. } => {
+                            return Ok(self.evaluate_expr(argument)?)
                         }
                     }
-                    _ => unreachable!(),
-                },
-                ASTNode::ExpressionStatement { expression } => {
-                    self.evaluate_expr(expression)?;
-                }
-                ASTNode::FunctionDeclaration { .. } => self.add_function(node),
-                ASTNode::ForStatement {
-                    declarations,
-                    kind,
-                    source,
-                    body,
-                } => todo!(),
-                ASTNode::WhileStatement { test, body } => todo!(),
-                ASTNode::IfStatement {
-                    test,
-                    body,
-                    alternate,
-                } => todo!(),
-                ASTNode::MatchStatement { test, body } => todo!(),
-                ASTNode::BlockStatement { body } => todo!(),
-                ASTNode::ReturnStatement { argument, .. } => {
-                    return Ok(self.evaluate_expr(argument)?)
                 }
             }
+            ASTNode::BlockStatement { body } => {
+                for node in body {
+                    match node {
+                        ASTNode::Program { .. } => unreachable!(),
+                        ASTNode::ImportDeclaration { specifiers, source } => {
+                            self.import(source, specifiers)?;
+                        }
+                        ASTNode::VariableDeclaration { declarations, kind } => {
+                            self.add_declarations(kind, declarations)?;
+                        }
+                        ASTNode::Assignment {
+                            operator,
+                            id,
+                            assigned,
+                        } => match id {
+                            Expression::MemberExpression {
+                                indexed,
+                                property,
+                                computed,
+                            } => todo!(),
+                            Expression::IdentifierExpression(Identifier { name }) => {
+                                let current_value = self.get_variable(&name)?;
+
+                                match operator {
+                                    AssignmentOperator::Equal => {
+                                        self.reassign_variable(name, assigned)?;
+                                    }
+                                    AssignmentOperator::PlusEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Plus,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                    AssignmentOperator::MinusEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Minus,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                    AssignmentOperator::TimesEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Times,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                    AssignmentOperator::DivideEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Divide,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                    AssignmentOperator::ModuloEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Modulo,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                }
+                            }
+                            _ => unreachable!(),
+                        },
+                        ASTNode::ExpressionStatement { expression } => {
+                            self.evaluate_expr(expression)?;
+                        }
+                        ASTNode::FunctionDeclaration { .. } => self.add_function(node),
+                        ASTNode::ForStatement {
+                            declarations,
+                            kind,
+                            source,
+                            body,
+                        } => todo!(),
+                        ASTNode::WhileStatement { .. } => {
+                            self.interpret(node)?;
+                        }
+                        ASTNode::IfStatement { .. } => {
+                            self.interpret(node)?;
+                        }
+                        ASTNode::MatchStatement { test, body } => todo!(),
+                        ASTNode::BlockStatement { .. } => unreachable!(),
+                        ASTNode::ReturnStatement { argument, .. } => {
+                            return Ok(self.evaluate_expr(argument)?)
+                        }
+                    }
+                }
+            }
+            ASTNode::IfStatement {
+                test,
+                body,
+                alternate,
+            } => {
+                // recursively called if needed
+                let expr = self.evaluate_expr(test)?;
+
+                match expr {
+                    Expression::Literal { value, .. } => {
+                        if !value.is_falsy() {
+                            self.add_scope();
+                            self.interpret(*body.to_owned())?;
+                            self.remove_last_scope();
+                        }
+
+                        if let Some(alternate) = alternate {
+                            self.add_scope();
+                            self.interpret(*alternate)?;
+                            self.remove_last_scope();
+                        }
+                    }
+                    _ => (),
+                };
+            }
+            ASTNode::WhileStatement { test, body } => {
+                let mut interation_num = 0;
+
+                loop {
+                    let expr = self.evaluate_expr(test.to_owned())?;
+
+                    match expr {
+                        Expression::Literal { value, .. } => {
+                            if !value.is_falsy() {
+                                break;
+                            }
+                        }
+                        _ => (),
+                    };
+
+                    self.add_scope();
+                    self.interpret(*body.to_owned())?;
+                    self.remove_last_scope();
+
+                    interation_num += 1;
+
+                    if interation_num == 100000 {
+                        return Err(
+                            "Infinite While statement detected. Iteration number exceeds 100000"
+                                .to_owned(),
+                        );
+                    }
+                }
+            }
+            _ => unreachable!(),
         }
 
         Ok(Expression::Literal {
@@ -180,103 +353,115 @@ impl SymbolTable {
         })
     }
 
-    pub fn interpret_import(&mut self, nodes: Vec<ASTNode>) -> Result<Expression, String> {
-        for node in nodes {
-            match node {
-                ASTNode::Program { .. } => unreachable!(),
-                ASTNode::ImportDeclaration { specifiers, source } => {
-                    self.import(source, specifiers)?;
-                }
-                ASTNode::VariableDeclaration { declarations, kind } => {
-                    self.add_declarations(kind, declarations)?;
-                }
-                ASTNode::Assignment {
-                    operator,
-                    id,
-                    assigned,
-                } => match id {
-                    Expression::MemberExpression {
-                        indexed,
-                        property,
-                        computed,
-                    } => todo!(),
-                    Expression::IdentifierExpression(Identifier { name }) => {
-                        let current_value = self.get_variable(&name)?;
-
-                        if self.constants.get(&name).is_some() {
-                            return Err(format!("Cannot reassign constant '{}' in import", name));
+    pub fn interpret_import(&mut self, program: ASTNode) -> Result<Expression, String> {
+        match program {
+            ASTNode::Program { body } => {
+                for node in body {
+                    match node {
+                        ASTNode::Program { .. } => unreachable!(),
+                        ASTNode::ImportDeclaration { specifiers, source } => {
+                            self.import(source, specifiers)?;
                         }
+                        ASTNode::VariableDeclaration { declarations, kind } => {
+                            self.add_declarations(kind, declarations)?;
+                        }
+                        ASTNode::Assignment {
+                            operator,
+                            id,
+                            assigned,
+                        } => match id {
+                            Expression::MemberExpression {
+                                indexed,
+                                property,
+                                computed,
+                            } => todo!(),
+                            Expression::IdentifierExpression(Identifier { name }) => {
+                                let current_value = self.get_variable(&name)?;
 
-                        match operator {
-                            AssignmentOperator::Equal => {
-                                self.reassign_variable(name, assigned);
+                                if self.constants.get(&name).is_some() {
+                                    return Err(format!(
+                                        "Cannot reassign constant '{}' in import",
+                                        name
+                                    ));
+                                }
+
+                                match operator {
+                                    AssignmentOperator::Equal => {
+                                        self.reassign_variable(name, assigned)?;
+                                    }
+                                    AssignmentOperator::PlusEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Plus,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                    AssignmentOperator::MinusEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Minus,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                    AssignmentOperator::TimesEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Times,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                    AssignmentOperator::DivideEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Divide,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                    AssignmentOperator::ModuloEqual => {
+                                        let expr =
+                                            self.evaluate_expr(Expression::BinaryExpression {
+                                                left: Box::new(current_value.to_owned()),
+                                                operator: BinaryOperator::Modulo,
+                                                right: Box::new(assigned),
+                                            })?;
+                                        self.reassign_variable(name, expr)?;
+                                    }
+                                }
                             }
-                            AssignmentOperator::PlusEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(current_value.to_owned()),
-                                    operator: BinaryOperator::Plus,
-                                    right: Box::new(assigned),
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
-                            AssignmentOperator::MinusEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(current_value.to_owned()),
-                                    operator: BinaryOperator::Minus,
-                                    right: Box::new(assigned),
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
-                            AssignmentOperator::TimesEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(current_value.to_owned()),
-                                    operator: BinaryOperator::Times,
-                                    right: Box::new(assigned),
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
-                            AssignmentOperator::DivideEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(current_value.to_owned()),
-                                    operator: BinaryOperator::Divide,
-                                    right: Box::new(assigned),
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
-                            AssignmentOperator::ModuloEqual => {
-                                let expr = self.evaluate_expr(Expression::BinaryExpression {
-                                    left: Box::new(current_value.to_owned()),
-                                    operator: BinaryOperator::Modulo,
-                                    right: Box::new(assigned),
-                                })?;
-                                self.reassign_variable(name, expr);
-                            }
+                            _ => unreachable!(),
+                        },
+                        ASTNode::ExpressionStatement { .. } => (),
+                        ASTNode::FunctionDeclaration { .. } => self.add_function(node),
+                        ASTNode::ForStatement {
+                            declarations,
+                            kind,
+                            source,
+                            body,
+                        } => todo!(),
+                        ASTNode::WhileStatement { test, body } => todo!(),
+                        ASTNode::IfStatement {
+                            test,
+                            body,
+                            alternate,
+                        } => todo!(),
+                        ASTNode::MatchStatement { test, body } => todo!(),
+                        ASTNode::BlockStatement { body } => todo!(),
+                        ASTNode::ReturnStatement { argument, .. } => {
+                            return Ok(self.evaluate_expr(argument)?)
                         }
                     }
-                    _ => unreachable!(),
-                },
-                ASTNode::ExpressionStatement { .. } => (),
-                ASTNode::FunctionDeclaration { .. } => self.add_function(node),
-                ASTNode::ForStatement {
-                    declarations,
-                    kind,
-                    source,
-                    body,
-                } => todo!(),
-                ASTNode::WhileStatement { test, body } => todo!(),
-                ASTNode::IfStatement {
-                    test,
-                    body,
-                    alternate,
-                } => todo!(),
-                ASTNode::MatchStatement { test, body } => todo!(),
-                ASTNode::BlockStatement { body } => todo!(),
-                ASTNode::ReturnStatement { argument, .. } => {
-                    return Ok(self.evaluate_expr(argument)?)
                 }
             }
+            _ => unreachable!(),
         }
-
         Ok(Expression::Literal {
             value: LiteralValue::Nil,
             raw: "nil".to_string(),
@@ -989,7 +1174,7 @@ impl SymbolTable {
         }
     }
 
-    fn get_variable(&self, name: &str) -> Result<&Expression, String> {
+    fn get_scope_variable(&self, name: &str) -> Result<&Expression, String> {
         let value = self.constants.get(name);
 
         if let Some(value) = value {
@@ -1004,23 +1189,68 @@ impl SymbolTable {
 
         Err(format!("Undefined variable '{}'", name))
     }
-    fn reassign_variable(&mut self, name: String, expr: Expression) {
+    fn get_variable(&self, name: &str) -> Result<&Expression, String> {
+        for symbol_table in self.scopes.iter().rev() {
+            if let Ok(value) = symbol_table.get_scope_variable(name) {
+                return Ok(value);
+            }
+        }
+
+        self.get_scope_variable(name)
+    }
+
+    fn reassign_variable(&mut self, name: String, expr: Expression) -> Result<(), String> {
+        for symbol_table in self.scopes.iter_mut().rev() {
+            if symbol_table.variables.contains_key(&name) {
+                symbol_table.variables.insert(name, expr);
+                return Ok(());
+            }
+            if symbol_table.constants.contains_key(&name) {
+                return Err(format!("Cannot reassign constant `{}`", name));
+            }
+        }
+
         self.variables.insert(name, expr);
+
+        Ok(())
     }
     fn add_variable(&mut self, name: String, expr: Expression) {
+        if let Some(symbol_table) = self.scopes.last_mut() {
+            symbol_table.constants.remove(&name);
+            symbol_table.variables.insert(name, expr);
+            return;
+        }
         self.constants.remove(&name);
         self.variables.insert(name, expr);
     }
 
     fn add_constant(&mut self, name: String, expr: Expression) {
+        if let Some(symbol_table) = self.scopes.last_mut() {
+            symbol_table.variables.remove(&name);
+            symbol_table.constants.insert(name, expr);
+            return;
+        }
+
         self.variables.remove(&name);
         self.constants.insert(name, expr);
     }
 
-    fn get_function(&self, name: &str) -> Result<&InterpretedFn, String> {
-        let value = self.functions.get(name);
+    fn add_scoped_function(&mut self, name: String, func: InterpretedFn) {
+        if let Some(symbol_table) = self.scopes.last_mut() {
+            symbol_table.functions.insert(name, func);
+            return;
+        }
 
-        if let Some(value) = value {
+        self.functions.insert(name, func);
+    }
+    fn get_function(&self, name: &str) -> Result<&InterpretedFn, String> {
+        for symbol_table in self.scopes.iter().rev() {
+            if let Some(value) = symbol_table.functions.get(name) {
+                return Ok(value);
+            }
+        }
+
+        if let Some(value) = self.functions.get(name) {
             return Ok(value);
         }
 
@@ -1028,9 +1258,7 @@ impl SymbolTable {
     }
     fn export_function(&mut self, name: &str) -> Result<InterpretedFn, String> {
         // when importing another symbol table, thus after reading, parsing and importing another file
-        let value = self.exported.remove(name);
-
-        if let Some(value) = value {
+        if let Some(value) = self.exported.remove(name) {
             return Ok(value);
         }
 
@@ -1046,7 +1274,7 @@ impl SymbolTable {
                 ..
             } => {
                 let name = id.to_owned().name;
-                let symbol_table = Rc::new(RefCell::new(self.clone()));
+                let symbol_table = self.to_owned();
 
                 let executable: Rc<
                     dyn Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String>,
@@ -1054,7 +1282,7 @@ impl SymbolTable {
                     move |actual_symbol_table: &SymbolTable,
                           args: Vec<Expression>|
                           -> Result<Expression, String> {
-                        let mut local_symbol_table = symbol_table.borrow_mut();
+                        let mut local_symbol_table = symbol_table.to_owned();
 
                         if args.len() != params.len() {
                             return Err(format!(
@@ -1070,10 +1298,9 @@ impl SymbolTable {
                             local_symbol_table.add_variable(param.id.to_owned().name, value);
                         }
 
-                        let result = match *body.to_owned() {
-                            ASTNode::BlockStatement { body } => {
-                                local_symbol_table.interpret(body)?
-                            }
+                        let body = *body.to_owned();
+                        let result = match body {
+                            ASTNode::BlockStatement { .. } => local_symbol_table.interpret(body)?,
                             ASTNode::ReturnStatement { argument, .. } => {
                                 local_symbol_table.evaluate_expr(argument)?
                             }
@@ -1094,8 +1321,7 @@ impl SymbolTable {
                     );
                 }
 
-                self.functions
-                    .insert(name.to_owned(), InterpretedFn { name, executable });
+                self.add_scoped_function(name.to_owned(), InterpretedFn { name, executable });
             }
             _ => unreachable!(),
         }

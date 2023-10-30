@@ -28,7 +28,7 @@ impl LiteralValue {
         match self {
             LiteralValue::Number(num) => num == &0.0,
             LiteralValue::Str(s) => s.is_empty(),
-            LiteralValue::Boolean(b) => *b,
+            LiteralValue::Boolean(b) => !*b,
             LiteralValue::Nil => true,
         }
     }
