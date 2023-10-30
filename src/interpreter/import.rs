@@ -34,7 +34,11 @@ pub fn import(
         "collections" => todo!(),
         "input_output" => todo!(),
         file_name => {
-            let file_content = fs::read_to_string(file_name);
+            let file_content = if file_name.ends_with(".cfs") {
+                fs::read_to_string(file_name)
+            } else {
+                fs::read_to_string(file_name.to_owned() + ".cfs")
+            };
 
             match file_content {
                 Ok(content) => {
