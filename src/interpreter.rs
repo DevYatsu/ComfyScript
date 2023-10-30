@@ -4,7 +4,7 @@ mod import;
 use std::{cell::RefCell, fmt::Debug, rc::Rc};
 
 use crate::{
-    comfy::{self, init_std_functions},
+    comfy::{self},
     parser::{
         assignment::initial::VariableKeyword,
         ast::{
@@ -65,7 +65,7 @@ pub struct InterpretedFn {
 impl SymbolTable {
     pub fn new() -> Self {
         let mut functions = HashMap::new();
-        init_std_functions(&mut functions);
+        comfy::init_std_functions(&mut functions);
 
         Self {
             functions: HashMap::new(),
