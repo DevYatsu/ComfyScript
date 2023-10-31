@@ -1,9 +1,7 @@
-import read_to_string from "fs"
+import read_to_string, write from "fs"
 
-let x: String = read_to_string("test.cfs")?
+export fn copy_file(file_name: String, other_file_name: String) -> nil ? {
+    let content = read_to_string(file_name)?
 
-print(x)
-
-export fn printer(x) {
-    print(x)
+    write(other_file_name, content)?
 }

@@ -46,6 +46,7 @@ pub fn print() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, S
         let print = symbol_table
             .evaluate_expr(args[0].to_owned())?
             .console_print();
+
         println!("{}", print);
 
         Ok(Expression::Literal {

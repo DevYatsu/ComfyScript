@@ -1,21 +1,5 @@
-import read_to_string from "fs"
+var count = 1
 
-let content: String = read_to_string("test.cfs")?
-
-print(#"File content:\n{ content[..=5] }")
-
-let x = [1, 2, 3, 4, 5,]
-
-print(#"copy: { x[..] } ")
-
-var x = false
-var num = 0
-
-while x {
-    num += 1
-    print(num)
-
-    if num == 100 {
-        x = true
-    }
+while count <= 100000 {
+    count += 1
 }

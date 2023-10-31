@@ -1,6 +1,9 @@
 // working with time
 
-use std::{rc::Rc, time::Duration};
+use std::{
+    rc::Rc,
+    time::{Duration, SystemTime, UNIX_EPOCH},
+};
 
 use crate::{
     interpreter::{InterpretedFn, SymbolTable},
@@ -14,6 +17,10 @@ pub fn import_time_fn(name: String) -> Result<InterpretedFn, String> {
         "sleep" => InterpretedFn {
             name: name.to_owned(),
             executable: Rc::new(sleep()),
+        },
+        "now" => InterpretedFn {
+            name: name.to_owned(),
+            executable: Rc::new(now()),
         },
 
         _ => {
@@ -39,6 +46,22 @@ fn sleep() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, Strin
         Ok(Expression::Literal {
             value: LiteralValue::Nil,
             raw: "nil".to_owned(),
+        })
+    }
+}
+
+fn now() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+    move |_: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
+        expected_x_args("now", 0, &args)?;
+
+        let instant = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("Time went backwards")
+            .as_millis();
+
+        Ok(Expression::Literal {
+            value: LiteralValue::Number(instant as f32),
+            raw: instant.to_string().to_owned(),
         })
     }
 }

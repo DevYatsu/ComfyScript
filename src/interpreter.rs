@@ -320,10 +320,9 @@ impl SymbolTable {
 
                 loop {
                     let expr = self.evaluate_expr(test.to_owned())?;
-
                     match expr {
                         Expression::Literal { value, .. } => {
-                            if !value.is_falsy() {
+                            if value.is_falsy() {
                                 break;
                             }
                         }
@@ -1149,14 +1148,21 @@ impl SymbolTable {
                         Ok((x.executable)(self, args)?)
                     }
                 },
-                Expression::FnExpression {
-                    params,
-                    body,
-                    is_shortcut,
-                    return_type,
-                } => todo!(),
                 Expression::Parenthesized(expr) => {
                     let expr = self.evaluate_expr(*expr)?;
+
+                    match expr {
+                        Expression::FnExpression {
+                            params,
+                            body,
+                            is_shortcut,
+                            return_type,
+                        } => todo!(),
+                        expr => {
+                            return Err(format!("Cannot call `{}`. It is not a function.", expr))
+                        }
+                    };
+
                     Ok(Expression::Literal {
                         value: LiteralValue::Nil,
                         raw: "".to_owned(),
@@ -1209,7 +1215,6 @@ impl SymbolTable {
                 return Err(format!("Cannot reassign constant `{}`", name));
             }
         }
-
         self.variables.insert(name, expr);
 
         Ok(())
