@@ -16,5 +16,5 @@ pub fn parse_parenthesized(i: &str) -> IResult<&str, Expression, ErrorTree<&str>
     let (i, _) = multispace0(i)?;
     let (i, _) = char(')').cut().parse(i)?;
 
-    Ok((i, Expression::Parenthesized(Box::new(expr))))
+    Ok((i, Expression::parenthesized(expr)))
 }

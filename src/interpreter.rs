@@ -13,15 +13,20 @@ use crate::{
             literal_value::LiteralValue,
             range::RangeType,
             vars::VariableDeclarator,
-            ASTNode, Expression,
+            Expression, ExpressionKind, Program, Statement, StatementKind,
         },
         expression::template_literal::TemplateLiteralFragment,
+        function::{return_expression::ReturnStatement, FunctionBody, FunctionDeclaration},
         operations::{assignment::AssignmentOperator, binary::BinaryOperator},
     },
 };
 use hashbrown::HashMap;
 
-pub fn interpret(program: ASTNode) -> Result<SymbolTable, String> {
+pub trait RunnableCode {
+    fn get_statements(self) -> Vec<Statement>;
+}
+
+pub fn interpret(program: impl RunnableCode) -> Result<SymbolTable, String> {
     let mut symbol_table = SymbolTable::new();
 
     symbol_table.interpret(program)?;
@@ -30,7 +35,7 @@ pub fn interpret(program: ASTNode) -> Result<SymbolTable, String> {
     Ok(symbol_table)
 }
 
-pub fn interpret_import(program: ASTNode) -> Result<SymbolTable, String> {
+pub fn interpret_import(program: Program) -> Result<SymbolTable, String> {
     let mut symbol_table = SymbolTable::new();
 
     symbol_table.interpret_import(program)?;
@@ -82,428 +87,241 @@ impl SymbolTable {
         self.scopes.pop();
     }
 
-    pub fn interpret(&mut self, program: ASTNode) -> Result<Expression, String> {
-        match program {
-            ASTNode::Program { body } => {
-                for node in body {
-                    match node {
-                        ASTNode::Program { .. } => unreachable!(),
-                        ASTNode::ImportDeclaration { specifiers, source } => {
-                            self.import(source, specifiers)?;
-                        }
-                        ASTNode::VariableDeclaration { declarations, kind } => {
-                            self.add_declarations(kind, declarations)?;
-                        }
-                        ASTNode::Assignment {
-                            operator,
-                            id,
-                            assigned,
-                        } => match id {
-                            Expression::MemberExpression {
-                                indexed,
-                                property,
-                                computed,
-                            } => todo!(),
-                            Expression::IdentifierExpression(Identifier { name }) => {
-                                let current_value = self.get_variable(&name)?;
-
-                                if self.constants.get(&name).is_some() {
-                                    return Err(format!("Cannot reassign constant '{}'", name));
-                                }
-
-                                match operator {
-                                    AssignmentOperator::Equal => {
-                                        self.reassign_variable(name, assigned)?;
-                                    }
-                                    AssignmentOperator::PlusEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Plus,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                    AssignmentOperator::MinusEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Minus,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                    AssignmentOperator::TimesEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Times,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                    AssignmentOperator::DivideEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Divide,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                    AssignmentOperator::ModuloEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Modulo,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                }
-                            }
-                            _ => unreachable!(),
-                        },
-                        ASTNode::ExpressionStatement { expression } => {
-                            self.evaluate_expr(expression)?;
-                        }
-                        ASTNode::FunctionDeclaration { .. } => self.add_function(node),
-                        ASTNode::ForStatement {
-                            declarations,
-                            kind,
-                            source,
-                            body,
-                        } => todo!(),
-                        ASTNode::WhileStatement { .. } => {
-                            self.interpret(node)?;
-                        }
-                        ASTNode::IfStatement { .. } => {
-                            self.interpret(node)?;
-                        }
-                        ASTNode::MatchStatement { test, body } => todo!(),
-                        ASTNode::BlockStatement { body } => {
-                            unreachable!()
-                        }
-                        ASTNode::ReturnStatement { argument, .. } => {
-                            return Ok(self.evaluate_expr(argument)?)
-                        }
-                    }
+    pub fn interpret(&mut self, program: impl RunnableCode) -> Result<Expression, String> {
+        for node in program.get_statements() {
+            match node.kind {
+                StatementKind::Import(source, specifiers) => {
+                    self.import(source, specifiers)?;
                 }
-            }
-            ASTNode::BlockStatement { body } => {
-                for node in body {
-                    match node {
-                        ASTNode::Program { .. } => unreachable!(),
-                        ASTNode::ImportDeclaration { specifiers, source } => {
-                            self.import(source, specifiers)?;
-                        }
-                        ASTNode::VariableDeclaration { declarations, kind } => {
-                            self.add_declarations(kind, declarations)?;
-                        }
-                        ASTNode::Assignment {
-                            operator,
-                            id,
-                            assigned,
-                        } => match id {
-                            Expression::MemberExpression {
-                                indexed,
-                                property,
-                                computed,
-                            } => todo!(),
-                            Expression::IdentifierExpression(Identifier { name }) => {
-                                let current_value = self.get_variable(&name)?;
-
-                                match operator {
-                                    AssignmentOperator::Equal => {
-                                        self.reassign_variable(name, assigned)?;
-                                    }
-                                    AssignmentOperator::PlusEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Plus,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                    AssignmentOperator::MinusEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Minus,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                    AssignmentOperator::TimesEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Times,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                    AssignmentOperator::DivideEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Divide,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                    AssignmentOperator::ModuloEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Modulo,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                }
-                            }
-                            _ => unreachable!(),
-                        },
-                        ASTNode::ExpressionStatement { expression } => {
-                            self.evaluate_expr(expression)?;
-                        }
-                        ASTNode::FunctionDeclaration { .. } => self.add_function(node),
-                        ASTNode::ForStatement {
-                            declarations,
-                            kind,
-                            source,
-                            body,
-                        } => todo!(),
-                        ASTNode::WhileStatement { .. } => {
-                            self.interpret(node)?;
-                        }
-                        ASTNode::IfStatement { .. } => {
-                            self.interpret(node)?;
-                        }
-                        ASTNode::MatchStatement { test, body } => todo!(),
-                        ASTNode::BlockStatement { .. } => unreachable!(),
-                        ASTNode::ReturnStatement { argument, .. } => {
-                            return Ok(self.evaluate_expr(argument)?)
-                        }
-                    }
+                StatementKind::VariableDeclaration(kind, declarations) => {
+                    self.add_declarations(kind, declarations)?;
                 }
-            }
-            ASTNode::IfStatement {
-                test,
-                body,
-                alternate,
-            } => {
-                // recursively called if needed
-                let expr = self.evaluate_expr(test)?;
+                StatementKind::Assignment(id, operator, assigned) => match id.kind {
+                    ExpressionKind::MemberExpression {
+                        indexed,
+                        property,
+                        computed,
+                    } => todo!(),
+                    ExpressionKind::IdentifierExpression(Identifier(name)) => {
+                        let current_value = self.get_variable(&name)?;
 
-                match expr {
-                    Expression::Literal { value, .. } => {
-                        if !value.is_falsy() {
-                            self.add_scope();
-                            self.interpret(*body.to_owned())?;
-                            self.remove_last_scope();
+                        if self.constants.get(&name).is_some() {
+                            return Err(format!("Cannot reassign constant '{}'", name));
                         }
 
-                        if let Some(alternate) = alternate {
-                            self.add_scope();
-                            self.interpret(*alternate)?;
-                            self.remove_last_scope();
-                        }
-                    }
-                    _ => (),
-                };
-            }
-            ASTNode::WhileStatement { test, body } => {
-                let mut interation_num = 0;
-
-                loop {
-                    let expr = self.evaluate_expr(test.to_owned())?;
-                    match expr {
-                        Expression::Literal { value, .. } => {
-                            if value.is_falsy() {
-                                break;
+                        match operator {
+                            AssignmentOperator::Equal => {
+                                self.reassign_variable(name, assigned)?;
+                            }
+                            AssignmentOperator::PlusEqual => {
+                                let expr = self.evaluate_expr(Expression::with_kind(
+                                    ExpressionKind::BinaryExpression(
+                                        Box::new(current_value.to_owned()),
+                                        BinaryOperator::Plus,
+                                        Box::new(assigned),
+                                    ),
+                                ))?;
+                                self.reassign_variable(name, expr)?;
+                            }
+                            AssignmentOperator::MinusEqual => {
+                                let expr = self.evaluate_expr(Expression::with_kind(
+                                    ExpressionKind::BinaryExpression(
+                                        Box::new(current_value.to_owned()),
+                                        BinaryOperator::Minus,
+                                        Box::new(assigned),
+                                    ),
+                                ))?;
+                                self.reassign_variable(name, expr)?;
+                            }
+                            AssignmentOperator::TimesEqual => {
+                                let expr = self.evaluate_expr(Expression::with_kind(
+                                    ExpressionKind::BinaryExpression(
+                                        Box::new(current_value.to_owned()),
+                                        BinaryOperator::Times,
+                                        Box::new(assigned),
+                                    ),
+                                ))?;
+                                self.reassign_variable(name, expr)?;
+                            }
+                            AssignmentOperator::DivideEqual => {
+                                let expr = self.evaluate_expr(Expression::with_kind(
+                                    ExpressionKind::BinaryExpression(
+                                        Box::new(current_value.to_owned()),
+                                        BinaryOperator::Divide,
+                                        Box::new(assigned),
+                                    ),
+                                ))?;
+                                self.reassign_variable(name, expr)?;
+                            }
+                            AssignmentOperator::ModuloEqual => {
+                                let expr = self.evaluate_expr(Expression::with_kind(
+                                    ExpressionKind::BinaryExpression(
+                                        Box::new(current_value.to_owned()),
+                                        BinaryOperator::Modulo,
+                                        Box::new(assigned),
+                                    ),
+                                ))?;
+                                self.reassign_variable(name, expr)?;
                             }
                         }
-                        _ => (),
-                    };
-
-                    self.add_scope();
-                    self.interpret(*body.to_owned())?;
-                    self.remove_last_scope();
-
-                    interation_num += 1;
-
-                    if interation_num == 100000 {
-                        return Err(
-                            "Infinite While statement detected. Iteration number exceeds 100000"
-                                .to_owned(),
-                        );
                     }
+                    _ => unreachable!(),
+                },
+                StatementKind::Expression(expression) => {
+                    self.evaluate_expr(expression)?;
+                }
+                StatementKind::FunctionDeclaration { .. } => self.add_function(node),
+                StatementKind::ForStatement(kind, declarations, source, body) => todo!(),
+                StatementKind::WhileStatement { .. } => todo!(),
+                StatementKind::IfStatement { .. } => todo!(),
+                StatementKind::MatchStatement(test, body) => todo!(),
+                StatementKind::ReturnStatement(ReturnStatement(argument, ..)) => {
+                    // maybe put ReturnStatement inside of StatementKind::Expression ?
+                    return Ok(self.evaluate_expr(argument)?);
                 }
             }
-            _ => unreachable!(),
         }
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Nil,
-            raw: "nil".to_string(),
-        })
+        Ok((LiteralValue::Nil, "nil".to_string()).into())
     }
 
-    pub fn interpret_import(&mut self, program: ASTNode) -> Result<Expression, String> {
-        match program {
-            ASTNode::Program { body } => {
-                for node in body {
-                    match node {
-                        ASTNode::Program { .. } => unreachable!(),
-                        ASTNode::ImportDeclaration { specifiers, source } => {
-                            self.import(source, specifiers)?;
-                        }
-                        ASTNode::VariableDeclaration { declarations, kind } => {
-                            self.add_declarations(kind, declarations)?;
-                        }
-                        ASTNode::Assignment {
-                            operator,
-                            id,
-                            assigned,
-                        } => match id {
-                            Expression::MemberExpression {
-                                indexed,
-                                property,
-                                computed,
-                            } => todo!(),
-                            Expression::IdentifierExpression(Identifier { name }) => {
-                                let current_value = self.get_variable(&name)?;
+    pub fn interpret_import(&mut self, program: impl RunnableCode) -> Result<Expression, String> {
+        for node in program.get_statements() {
+            match node.kind {
+                StatementKind::Import(source, specifiers) => {
+                    self.import(source, specifiers)?;
+                }
+                StatementKind::VariableDeclaration(kind, declarations) => {
+                    self.add_declarations(kind, declarations)?;
+                }
+                StatementKind::Assignment(id, operator, assigned) => match id.kind {
+                    ExpressionKind::MemberExpression {
+                        indexed,
+                        property,
+                        computed,
+                    } => todo!(),
+                    ExpressionKind::IdentifierExpression(Identifier(name)) => {
+                        let current_value = self.get_variable(&name)?;
 
-                                if self.constants.get(&name).is_some() {
-                                    return Err(format!(
-                                        "Cannot reassign constant '{}' in import",
-                                        name
-                                    ));
-                                }
+                        if self.constants.get(&name).is_some() {
+                            return Err(format!("Cannot reassign constant '{}'", name));
+                        }
 
-                                match operator {
-                                    AssignmentOperator::Equal => {
-                                        self.reassign_variable(name, assigned)?;
-                                    }
-                                    AssignmentOperator::PlusEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Plus,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                    AssignmentOperator::MinusEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Minus,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                    AssignmentOperator::TimesEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Times,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                    AssignmentOperator::DivideEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Divide,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                    AssignmentOperator::ModuloEqual => {
-                                        let expr =
-                                            self.evaluate_expr(Expression::BinaryExpression {
-                                                left: Box::new(current_value.to_owned()),
-                                                operator: BinaryOperator::Modulo,
-                                                right: Box::new(assigned),
-                                            })?;
-                                        self.reassign_variable(name, expr)?;
-                                    }
-                                }
+                        match operator {
+                            AssignmentOperator::Equal => {
+                                self.reassign_variable(name, assigned)?;
                             }
-                            _ => unreachable!(),
-                        },
-                        ASTNode::ExpressionStatement { .. } => (),
-                        ASTNode::FunctionDeclaration { .. } => self.add_function(node),
-                        ASTNode::ForStatement {
-                            declarations,
-                            kind,
-                            source,
-                            body,
-                        } => todo!(),
-                        ASTNode::WhileStatement { test, body } => todo!(),
-                        ASTNode::IfStatement {
-                            test,
-                            body,
-                            alternate,
-                        } => todo!(),
-                        ASTNode::MatchStatement { test, body } => todo!(),
-                        ASTNode::BlockStatement { body } => todo!(),
-                        ASTNode::ReturnStatement { argument, .. } => {
-                            return Ok(self.evaluate_expr(argument)?)
+                            AssignmentOperator::PlusEqual => {
+                                let expr = self.evaluate_expr(Expression::with_kind(
+                                    ExpressionKind::BinaryExpression(
+                                        Box::new(current_value.to_owned()),
+                                        BinaryOperator::Plus,
+                                        Box::new(assigned),
+                                    ),
+                                ))?;
+                                self.reassign_variable(name, expr)?;
+                            }
+                            AssignmentOperator::MinusEqual => {
+                                let expr = self.evaluate_expr(Expression::with_kind(
+                                    ExpressionKind::BinaryExpression(
+                                        Box::new(current_value.to_owned()),
+                                        BinaryOperator::Minus,
+                                        Box::new(assigned),
+                                    ),
+                                ))?;
+                                self.reassign_variable(name, expr)?;
+                            }
+                            AssignmentOperator::TimesEqual => {
+                                let expr = self.evaluate_expr(Expression::with_kind(
+                                    ExpressionKind::BinaryExpression(
+                                        Box::new(current_value.to_owned()),
+                                        BinaryOperator::Times,
+                                        Box::new(assigned),
+                                    ),
+                                ))?;
+                                self.reassign_variable(name, expr)?;
+                            }
+                            AssignmentOperator::DivideEqual => {
+                                let expr = self.evaluate_expr(Expression::with_kind(
+                                    ExpressionKind::BinaryExpression(
+                                        Box::new(current_value.to_owned()),
+                                        BinaryOperator::Divide,
+                                        Box::new(assigned),
+                                    ),
+                                ))?;
+                                self.reassign_variable(name, expr)?;
+                            }
+                            AssignmentOperator::ModuloEqual => {
+                                let expr = self.evaluate_expr(Expression::with_kind(
+                                    ExpressionKind::BinaryExpression(
+                                        Box::new(current_value.to_owned()),
+                                        BinaryOperator::Modulo,
+                                        Box::new(assigned),
+                                    ),
+                                ))?;
+                                self.reassign_variable(name, expr)?;
+                            }
                         }
                     }
+                    _ => unreachable!(),
+                },
+                StatementKind::Expression(expression) => {
+                    self.evaluate_expr(expression)?;
+                }
+                StatementKind::FunctionDeclaration { .. } => self.add_function(node),
+                StatementKind::ForStatement(kind, declarations, source, body) => todo!(),
+                StatementKind::WhileStatement { .. } => todo!(),
+                StatementKind::IfStatement { .. } => todo!(),
+                StatementKind::MatchStatement(test, body) => todo!(),
+                StatementKind::ReturnStatement(ReturnStatement(argument, ..)) => {
+                    // maybe put ReturnStatement inside of StatementKind::Expression ?
+                    return Ok(self.evaluate_expr(argument)?);
                 }
             }
-            _ => unreachable!(),
         }
-        Ok(Expression::Literal {
-            value: LiteralValue::Nil,
-            raw: "nil".to_string(),
-        })
+
+        Ok((LiteralValue::Nil, "nil".to_string()).into())
     }
 
     pub fn evaluate_expr(&self, expression: Expression) -> Result<Expression, String> {
-        match expression {
-            Expression::Literal { .. } => Ok(expression),
-            Expression::Array { elements } => Ok(Expression::Array {
-                elements: elements
+        match expression.kind {
+            ExpressionKind::Literal(..) => Ok(expression),
+            ExpressionKind::Array(elements) => Ok(Expression::with_kind(ExpressionKind::Array(
+                elements
                     .into_iter()
                     .map(|el| self.evaluate_expr(el))
                     .collect::<Result<Vec<Expression>, String>>()?,
-            }),
-            Expression::Object { .. } => Ok(expression),
-            Expression::Range { from, to, limits } => {
+            ))),
+            ExpressionKind::Object(..) => Ok(expression),
+            ExpressionKind::Range(from, limits, to) => {
                 let from = if from.is_none() {
                     from
                 } else {
                     Some(Box::new(self.evaluate_expr(*from.unwrap())?))
                 };
-                let to = if from.is_none() {
+                let to = if to.is_none() {
                     to
                 } else {
                     Some(Box::new(self.evaluate_expr(*to.unwrap())?))
                 };
 
-                Ok(Expression::Range { from, limits, to })
+                Ok(Expression::with_kind(ExpressionKind::Range(
+                    from, limits, to,
+                )))
             }
-            Expression::FnExpression { .. } => Ok(expression),
-            Expression::ErrorPropagation(expr) => {
+            ExpressionKind::FnExpression { .. } => Ok(expression),
+            ExpressionKind::ErrorPropagation(expr) => {
                 let expr = self.evaluate_expr(*expr)?;
-                match expr {
-                    Expression::Err(e) => return Err(e),
-                    Expression::Ok(val) => return Ok(*val),
-                    expr => Ok(expr),
+                match expr.kind {
+                    ExpressionKind::Err(e) => return Err(e),
+                    ExpressionKind::Ok(val) => return Ok(*val),
+                    _ => Ok(expr),
                 }
             }
-            Expression::Err(_) => Ok(expression),
-            Expression::Ok(_) => Ok(expression),
+            ExpressionKind::Err(_) => Ok(expression),
+            ExpressionKind::Ok(_) => Ok(expression),
 
-            Expression::TemplateLiteral { value, .. } => {
+            ExpressionKind::TemplateLiteral(value, ..) => {
                 let mut string = String::new();
 
                 for fragment in value {
@@ -517,86 +335,58 @@ impl SymbolTable {
                     }
                 }
 
-                Ok(Expression::Literal {
-                    value: LiteralValue::Str(string.to_owned()),
-                    raw: string,
-                })
+                Ok((LiteralValue::Str(string.to_owned()), string).into())
             }
 
-            Expression::BinaryExpression {
-                left,
-                operator,
-                right,
-            } => {
+            ExpressionKind::BinaryExpression(left, operator, right) => {
                 let left = self.evaluate_expr(*left)?;
                 let right = self.evaluate_expr(*right)?;
 
                 match operator {
-                    BinaryOperator::Plus => match (left.to_owned(), right.to_owned()) {
+                    BinaryOperator::Plus => match (left.kind.to_owned(), right.kind.to_owned()) {
                         (
-                            Expression::Literal { value, .. },
-                            Expression::Literal { value: value_2, .. },
+                            ExpressionKind::Literal(value, ..),
+                            ExpressionKind::Literal(value_2, ..),
                         ) => match (value, value_2) {
                             (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
                                 let num = num1 + num2;
 
-                                Ok(Expression::Literal {
-                                    value: LiteralValue::Number(num),
-                                    raw: num.to_string(),
-                                })
+                                Ok((LiteralValue::Number(num), num.to_string()).into())
                             }
                             (LiteralValue::Str(mut s1), LiteralValue::Str(s2)) => {
                                 s1.push_str(&s2);
 
-                                Ok(Expression::Literal {
-                                    value: LiteralValue::Str(s1.to_owned()),
-                                    raw: s1,
-                                })
+                                Ok((LiteralValue::Str(s1.to_owned()), s1).into())
                             }
                             _ => return Err(format!("Cannot add {} with {}", left, right).into()),
                         },
-                        (
-                            Expression::Array { elements },
-                            Expression::Array {
-                                elements: elements_2,
-                            },
-                        ) => {
+                        (ExpressionKind::Array(elements), ExpressionKind::Array(elements_2)) => {
                             let mut array = elements;
 
                             array.extend(elements_2);
 
-                            Ok(Expression::Array {
-                                elements: array.to_vec(),
-                            })
+                            Ok(Expression::with_kind(ExpressionKind::Array(array.to_vec())))
                         }
-                        (
-                            Expression::Object { properties },
-                            Expression::Object {
-                                properties: props_2,
-                            },
-                        ) => {
+                        (ExpressionKind::Object(properties), ExpressionKind::Object(props_2)) => {
                             let mut props = properties;
 
                             props.extend(props_2);
 
-                            Ok(Expression::Object {
-                                properties: props.to_vec(),
-                            })
+                            Ok(Expression::with_kind(ExpressionKind::Object(
+                                props.to_vec(),
+                            )))
                         }
                         _ => return Err(format!("Cannot add {} with {}", left, right).into()),
                     },
-                    BinaryOperator::Minus => match (left.to_owned(), right.to_owned()) {
+                    BinaryOperator::Minus => match (left.kind.to_owned(), right.kind.to_owned()) {
                         (
-                            Expression::Literal { value, .. },
-                            Expression::Literal { value: value_2, .. },
+                            ExpressionKind::Literal(value, ..),
+                            ExpressionKind::Literal(value_2, ..),
                         ) => match (value, value_2) {
                             (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
                                 let num = num1 - num2;
 
-                                Ok(Expression::Literal {
-                                    value: LiteralValue::Number(num),
-                                    raw: num.to_string(),
-                                })
+                                Ok((LiteralValue::Number(num), num.to_string()).into())
                             }
                             _ => {
                                 return Err(
@@ -606,18 +396,15 @@ impl SymbolTable {
                         },
                         _ => return Err(format!("Cannot substract {} with {}", left, right).into()),
                     },
-                    BinaryOperator::Times => match (left.to_owned(), right.to_owned()) {
+                    BinaryOperator::Times => match (left.kind.to_owned(), right.kind.to_owned()) {
                         (
-                            Expression::Literal { value, .. },
-                            Expression::Literal { value: value_2, .. },
+                            ExpressionKind::Literal(value, ..),
+                            ExpressionKind::Literal(value_2, ..),
                         ) => match (value, value_2) {
                             (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
                                 let num = num1 * num2;
 
-                                Ok(Expression::Literal {
-                                    value: LiteralValue::Number(num),
-                                    raw: num.to_string(),
-                                })
+                                Ok((LiteralValue::Number(num), num.to_string()).into())
                             }
                             _ => {
                                 return Err(
@@ -627,18 +414,15 @@ impl SymbolTable {
                         },
                         _ => return Err(format!("Cannot multiply {} with {}", left, right).into()),
                     },
-                    BinaryOperator::Divide => match (left.to_owned(), right.to_owned()) {
+                    BinaryOperator::Divide => match (left.kind.to_owned(), right.kind.to_owned()) {
                         (
-                            Expression::Literal { value, .. },
-                            Expression::Literal { value: value_2, .. },
+                            ExpressionKind::Literal(value, ..),
+                            ExpressionKind::Literal(value_2, ..),
                         ) => match (value, value_2) {
                             (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
                                 let num = num1 / num2;
 
-                                Ok(Expression::Literal {
-                                    value: LiteralValue::Number(num),
-                                    raw: num.to_string(),
-                                })
+                                Ok((LiteralValue::Number(num), num.to_string()).into())
                             }
                             _ => {
                                 return Err(format!("Cannot divide {} with {}", left, right).into())
@@ -646,19 +430,25 @@ impl SymbolTable {
                         },
                         _ => return Err(format!("Cannot divide {} with {}", left, right).into()),
                     },
-                    BinaryOperator::Exponential => match (left.to_owned(), right.to_owned()) {
-                        (
-                            Expression::Literal { value, .. },
-                            Expression::Literal { value: value_2, .. },
-                        ) => match (value, value_2) {
-                            (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
-                                let num = num1.powf(num2);
+                    BinaryOperator::Exponential => {
+                        match (left.kind.to_owned(), right.kind.to_owned()) {
+                            (
+                                ExpressionKind::Literal(value, ..),
+                                ExpressionKind::Literal(value_2, ..),
+                            ) => match (value, value_2) {
+                                (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
+                                    let num = num1.powf(num2);
 
-                                Ok(Expression::Literal {
-                                    value: LiteralValue::Number(num),
-                                    raw: num.to_string(),
-                                })
-                            }
+                                    Ok((LiteralValue::Number(num), num.to_string()).into())
+                                }
+                                _ => {
+                                    return Err(format!(
+                                        "Cannot calculate {} raised to the power of {}",
+                                        left, right
+                                    )
+                                    .into())
+                                }
+                            },
                             _ => {
                                 return Err(format!(
                                     "Cannot calculate {} raised to the power of {}",
@@ -666,39 +456,31 @@ impl SymbolTable {
                                 )
                                 .into())
                             }
-                        },
-                        _ => {
-                            return Err(format!(
-                                "Cannot calculate {} raised to the power of {}",
-                                left, right
-                            )
-                            .into())
                         }
-                    },
+                    }
                     BinaryOperator::Equal => {
-                        return Ok(Expression::Literal {
-                            value: LiteralValue::Boolean(left == right),
-                            raw: (left == right).to_string(),
-                        })
+                        return Ok((
+                            LiteralValue::Boolean(left == right),
+                            (left == right).to_string(),
+                        )
+                            .into())
                     }
                     BinaryOperator::NotEqual => {
-                        return Ok(Expression::Literal {
-                            value: LiteralValue::Boolean(left != right),
-                            raw: (left != right).to_string(),
-                        })
+                        return Ok((
+                            LiteralValue::Boolean(left != right),
+                            (left != right).to_string(),
+                        )
+                            .into())
                     }
-                    BinaryOperator::Modulo => match (left.to_owned(), right.to_owned()) {
+                    BinaryOperator::Modulo => match (left.kind.to_owned(), right.kind.to_owned()) {
                         (
-                            Expression::Literal { value, .. },
-                            Expression::Literal { value: value_2, .. },
+                            ExpressionKind::Literal(value, ..),
+                            ExpressionKind::Literal(value_2, ..),
                         ) => match (value, value_2) {
                             (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
                                 let num = num1 % num2;
 
-                                Ok(Expression::Literal {
-                                    value: LiteralValue::Number(num),
-                                    raw: num.to_string(),
-                                })
+                                Ok((LiteralValue::Number(num), num.to_string()).into())
                             }
                             _ => {
                                 return Err(
@@ -710,17 +492,25 @@ impl SymbolTable {
                             return Err(format!("Cannot calculate {} modulo {}", left, right).into())
                         }
                     },
-                    BinaryOperator::Greater => match (left.to_owned(), right.to_owned()) {
-                        (
-                            Expression::Literal { value, .. },
-                            Expression::Literal { value: value_2, .. },
-                        ) => match (value, value_2) {
-                            (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
-                                Ok(Expression::Literal {
-                                    value: LiteralValue::Boolean(num1 > num2),
-                                    raw: (num1 > num2).to_string(),
-                                })
-                            }
+                    BinaryOperator::Greater => {
+                        match (left.kind.to_owned(), right.kind.to_owned()) {
+                            (
+                                ExpressionKind::Literal(value, ..),
+                                ExpressionKind::Literal(value_2, ..),
+                            ) => match (value, value_2) {
+                                (LiteralValue::Number(num1), LiteralValue::Number(num2)) => Ok((
+                                    LiteralValue::Boolean(num1 > num2),
+                                    (num1 > num2).to_string(),
+                                )
+                                    .into()),
+                                _ => {
+                                    return Err(format!(
+                                        "Cannot compare {} for '>' equality {}",
+                                        left, right
+                                    )
+                                    .into())
+                                }
+                            },
                             _ => {
                                 return Err(format!(
                                     "Cannot compare {} for '>' equality {}",
@@ -728,26 +518,27 @@ impl SymbolTable {
                                 )
                                 .into())
                             }
-                        },
-                        _ => {
-                            return Err(format!(
-                                "Cannot compare {} for '>' equality {}",
-                                left, right
-                            )
-                            .into())
                         }
-                    },
-                    BinaryOperator::GreaterOrEqual => match (left.to_owned(), right.to_owned()) {
-                        (
-                            Expression::Literal { value, .. },
-                            Expression::Literal { value: value_2, .. },
-                        ) => match (value, value_2) {
-                            (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
-                                Ok(Expression::Literal {
-                                    value: LiteralValue::Boolean(num1 >= num2),
-                                    raw: (num1 >= num2).to_string(),
-                                })
-                            }
+                    }
+                    BinaryOperator::GreaterOrEqual => {
+                        match (left.kind.to_owned(), right.kind.to_owned()) {
+                            (
+                                ExpressionKind::Literal(value, ..),
+                                ExpressionKind::Literal(value_2, ..),
+                            ) => match (value, value_2) {
+                                (LiteralValue::Number(num1), LiteralValue::Number(num2)) => Ok((
+                                    LiteralValue::Boolean(num1 >= num2),
+                                    (num1 >= num2).to_string(),
+                                )
+                                    .into()),
+                                _ => {
+                                    return Err(format!(
+                                        "Cannot compare {} for '>=' equality {}",
+                                        left, right
+                                    )
+                                    .into())
+                                }
+                            },
                             _ => {
                                 return Err(format!(
                                     "Cannot compare {} for '>=' equality {}",
@@ -755,26 +546,27 @@ impl SymbolTable {
                                 )
                                 .into())
                             }
-                        },
-                        _ => {
-                            return Err(format!(
-                                "Cannot compare {} for '>=' equality {}",
-                                left, right
-                            )
-                            .into())
                         }
-                    },
-                    BinaryOperator::Smaller => match (left.to_owned(), right.to_owned()) {
-                        (
-                            Expression::Literal { value, .. },
-                            Expression::Literal { value: value_2, .. },
-                        ) => match (value, value_2) {
-                            (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
-                                Ok(Expression::Literal {
-                                    value: LiteralValue::Boolean(num1 < num2),
-                                    raw: (num1 < num2).to_string(),
-                                })
-                            }
+                    }
+                    BinaryOperator::Smaller => {
+                        match (left.kind.to_owned(), right.kind.to_owned()) {
+                            (
+                                ExpressionKind::Literal(value, ..),
+                                ExpressionKind::Literal(value_2, ..),
+                            ) => match (value, value_2) {
+                                (LiteralValue::Number(num1), LiteralValue::Number(num2)) => Ok((
+                                    LiteralValue::Boolean(num1 < num2),
+                                    (num1 < num2).to_string(),
+                                )
+                                    .into()),
+                                _ => {
+                                    return Err(format!(
+                                        "Cannot compare {} for '<' equality {}",
+                                        left, right
+                                    )
+                                    .into())
+                                }
+                            },
                             _ => {
                                 return Err(format!(
                                     "Cannot compare {} for '<' equality {}",
@@ -782,26 +574,27 @@ impl SymbolTable {
                                 )
                                 .into())
                             }
-                        },
-                        _ => {
-                            return Err(format!(
-                                "Cannot compare {} for '<' equality {}",
-                                left, right
-                            )
-                            .into())
                         }
-                    },
-                    BinaryOperator::SmallerOrEqual => match (left.to_owned(), right.to_owned()) {
-                        (
-                            Expression::Literal { value, .. },
-                            Expression::Literal { value: value_2, .. },
-                        ) => match (value, value_2) {
-                            (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
-                                Ok(Expression::Literal {
-                                    value: LiteralValue::Boolean(num1 <= num2),
-                                    raw: (num1 <= num2).to_string(),
-                                })
-                            }
+                    }
+                    BinaryOperator::SmallerOrEqual => {
+                        match (left.kind.to_owned(), right.kind.to_owned()) {
+                            (
+                                ExpressionKind::Literal(value, ..),
+                                ExpressionKind::Literal(value_2, ..),
+                            ) => match (value, value_2) {
+                                (LiteralValue::Number(num1), LiteralValue::Number(num2)) => Ok((
+                                    LiteralValue::Boolean(num1 <= num2),
+                                    (num1 <= num2).to_string(),
+                                )
+                                    .into()),
+                                _ => {
+                                    return Err(format!(
+                                        "Cannot compare {} for '<=' equality {}",
+                                        left, right
+                                    )
+                                    .into())
+                                }
+                            },
                             _ => {
                                 return Err(format!(
                                     "Cannot compare {} for '<=' equality {}",
@@ -809,92 +602,79 @@ impl SymbolTable {
                                 )
                                 .into())
                             }
-                        },
-                        _ => {
-                            return Err(format!(
-                                "Cannot compare {} for '<=' equality {}",
-                                left, right
+                        }
+                    }
+                    BinaryOperator::And => match (left.kind.to_owned(), right.kind.to_owned()) {
+                        (
+                            ExpressionKind::Literal(value, ..),
+                            ExpressionKind::Literal(value_2, ..),
+                        ) => Ok((
+                            LiteralValue::Boolean(!(value.is_falsy() || value_2.is_falsy())),
+                            (!(value.is_falsy() || value_2.is_falsy())).to_string(),
+                        )
+                            .into()),
+                        (ExpressionKind::Array(elements), ExpressionKind::Literal(value, ..)) => {
+                            Ok((
+                                LiteralValue::Boolean(!(elements.is_empty() || value.is_falsy())),
+                                (!(elements.is_empty() || value.is_falsy())).to_string(),
                             )
-                            .into())
+                                .into())
                         }
+                        (ExpressionKind::Literal(value, ..), ExpressionKind::Array(elements)) => {
+                            Ok((
+                                LiteralValue::Boolean(!(elements.is_empty() || value.is_falsy())),
+                                (!(elements.is_empty() || value.is_falsy())).to_string(),
+                            )
+                                .into())
+                        }
+                        (ExpressionKind::Array(elements), _) => Ok((
+                            LiteralValue::Boolean(!elements.is_empty()),
+                            (!elements.is_empty()).to_string(),
+                        )
+                            .into()),
+                        (_, ExpressionKind::Array(elements)) => Ok((
+                            LiteralValue::Boolean(!elements.is_empty()),
+                            (!elements.is_empty()).to_string(),
+                        )
+                            .into()),
+                        _ => Ok((LiteralValue::Boolean(true), true.to_string()).into()),
                     },
-                    BinaryOperator::And => match (left.to_owned(), right.to_owned()) {
+                    BinaryOperator::Or => match (left.kind.to_owned(), right.kind.to_owned()) {
                         (
-                            Expression::Literal { value, .. },
-                            Expression::Literal { value: value_2, .. },
-                        ) => Ok(Expression::Literal {
-                            value: LiteralValue::Boolean(!(value.is_falsy() || value_2.is_falsy())),
-                            raw: (!(value.is_falsy() || value_2.is_falsy())).to_string(),
-                        }),
-                        (Expression::Array { elements }, Expression::Literal { value, .. }) => {
-                            Ok(Expression::Literal {
-                                value: LiteralValue::Boolean(
-                                    !(elements.is_empty() || value.is_falsy()),
-                                ),
-                                raw: (!(elements.is_empty() || value.is_falsy())).to_string(),
-                            })
+                            ExpressionKind::Literal(value, ..),
+                            ExpressionKind::Literal(value_2, ..),
+                        ) => Ok((
+                            LiteralValue::Boolean(!value.is_falsy() || !value_2.is_falsy()),
+                            (!value.is_falsy() || !value_2.is_falsy()).to_string(),
+                        )
+                            .into()),
+                        (ExpressionKind::Array(elements), ExpressionKind::Literal(value, ..)) => {
+                            Ok((
+                                LiteralValue::Boolean(!elements.is_empty() || !value.is_falsy()),
+                                (!elements.is_empty() || !value.is_falsy()).to_string(),
+                            )
+                                .into())
                         }
-                        (Expression::Literal { value, .. }, Expression::Array { elements }) => {
-                            Ok(Expression::Literal {
-                                value: LiteralValue::Boolean(
-                                    !(elements.is_empty() || value.is_falsy()),
-                                ),
-                                raw: (!(elements.is_empty() || value.is_falsy())).to_string(),
-                            })
+                        (ExpressionKind::Literal(value, ..), ExpressionKind::Array(elements)) => {
+                            Ok((
+                                LiteralValue::Boolean(!elements.is_empty() || !value.is_falsy()),
+                                (!elements.is_empty() || !value.is_falsy()).to_string(),
+                            )
+                                .into())
                         }
-                        (Expression::Array { elements }, _) => Ok(Expression::Literal {
-                            value: LiteralValue::Boolean(!elements.is_empty()),
-                            raw: (!elements.is_empty()).to_string(),
-                        }),
-                        (_, Expression::Array { elements }) => Ok(Expression::Literal {
-                            value: LiteralValue::Boolean(!elements.is_empty()),
-                            raw: (!elements.is_empty()).to_string(),
-                        }),
-                        _ => Ok(Expression::Literal {
-                            value: LiteralValue::Boolean(true),
-                            raw: true.to_string(),
-                        }),
-                    },
-                    BinaryOperator::Or => match (left.to_owned(), right.to_owned()) {
-                        (
-                            Expression::Literal { value, .. },
-                            Expression::Literal { value: value_2, .. },
-                        ) => Ok(Expression::Literal {
-                            value: LiteralValue::Boolean(!value.is_falsy() || !value_2.is_falsy()),
-                            raw: (!value.is_falsy() || !value_2.is_falsy()).to_string(),
-                        }),
-                        (Expression::Array { elements }, Expression::Literal { value, .. }) => {
-                            Ok(Expression::Literal {
-                                value: LiteralValue::Boolean(
-                                    !elements.is_empty() || !value.is_falsy(),
-                                ),
-                                raw: (!elements.is_empty() || !value.is_falsy()).to_string(),
-                            })
-                        }
-                        (Expression::Literal { value, .. }, Expression::Array { elements }) => {
-                            Ok(Expression::Literal {
-                                value: LiteralValue::Boolean(
-                                    !elements.is_empty() || !value.is_falsy(),
-                                ),
-                                raw: (!elements.is_empty() || !value.is_falsy()).to_string(),
-                            })
-                        }
-                        _ => Ok(Expression::Literal {
-                            value: LiteralValue::Boolean(true),
-                            raw: true.to_string(),
-                        }),
+                        _ => Ok((LiteralValue::Boolean(true), true.to_string()).into()),
                     },
                 }
             }
 
-            Expression::MemberExpression {
+            ExpressionKind::MemberExpression {
                 indexed,
                 property,
                 computed,
             } => {
                 let evaluated_indexed = self.evaluate_expr((*indexed).to_owned())?;
-                match evaluated_indexed {
-                    Expression::Literal { value, .. } => {
+                match evaluated_indexed.kind {
+                    ExpressionKind::Literal(value, ..) => {
                         let str_value = match value {
                             LiteralValue::Str(s) => s,
                             _ => {
@@ -908,8 +688,8 @@ impl SymbolTable {
 
                         if computed {
                             let evaluated_property = self.evaluate_expr((*property).to_owned())?;
-                            match evaluated_property {
-                                Expression::Literal { value, .. } => match value {
+                            match evaluated_property.kind {
+                                ExpressionKind::Literal(value, ..) => match value {
                                     LiteralValue::Number(num) => {
                                         let index = num as usize;
                                         if index > (str_value.len() - 1) {
@@ -918,10 +698,9 @@ impl SymbolTable {
                                         let new_str = &str_value[index..index + 1];
 
                                         let raw = format!("\"{}\"", new_str);
-                                        return Ok(Expression::Literal {
-                                            value: LiteralValue::Str(new_str.to_owned()),
-                                            raw,
-                                        });
+                                        return Ok(
+                                            (LiteralValue::Str(new_str.to_owned()), raw).into()
+                                        );
                                     }
                                     _ => {
                                         return Err(format!(
@@ -930,13 +709,13 @@ impl SymbolTable {
                                         ))
                                     }
                                 },
-                                Expression::Range { from, limits, to } => {
+                                ExpressionKind::Range(from, limits, to) => {
                                     let max_index = (str_value.len() - 1) as isize;
 
                                     let start_index = match from {
                                         Some(expr) => {
-                                            match *expr {
-                                                Expression::Literal { value, .. } => {
+                                            match (*expr).kind {
+                                                ExpressionKind::Literal (value, ..) => {
                                                     match value {
                                                         LiteralValue::Number(num) => num as isize,
                                                         val => return Err(format!(
@@ -953,8 +732,8 @@ impl SymbolTable {
                                     };
                                     let end_index = match to {
                                         Some(expr) => {
-                                            match *expr {
-                                                Expression::Literal { value, .. } => {
+                                            match (*expr).kind {
+                                                ExpressionKind::Literal (value, ..) => {
                                                     match value {
                                                         LiteralValue::Number(num) => num as isize,
                                                         val => return Err(format!(
@@ -991,10 +770,11 @@ impl SymbolTable {
                                         }
                                     };
 
-                                    return Ok(Expression::Literal {
-                                        value: LiteralValue::Str(new_str.to_owned()),
-                                        raw: new_str.to_owned(),
-                                    });
+                                    return Ok((
+                                        LiteralValue::Str(new_str.to_owned()),
+                                        new_str.to_owned(),
+                                    )
+                                        .into());
                                 }
                                 _ => {
                                     return Err(format!(
@@ -1005,11 +785,11 @@ impl SymbolTable {
                             }
                         }
                     }
-                    Expression::Array { elements } => {
+                    ExpressionKind::Array(elements) => {
                         if computed {
                             let evaluated_property = self.evaluate_expr((*property).to_owned())?;
-                            match evaluated_property {
-                                Expression::Literal { value, .. } => match value {
+                            match evaluated_property.kind {
+                                ExpressionKind::Literal(value, ..) => match value {
                                     LiteralValue::Number(num) => {
                                         let index = num.floor() as usize;
                                         if index > (elements.len() - 1) {
@@ -1025,13 +805,13 @@ impl SymbolTable {
                                         ))
                                     }
                                 },
-                                Expression::Range { from, limits, to } => {
+                                ExpressionKind::Range(from, limits, to) => {
                                     let max_index = (elements.len() - 1) as isize;
 
                                     let start_index = match from {
                                         Some(expr) => {
-                                            match *expr {
-                                                Expression::Literal { value, .. } => {
+                                            match (*expr).kind {
+                                                ExpressionKind::Literal (value, ..) => {
                                                     match value {
                                                         LiteralValue::Number(num) => num as isize,
                                                         val => return Err(format!(
@@ -1055,8 +835,8 @@ impl SymbolTable {
                                         RangeType::Dot => {
                                             let end_index = match to {
                                                 Some(expr) => {
-                                                        match *expr {
-                                                            Expression::Literal { value, .. } => {
+                                                        match (*expr).kind {
+                                                            ExpressionKind::Literal (value, ..) => {
                                                                 match value {
                                                                     LiteralValue::Number(num) => num as isize,
                                                                     val => return Err(format!(
@@ -1082,8 +862,8 @@ impl SymbolTable {
                                         RangeType::DotEqual => {
                                             let end_index = match to {
                                                 Some(expr) => {
-                                                    match *expr {
-                                                        Expression::Literal { value, .. } => {
+                                                    match (*expr).kind {
+                                                        ExpressionKind::Literal (value, ..) => {
                                                             match value {
                                                                 LiteralValue::Number(num) => num as isize,
                                                                 val => return Err(format!(
@@ -1108,9 +888,9 @@ impl SymbolTable {
                                         }
                                     };
 
-                                    return Ok(Expression::Array {
-                                        elements: new_value,
-                                    });
+                                    return Ok(Expression::with_kind(ExpressionKind::Array(
+                                        new_value,
+                                    )));
                                 }
                                 _ => {
                                     return Err(format!(
@@ -1121,10 +901,10 @@ impl SymbolTable {
                             }
                         }
                     }
-                    Expression::Object { properties } => {}
-                    Expression::Range { from, limits, to } => {}
-                    Expression::Err(_) => {}
-                    Expression::Ok(_) => {}
+                    ExpressionKind::Object(properties) => {}
+                    ExpressionKind::Range(from, limits, to) => {}
+                    ExpressionKind::Err(_) => {}
+                    ExpressionKind::Ok(_) => {}
                     x => {
                         return Err(format!(
                             "Cannot index {} as it's of type {}",
@@ -1135,24 +915,24 @@ impl SymbolTable {
                 };
                 todo!()
             }
-            Expression::CallExpression { callee, args } => match *callee {
-                Expression::MemberExpression {
+            ExpressionKind::CallExpression { callee, args } => match (*callee).kind {
+                ExpressionKind::MemberExpression {
                     indexed,
                     property,
                     computed,
                 } => todo!(),
-                Expression::IdentifierExpression(Identifier { name }) => match name.as_str() {
+                ExpressionKind::IdentifierExpression(Identifier(name)) => match name.as_str() {
                     name => {
                         let x = self.get_function(name)?;
 
                         Ok((x.executable)(self, args)?)
                     }
                 },
-                Expression::Parenthesized(expr) => {
+                ExpressionKind::Parenthesized(expr) => {
                     let expr = self.evaluate_expr(*expr)?;
 
-                    match expr {
-                        Expression::FnExpression {
+                    match expr.kind {
+                        ExpressionKind::FnExpression {
                             params,
                             body,
                             is_shortcut,
@@ -1163,20 +943,17 @@ impl SymbolTable {
                         }
                     };
 
-                    Ok(Expression::Literal {
-                        value: LiteralValue::Nil,
-                        raw: "".to_owned(),
-                    })
+                    Ok((LiteralValue::Nil, "".to_owned()).into())
                 }
                 _ => unreachable!(),
             },
-            Expression::IdentifierExpression(Identifier { name }) => {
+            ExpressionKind::IdentifierExpression(Identifier(name)) => {
                 let value = self.get_variable(&name)?;
 
                 Ok(value.to_owned())
             }
-            Expression::Parenthesized(expr) => self.evaluate_expr(*expr),
-            Expression::Comment { .. } => unreachable!("Cannot evaluate a comment"),
+            ExpressionKind::Parenthesized(expr) => self.evaluate_expr((*expr).kind),
+            ExpressionKind::Comment { .. } => unreachable!("Cannot evaluate a comment"),
         }
     }
 
@@ -1269,16 +1046,16 @@ impl SymbolTable {
 
         Err(format!("No function '{}' exported", name))
     }
-    fn add_function(&mut self, function: ASTNode) {
-        match function {
-            ASTNode::FunctionDeclaration {
+    fn add_function(&mut self, function: Statement) {
+        match function.kind {
+            StatementKind::FunctionDeclaration(FunctionDeclaration {
                 id,
                 params,
                 body,
                 is_exported,
                 ..
-            } => {
-                let name = id.to_owned().name;
+            }) => {
+                let name = id.value();
                 let symbol_table = self.to_owned();
 
                 let executable: Rc<
@@ -1293,20 +1070,19 @@ impl SymbolTable {
                             return Err(format!(
                                 "Expected {} arguments when calling function `{}`",
                                 params.len(),
-                                id.to_owned().name
+                                id.value()
                             ));
                         }
 
                         for (i, param) in params.iter().enumerate() {
                             let value = actual_symbol_table.evaluate_expr(args[i].to_owned())?;
 
-                            local_symbol_table.add_variable(param.id.to_owned().name, value);
+                            local_symbol_table.add_variable(param.id.value(), value);
                         }
 
-                        let body = *body.to_owned();
                         let result = match body {
-                            ASTNode::BlockStatement { .. } => local_symbol_table.interpret(body)?,
-                            ASTNode::ReturnStatement { argument, .. } => {
+                            FunctionBody::Block(body) => local_symbol_table.interpret(body)?,
+                            FunctionBody::ShortCut(ReturnStatement(argument, ..)) => {
                                 local_symbol_table.evaluate_expr(argument)?
                             }
                             _ => unreachable!(),

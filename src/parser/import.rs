@@ -2,9 +2,10 @@ use super::{
     ast::{
         identifier::{parse_identifier, Identifier},
         import::{ImportSource, ImportSpecifier},
-        ASTNode,
+        Statement, StatementKind,
     },
     expression::strings::parse_raw_string,
+    reserved::DEFINED_FUNCTIONS,
 };
 use nom::{
     branch::alt,
@@ -15,7 +16,7 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
-pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
+pub fn parse_import(i: &str) -> IResult<&str, Statement, ErrorTree<&str>> {
     let (i, _) = multispace1(i)?;
 
     let (i, asterisk) = char('*').opt().parse(i)?;
@@ -36,9 +37,7 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         let (i, local) = import_as.opt().parse(i)?;
         let (i, _) = multispace0(i)?;
 
-        let asterisk = Identifier {
-            name: asterisk.unwrap().to_string(),
-        };
+        let asterisk: Identifier = asterisk.unwrap().to_string().into();
 
         if let Some(local) = local {
             (
@@ -68,7 +67,7 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
         .context("import source")
         .parse(i)?;
 
-    let import_declaration = ASTNode::ImportDeclaration { specifiers, source };
+    let import_declaration: Statement = (source, specifiers).into();
     let (i, _) = space0(i)?;
 
     if i.is_empty() {
@@ -85,7 +84,11 @@ pub fn parse_import(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 }
 
 fn parse_import_specifier(i: &str) -> IResult<&str, ImportSpecifier, ErrorTree<&str>> {
-    let (i, imported_name) = parse_identifier.parse(i)?;
+    let (i, imported_name) = parse_identifier
+        .verify(|id| !DEFINED_FUNCTIONS.contains(&id.0.as_str()))
+        .context("import specifier")
+        .cut()
+        .parse(i)?;
     let (i, local_name) = import_as.opt().parse(i)?;
 
     match local_name {
@@ -116,4 +119,10 @@ fn import_as(i: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
     let (i, local_name) = parse_identifier.cut().parse(i)?;
 
     return Ok((i, local_name));
+}
+
+impl Into<Statement> for (ImportSource, Vec<ImportSpecifier>) {
+    fn into(self) -> Statement {
+        Statement::with_kind(StatementKind::Import(self.0, self.1))
+    }
 }

@@ -4,7 +4,7 @@ use super::{
     ast::{
         identifier::{parse_identifier, Identifier},
         literal_value::LiteralValue,
-        ASTNode,
+        BlockStatement, Statement, StatementKind,
     },
     expression::{
         numbers::parse_number_literal_value, parse_expression, strings::parse_string_literal_value,
@@ -22,7 +22,7 @@ use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 #[derive(Debug, Clone, PartialEq)]
 pub struct MatchCase {
     pattern: MatchPattern,
-    body: ASTNode, // ASTNode::BlockStatement
+    body: BlockStatement,
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -38,7 +38,7 @@ pub enum MatchPattern {
     Err(Box<MatchPattern>),
 }
 
-pub fn parse_match_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
+pub fn parse_match_statement(input: &str) -> IResult<&str, Statement, ErrorTree<&str>> {
     let (input, _) = multispace1.cut().parse(input)?;
 
     let (input, test) = parse_expression.parse(input)?;
@@ -46,9 +46,9 @@ pub fn parse_match_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&s
 
     let (input, body) = parse_match_block.cut().parse(input)?;
 
-    let node = ASTNode::MatchStatement { test, body };
+    let node = StatementKind::MatchStatement(test, body);
 
-    Ok((input, node))
+    Ok((input, node.into()))
 }
 
 fn parse_match_block(input: &str) -> IResult<&str, MatchBlock, ErrorTree<&str>> {

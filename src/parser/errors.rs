@@ -193,6 +193,20 @@ impl<FileId> SyntaxError<FileId> {
             ],
         }
     }
+    pub fn invalid_import_specifier(found: &str) -> Self {
+        SyntaxError {
+            message: "Invalid import specifier".to_owned(),
+            code: 12.into(),
+            labels: Vec::new(),
+            notes: vec![
+                "Check if the identifier is used or invalid".to_owned(),
+                format!(
+                    "expected a valid specifier
+    found `{found}`"
+                ),
+            ],
+        }
+    }
 }
 
 pub fn get_opposing_tag(opening_tag: &str) -> &str {

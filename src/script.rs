@@ -1,7 +1,7 @@
 use crate::{
     interpreter::{interpret, interpret_import, SymbolTable},
     parser::{
-        ast::{self, identifier::parse_raw_id},
+        ast::identifier::parse_raw_id,
         comment::jump_comments,
         errors::{get_opposing_tag, SyntaxError},
         expression::strings::parse_raw_string,
@@ -41,11 +41,9 @@ impl<Name: Display + Clone> ComfyScript<Name> {
             }
         };
 
-        let _nodes = match &program {
-            ast::ASTNode::Program { body } => body,
-            _ => unreachable!(),
-        };
-        // _nodes.iter().for_each(|node| println!("{:?}", node));
+        &program.body.iter().for_each(|node| println!("{:?}", node));
+
+        std::process::exit(1);
 
         match interpret(program) {
             Ok(_) => {
@@ -128,6 +126,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                             "unknown char escape" => SyntaxError::unknown_char_escape(found),
                             "valid data type" => SyntaxError::valid_data_type(found),
                             "invalid function name" => SyntaxError::invalid_function_name(found),
+                            "import specifier" => SyntaxError::invalid_import_specifier(found),
                             _ => {
                                 unreachable!()
                             }
@@ -291,12 +290,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
 
         let mut buffer = String::new();
 
-        let program = match program {
-            ast::ASTNode::Program { body } => body,
-            _ => unreachable!(),
-        };
-
-        for node in program {
+        for node in program.body {
             buffer.push_str(&node.to_string())
         }
 

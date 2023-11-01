@@ -1,5 +1,5 @@
 use crate::parser::ast::range::RangeType;
-use crate::parser::ast::Expression;
+use crate::parser::ast::{Expression, ExpressionKind};
 use nom::branch::alt;
 use nom::character::complete::multispace0;
 use nom::combinator::value;
@@ -30,11 +30,12 @@ pub fn parse_opt_range(
 
             return Ok((
                 i,
-                Expression::Range {
-                    from: Some(Box::new(initial_expr.to_owned())),
-                    limits: range_type,
-                    to: final_expr,
-                },
+                (
+                    Some(Box::new(initial_expr.to_owned())),
+                    range_type,
+                    final_expr,
+                )
+                    .into(),
             ));
         }
 
@@ -56,22 +57,14 @@ pub fn parse_range(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
         .parse(i)?;
 
     if let Some(final_expr) = final_expr {
-        return Ok((
-            i,
-            Expression::Range {
-                from: None,
-                limits: range_type,
-                to: Some(Box::new(final_expr)),
-            },
-        ));
+        return Ok((i, (None, range_type, Some(Box::new(final_expr))).into()));
     }
 
-    Ok((
-        i,
-        Expression::Range {
-            from: None,
-            limits: range_type,
-            to: None,
-        },
-    ))
+    Ok((i, (None, range_type, None).into()))
+}
+
+impl Into<Expression> for (Option<Box<Expression>>, RangeType, Option<Box<Expression>>) {
+    fn into(self) -> Expression {
+        Expression::with_kind(ExpressionKind::Range(self.0, self.1, self.2))
+    }
 }

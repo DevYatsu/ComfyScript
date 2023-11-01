@@ -6,15 +6,12 @@ use nom::{
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 use crate::parser::{
-    ast::{identifier::parse_identifier_expression, ASTNode, Expression},
-    expression::{
-        function_call::parse_fn_call, indexing::parse_indexing, member_expr::parse_opt_member_expr,
-        parse_expression,
-    },
+    ast::{identifier::parse_identifier_expression, Expression, Statement, StatementKind},
+    expression::{indexing::parse_indexing, member_expr::parse_opt_member_expr, parse_expression},
     operations::assignment::parse_assignment_operator,
 };
 
-pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
+pub fn parse_assignment(i: &str) -> IResult<&str, Statement, ErrorTree<&str>> {
     let (i, id) = parse_assigned.parse(i)?;
 
     let (i, _) = multispace0(i)?;
@@ -24,11 +21,7 @@ pub fn parse_assignment(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
 
     let (i, assigned) = parse_expression.parse(i)?;
 
-    let assignment = ASTNode::Assignment {
-        operator: op,
-        id,
-        assigned,
-    };
+    let assignment = Statement::with_kind(StatementKind::Assignment(id, op, assigned));
     let (i, _) = space0(i)?;
 
     if i.is_empty() {

@@ -21,10 +21,11 @@ pub enum StringFragment {
 pub fn parse_string(initial_i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
     let (i, string) = delimited(char('"'), build_string, char('"')).parse(initial_i)?;
 
-    let result_str = Expression::Literal {
-        value: LiteralValue::Str(string),
-        raw: initial_i[0..initial_i.len() - i.len()].to_string(),
-    };
+    let result_str: Expression = (
+        LiteralValue::Str(string),
+        initial_i[0..initial_i.len() - i.len()].to_string(),
+    )
+        .into();
 
     Ok((i, result_str))
 }

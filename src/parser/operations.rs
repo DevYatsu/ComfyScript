@@ -8,6 +8,8 @@ pub mod binary;
 use self::binary::BinaryOperator;
 use crate::parser::ast::Expression;
 
+use super::ast::ExpressionKind;
+
 pub fn build_binary_expression(
     mut expressions: Vec<Expression>,
     mut operators: Vec<BinaryOperator>,
@@ -25,11 +27,11 @@ pub fn build_binary_expression(
             let right = expressions.remove(index + 1);
             let left = expressions.remove(index);
 
-            let binary_op = Expression::BinaryExpression {
-                left: Box::new(left),
+            let binary_op = Expression::with_kind(ExpressionKind::BinaryExpression(
+                Box::new(left),
                 operator,
-                right: Box::new(right),
-            };
+                Box::new(right),
+            ));
 
             expressions.insert(index, binary_op);
         }

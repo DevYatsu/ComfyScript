@@ -27,13 +27,7 @@ pub fn parse_number(initial_i: &str) -> IResult<&str, Expression, ErrorTree<&str
 
     let (_, raw) = take((initial_i.len() - i.len()) as usize)(initial_i)?;
 
-    Ok((
-        i,
-        Expression::Literal {
-            value: LiteralValue::Number(num),
-            raw: raw.to_owned(),
-        },
-    ))
+    Ok((i, (LiteralValue::Number(num), raw.to_owned()).into()))
 }
 
 pub fn parse_number_literal_value(initial_i: &str) -> IResult<&str, LiteralValue, ErrorTree<&str>> {

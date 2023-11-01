@@ -18,10 +18,10 @@ use self::{
         initial::{parse_var_init, VariableKeyword},
         reassign::parse_assignment,
     },
-    ast::ASTNode,
+    ast::{BlockStatement, Program, Statement},
     comment::{parse_line_comment, parse_multiline_comment},
     expression::{parse_expression, parse_expression_statement},
-    function::parse_function,
+    function::{parse_function, return_expression::ReturnStatement},
     if_block::parse_if_statement,
     loop_for::parse_for_statement,
     loop_while::parse_while_statement,
@@ -37,11 +37,11 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, final_parser::final_parser, tag::complete::tag, ParserExt};
 
-pub fn parse_input(input: &str) -> Result<ASTNode, ErrorTree<&str>> {
+pub fn parse_input(input: &str) -> Result<Program, ErrorTree<&str>> {
     final_parser(parse_code)(input)
 }
 
-fn parse_code<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
+fn parse_code<'a>(input: &'a str) -> IResult<&'a str, Program, ErrorTree<&'a str>> {
     let (input, _) = parse_new_lines.opt().parse(input)?;
 
     let (input, statements) = many0(parse_statement.terminated(parse_new_lines.opt()))
@@ -49,10 +49,10 @@ fn parse_code<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str
         .all_consuming()
         .parse(input)?;
 
-    Ok((input, ASTNode::Program { body: statements }))
+    Ok((input, Program { body: statements }))
 }
 
-fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a str>> {
+fn parse_block<'a>(input: &'a str) -> IResult<&'a str, BlockStatement, ErrorTree<&'a str>> {
     let (input, _) = char('{').cut().context("block").parse(input)?;
 
     let (input, _) = parse_new_lines.opt().parse(input)?;
@@ -67,10 +67,10 @@ fn parse_block<'a>(input: &'a str) -> IResult<&'a str, ASTNode, ErrorTree<&'a st
         .context("block end")
         .parse(input)?;
 
-    Ok((input, ASTNode::BlockStatement { body: statements }))
+    Ok((input, BlockStatement { body: statements }))
 }
 
-fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
+fn parse_statement(initial_input: &str) -> IResult<&str, Statement, ErrorTree<&str>> {
     let (input, found) = alt((
         tag("//").complete(),
         tag("/*").complete(),
@@ -88,7 +88,7 @@ fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
 
             let (input, declarations) = parse_var_init(input)?;
 
-            (input, ASTNode::VariableDeclaration { declarations, kind })
+            (input, (kind, declarations).into())
         }
         "import" => parse_import(input)?,
         "export" => {
@@ -102,7 +102,11 @@ fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
             parse_function(true)(input)?
         }
         "fn" => parse_function(false)(input)?,
-        "if" => parse_if_statement(input)?,
+        "if" => {
+            let (i, if_statement) = parse_if_statement(input)?;
+
+            (i, if_statement.into())
+        }
         "for" => parse_for_statement(input)?,
         "while" => parse_while_statement(input)?,
         "match" => parse_match_statement(input)?,
@@ -116,23 +120,17 @@ fn parse_statement(initial_input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
 
             let (input, argument) = parse_expression.cut().parse(input)?;
 
-            (
-                input,
-                ASTNode::ReturnStatement {
-                    argument,
-                    is_shortcut,
-                },
-            )
+            (input, (ReturnStatement(argument, is_shortcut)).into())
         }
         "//" => {
             let (input, expression) = parse_line_comment(input)?;
 
-            (input, ASTNode::ExpressionStatement { expression })
+            (input, expression.into())
         }
         "/*" => {
             let (input, expression) = parse_multiline_comment(input)?;
 
-            (input, ASTNode::ExpressionStatement { expression })
+            (input, expression.into())
         }
         _ => alt((parse_assignment, parse_expression_statement))(initial_input)?,
     };

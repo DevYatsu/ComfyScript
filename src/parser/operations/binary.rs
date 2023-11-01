@@ -1,7 +1,7 @@
 use std::fmt;
 
 use nom::{branch::alt, IResult};
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum BinaryOperator {
@@ -25,42 +25,23 @@ pub enum BinaryOperator {
 
 pub fn parse_binary_operator(i: &str) -> IResult<&str, BinaryOperator, ErrorTree<&str>> {
     let (i, operator) = alt((
-        tag("+"),
-        tag("-"),
-        tag("**"),
-        tag("*"),
-        tag("/"),
-        tag("%"),
-        tag("=="),
-        tag("!="),
-        tag(">="),
-        tag(">"),
-        tag("<="),
-        tag("<"),
-        tag("&&"),
-        tag("||"),
+        tag("+").value(BinaryOperator::Plus),
+        tag("-").value(BinaryOperator::Minus),
+        tag("**").complete().value(BinaryOperator::Times),
+        tag("*").value(BinaryOperator::Exponential),
+        tag("/").value(BinaryOperator::Divide),
+        tag("%").value(BinaryOperator::Modulo),
+        tag("==").complete().value(BinaryOperator::Equal),
+        tag("!=").complete().value(BinaryOperator::NotEqual),
+        tag(">=").complete().value(BinaryOperator::GreaterOrEqual),
+        tag(">").value(BinaryOperator::Greater),
+        tag("<=").complete().value(BinaryOperator::SmallerOrEqual),
+        tag("<").value(BinaryOperator::SmallerOrEqual),
+        tag("&&").complete().value(BinaryOperator::And),
+        tag("||").complete().value(BinaryOperator::Or),
     ))(i)?;
 
-    Ok((
-        i,
-        match operator {
-            "+" => BinaryOperator::Plus,
-            "-" => BinaryOperator::Minus,
-            "*" => BinaryOperator::Times,
-            "**" => BinaryOperator::Exponential,
-            "/" => BinaryOperator::Divide,
-            "%" => BinaryOperator::Modulo,
-            "==" => BinaryOperator::Equal,
-            "!=" => BinaryOperator::NotEqual,
-            ">" => BinaryOperator::Greater,
-            ">=" => BinaryOperator::GreaterOrEqual,
-            "<" => BinaryOperator::Smaller,
-            "<=" => BinaryOperator::SmallerOrEqual,
-            "&&" => BinaryOperator::And,
-            "||" => BinaryOperator::Or,
-            _ => unreachable!(),
-        },
-    ))
+    Ok((i, operator))
 }
 
 impl fmt::Display for BinaryOperator {

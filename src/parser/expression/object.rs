@@ -7,7 +7,7 @@ use nom_supreme::{error::ErrorTree, ParserExt};
 use crate::parser::ast::{
     identifier::parse_identifier,
     object::{Property, PropertyKind},
-    Expression,
+    Expression, ExpressionKind,
 };
 
 use super::parse_expression;
@@ -25,12 +25,7 @@ pub fn parse_object(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
 
     let (i, _) = char('}').context("unexpected").cut().parse(i)?;
 
-    Ok((
-        i,
-        Expression::Object {
-            properties: elements,
-        },
-    ))
+    Ok((i, Expression::with_kind(ExpressionKind::Object(elements))))
 }
 
 fn parse_property(i: &str) -> IResult<&str, Property, ErrorTree<&str>> {
@@ -44,8 +39,8 @@ fn parse_property(i: &str) -> IResult<&str, Property, ErrorTree<&str>> {
         .context("expression")
         .parse(i)?;
 
-    let is_method = match expr {
-        Expression::FnExpression { .. } => true,
+    let is_method = match expr.kind {
+        ExpressionKind::FnExpression { .. } => true,
         _ => false,
     };
 

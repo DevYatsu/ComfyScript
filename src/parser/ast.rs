@@ -5,6 +5,8 @@ pub mod object;
 pub mod range;
 pub mod vars;
 
+use crate::interpreter::RunnableCode;
+
 use self::{
     identifier::Identifier,
     import::{ImportSource, ImportSpecifier},
@@ -17,103 +19,96 @@ use super::{
     assignment::initial::VariableKeyword,
     data_type::DataType,
     expression::template_literal::TemplateLiteralFragment,
-    function::{FunctionParam, ReturnType},
+    function::{
+        return_expression::ReturnStatement, FunctionBody, FunctionDeclaration, FunctionParam,
+        ReturnType,
+    },
+    if_block::IfStatement,
     match_block::MatchBlock,
     operations::{assignment::AssignmentOperator, binary::BinaryOperator},
 };
 use std::fmt::{self, Display, Formatter};
 
 #[derive(Debug, Clone, PartialEq)]
-pub enum ASTNode {
-    Program {
-        body: Vec<ASTNode>,
-    },
-    ImportDeclaration {
-        specifiers: Vec<ImportSpecifier>,
-        source: ImportSource,
-    },
-    VariableDeclaration {
-        declarations: Vec<VariableDeclarator>,
-        kind: VariableKeyword,
-    },
-    Assignment {
-        operator: AssignmentOperator,
-        id: Expression,
-        assigned: Expression,
-    },
+pub struct Program {
+    pub body: Vec<Statement>,
+}
+#[derive(Debug, Clone, PartialEq)]
+pub struct BlockStatement {
+    pub body: Vec<Statement>,
+}
 
-    ExpressionStatement {
-        expression: Expression,
-    }, // everything that is not a real statement, that is for example strings and numbers or var reassigment
+#[derive(Debug, Clone, PartialEq)]
+pub struct Statement {
+    pub kind: StatementKind,
+}
 
-    FunctionDeclaration {
-        id: Identifier,
-        is_exported: bool,
-        params: Vec<FunctionParam>,
-        body: Box<ASTNode>,
-        return_type: Option<ReturnType>,
-        is_shortcut: bool,
-        // if is_shortcut == true then body = ASTNode::ReturnStatement
-    },
-    ForStatement {
-        declarations: Vec<Identifier>,
-        kind: VariableKeyword,
-        source: Expression,
-        body: Box<ASTNode>,
-    },
-    WhileStatement {
-        test: Expression,
-        body: Box<ASTNode>,
-    },
-    IfStatement {
-        test: Expression,
-        body: Box<ASTNode>,
-        alternate: Option<Box<ASTNode>>,
-        // alternate may either be None, a BlockStatement or an IfStatement
-    },
-    MatchStatement {
-        test: Expression,
-        body: MatchBlock,
-    },
-    BlockStatement {
-        body: Vec<ASTNode>,
-    },
-    ReturnStatement {
-        argument: Expression,
-        is_shortcut: bool,
-    },
+#[derive(Debug, Clone, PartialEq)]
+pub struct Expression {
+    pub kind: ExpressionKind,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum StatementKind {
+    Import(ImportSource, Vec<ImportSpecifier>),
+
+    /// VariableKeyword: Let or Var
+    /// Vec<VariableDeclarator>: each declaration in the statement
+    /// we can create several varibles at once in ComfyScript
+    VariableDeclaration(VariableKeyword, Vec<VariableDeclarator>),
+
+    /// Expression: Indexing expression or IdentifierExpression
+    /// AssignmentOperator: =,+=,-=,*=,%=
+    /// Expression: value assigned to the variable
+    Assignment(Expression, AssignmentOperator, Expression),
+
+    /// ExpressionStatement: may be a function call or anything that has no importance in the code
+    Expression(Expression),
+    FunctionDeclaration(FunctionDeclaration),
+
+    /// VariableKeyword: Set to Var initially but can be add before the variables defined in the statement
+    /// Vec<Identifier>: All varibles defined in the for statement
+    /// Expression: what is indexed
+    /// BlockStatement: the block that is run
+    ForStatement(VariableKeyword, Vec<Identifier>, Expression, BlockStatement),
+
+    /// Expression: the test => when true then run the block
+    /// BlockStatement: the block that is run
+    WhileStatement(Expression, BlockStatement),
+
+    IfStatement(IfStatement),
+
+    /// Expression: what is matched
+    /// MatchBlock: Contains the MatchCases
+    MatchStatement(Expression, MatchBlock),
+
+    ReturnStatement(ReturnStatement),
 }
 
 #[derive(Debug, Clone)]
-pub enum Expression {
-    Literal {
-        value: LiteralValue, // can be either a string or a number
-        raw: String,
-    },
-    TemplateLiteral {
-        // value/expression/expression syntax
-        value: Vec<TemplateLiteralFragment>,
-        raw: String,
-        // syntax like this: #"hey {name}, I am {age} years old"
-        // here first value is ""
-    },
-    Range {
-        // similar to rust for instance 0..10
-        from: Option<Box<Expression>>,
-        limits: RangeType,
-        to: Option<Box<Expression>>,
-    },
-    Array {
-        elements: Vec<Expression>,
-    },
-    Object {
-        properties: Vec<Property>,
-    },
-    BinaryExpression {
-        left: Box<Expression>,
-        operator: BinaryOperator,
-        right: Box<Expression>,
-    },
+pub enum ExpressionKind {
+    /// The LiteralValue contains the value of the Literal
+    /// The String is the RAW representation of the Literal
+    Literal(LiteralValue, String),
+
+    /// syntax like this: #"hey {name}, I am {age} years old"
+    /// The Vec contains the part of the template literal
+    /// The String is the RAW representation of the template literal
+    TemplateLiteral(Vec<TemplateLiteralFragment>, String),
+
+    /// start_index: if None then equals 0
+    /// Rangetype: .. or ..=
+    /// end_index: if None then equals max length of what is indexed
+    Range(Option<Box<Expression>>, RangeType, Option<Box<Expression>>),
+
+    Array(Vec<Expression>),
+    Object(Vec<Property>),
+
+    /// left expression
+    /// BinaryOperator
+    /// right expression
+    BinaryExpression(Box<Expression>, BinaryOperator, Box<Expression>),
+
     MemberExpression {
         // either an array indexing or an object indexing
         indexed: Box<Expression>,
@@ -133,25 +128,80 @@ pub enum Expression {
     },
     FnExpression {
         params: Vec<FunctionParam>,
-        body: Box<ASTNode>,
+        body: Box<FunctionBody>,
         is_shortcut: bool,
         return_type: Option<ReturnType>,
     },
 
-    ErrorPropagation(Box<Expression>), // An expression propaging the error if it fails
+    /// An expression propaging the Result if it fails
+    /// For instance, a function call that can fail returns an Ok(expression) or a Err(String)
+    /// Using the ErrorPropagation operator (?) will either return the error and stop the program or transform the Ok(expression) into expression
+    ErrorPropagation(Box<Expression>),
 
-    Err(String),         // An expression that failed
-    Ok(Box<Expression>), // An expression that succeed
+    /// An expression that has failed
+    /// Can be matched with a match statement
+    Err(String),
+
+    /// An expression that has succeed
+    /// Can be matched with a match statement    
+    Ok(Box<Expression>),
 }
 
-// display is used to minify the content
-impl Display for ASTNode {
+impl Statement {
+    pub fn with_kind(kind: StatementKind) -> Self {
+        Statement { kind }
+    }
+}
+impl RunnableCode for Program {
+    fn get_statements(self) -> Vec<Statement> {
+        self.body
+    }
+}
+impl RunnableCode for BlockStatement {
+    fn get_statements(self) -> Vec<Statement> {
+        self.body
+    }
+}
+impl Expression {
+    pub fn with_kind(kind: ExpressionKind) -> Self {
+        Expression { kind }
+    }
+}
+
+impl Display for Program {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        for node in self.body {
+            write!(f, "{};", node)?;
+        }
+        write!(f, "")
+    }
+}
+
+impl Display for BlockStatement {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, " {{")?;
+        for node in self.body {
+            write!(f, "{}", node)?;
+        }
+        write!(f, "}}")
+    }
+}
+
+impl Display for Statement {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{}", self.kind)
+    }
+}
+
+impl Display for StatementKind {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match self {
-            ASTNode::Program { body, .. } => Ok(for node in body {
-                write!(f, "{}", node)?;
-            }),
-            ASTNode::ImportDeclaration { specifiers, source } => {
+            StatementKind::Assignment(id, operator, assigned) => {
+                write!(f, "{}", id)?;
+                write!(f, "{}", operator)?;
+                write!(f, "{}", assigned)
+            }
+            StatementKind::Import(source, specifiers) => {
                 write!(f, "import ")?;
 
                 for (i, specifier) in specifiers.iter().enumerate() {
@@ -162,9 +212,10 @@ impl Display for ASTNode {
                     }
                 }
 
-                write!(f, " from {};", source)
+                write!(f, " from {}", source)
             }
-            ASTNode::VariableDeclaration { declarations, kind } => {
+
+            StatementKind::VariableDeclaration(kind, declarations) => {
                 write!(f, "{} ", kind)?;
 
                 for (i, declaration) in declarations.iter().enumerate() {
@@ -175,57 +226,16 @@ impl Display for ASTNode {
                     }
                 }
 
-                write!(f, ";")
+                write!(f, "")
             }
-            ASTNode::Assignment {
-                operator,
-                id,
-                assigned,
-            } => {
-                write!(f, "{}", id)?;
-                write!(f, "{}", operator)?;
-                write!(f, "{}", assigned)
-            }
-            ASTNode::ExpressionStatement { expression } => {
+            StatementKind::Expression(expression) => {
                 write!(f, "{};", expression)
             }
-            ASTNode::FunctionDeclaration {
-                id,
-                params,
-                body,
-                return_type,
-                is_exported,
-                ..
-            } => {
-                if *is_exported {
-                    write!(f, "export ")?;
-                }
 
-                write!(f, "fn {}(", id.clone())?;
-
-                for (i, param) in params.into_iter().enumerate() {
-                    if i == params.len() - 1 {
-                        write!(f, "{}", param)?;
-                    } else {
-                        write!(f, "{},", param)?;
-                    }
-                }
-
-                write!(f, ")")?;
-
-                if let Some(return_type) = return_type {
-                    write!(f, "{}", return_type)?;
-                }
-
-                write!(f, " {}", body)
-                // either put a block statement or a return statement (with shortcut)
+            StatementKind::FunctionDeclaration(function) => {
+                write!(f, "{}", function)
             }
-            ASTNode::ForStatement {
-                declarations,
-                source,
-                body,
-                kind,
-            } => {
+            StatementKind::ForStatement(kind, declarations, source, body) => {
                 write!(f, "for {kind} ")?;
 
                 for declaration in declarations {
@@ -236,63 +246,38 @@ impl Display for ASTNode {
 
                 write!(f, " {}", body)
             }
-            ASTNode::WhileStatement { test, body } => {
-                write!(f, "while ")?;
-
-                write!(f, "{test}")?;
-
-                write!(f, " {}", body)
+            StatementKind::WhileStatement(test, body) => {
+                write!(f, "while {test}{body}")
             }
-            ASTNode::ReturnStatement {
-                argument,
-                is_shortcut,
-            } => {
-                if *is_shortcut {
-                    write!(f, ">> ")?;
-                } else {
-                    write!(f, "return ")?;
-                }
-
-                write!(f, "{}", argument)
+            StatementKind::ReturnStatement(return_statement) => {
+                write!(f, "{}", return_statement)
             }
-            ASTNode::IfStatement {
-                test,
-                body,
-                alternate,
-            } => {
-                write!(f, "if {test} {body}")?;
-
-                if let Some(alternate) = alternate {
-                    write!(f, " else ")?;
-                    write!(f, "{alternate}")
-                } else {
-                    write!(f, "")
-                }
+            StatementKind::IfStatement(if_statement) => {
+                write!(f, "{if_statement}")
             }
-            ASTNode::BlockStatement { body } => {
-                write!(f, " {{")?;
-                for node in body {
-                    write!(f, "{}", node)?;
-                }
-                write!(f, "}}")
-            }
-            ASTNode::MatchStatement { test, body } => {
+            StatementKind::MatchStatement(test, body) => {
                 write!(f, "match {test} {body}")
             }
         }
     }
 }
 
-impl fmt::Display for Expression {
+impl Display for Expression {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
+        write!(f, "{}", self.kind)
+    }
+}
+
+impl fmt::Display for ExpressionKind {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         match self {
-            Expression::Literal { raw, .. } => {
+            ExpressionKind::Literal(_, raw) => {
                 write!(f, "{}", raw)
             }
-            Expression::TemplateLiteral { raw, .. } => {
+            ExpressionKind::TemplateLiteral(_, raw) => {
                 write!(f, "{}", raw)
             }
-            Expression::Array { elements } => {
+            ExpressionKind::Array(elements) => {
                 write!(f, "[")?;
                 for element in elements {
                     write!(f, "{},", element)?;
@@ -300,7 +285,7 @@ impl fmt::Display for Expression {
 
                 write!(f, "]")
             }
-            Expression::Object { properties } => {
+            ExpressionKind::Object(properties) => {
                 write!(f, "{{")?;
                 for prop in properties {
                     write!(f, "{},", prop)?;
@@ -308,21 +293,17 @@ impl fmt::Display for Expression {
 
                 write!(f, "}}")
             }
-            Expression::BinaryExpression {
-                left,
-                operator,
-                right,
-            } => {
+            ExpressionKind::BinaryExpression(left, operator, right) => {
                 write!(f, "{}", left)?;
                 write!(f, "{}", operator)?;
                 write!(f, "{}", right)
             }
-            Expression::MemberExpression {
+            ExpressionKind::MemberExpression {
                 indexed, property, ..
             } => {
                 write!(f, "{}.{}", indexed, property)
             }
-            Expression::CallExpression { callee, args } => {
+            ExpressionKind::CallExpression { callee, args } => {
                 write!(f, "{}(", callee)?;
                 for (i, arg) in args.into_iter().enumerate() {
                     if i == args.len() - 1 {
@@ -334,16 +315,16 @@ impl fmt::Display for Expression {
 
                 write!(f, ")")
             }
-            Expression::IdentifierExpression(identifier) => {
+            ExpressionKind::IdentifierExpression(identifier) => {
                 write!(f, "{}", identifier)
             }
-            Expression::Parenthesized(expr) => {
+            ExpressionKind::Parenthesized(expr) => {
                 write!(f, "({})", expr)
             }
-            Expression::Comment { raw_value, .. } => {
+            ExpressionKind::Comment { raw_value, .. } => {
                 write!(f, "{}", raw_value)
             }
-            Expression::FnExpression {
+            ExpressionKind::FnExpression {
                 params,
                 body,
                 return_type,
@@ -367,7 +348,7 @@ impl fmt::Display for Expression {
 
                 write!(f, " {}", body)
             }
-            Expression::Range { from, limits, to } => {
+            ExpressionKind::Range(from, limits, to) => {
                 if let Some(from) = from {
                     write!(f, "{from}")?;
                 }
@@ -380,73 +361,37 @@ impl fmt::Display for Expression {
 
                 write!(f, "")
             }
-            Expression::ErrorPropagation(expr) => {
+            ExpressionKind::ErrorPropagation(expr) => {
                 write!(f, "{}?", expr)
             }
-            Expression::Err(s) => {
+            ExpressionKind::Err(s) => {
                 write!(f, "{}", s)
             }
-            Expression::Ok(expr) => {
+            ExpressionKind::Ok(expr) => {
                 write!(f, "{}", expr)
             }
         }
     }
 }
 
-impl Into<Expression> for ASTNode {
-    fn into(self) -> Expression {
-        match self {
-            ASTNode::FunctionDeclaration {
-                params,
-                body,
-                is_shortcut,
-                return_type,
-                ..
-            } => Expression::FnExpression {
-                params,
-                body,
-                is_shortcut,
-                return_type,
-            },
-            _ => unreachable!(),
-        }
-    }
-}
-
-impl PartialEq for Expression {
+impl PartialEq for ExpressionKind {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Literal { value: l_value, .. }, Self::Literal { value: r_value, .. }) => {
+            (Self::Literal(l_value, _), Self::Literal(r_value, _)) => l_value == r_value,
+            (Self::TemplateLiteral(l_value, _), Self::TemplateLiteral(r_value, _)) => {
                 l_value == r_value
             }
-            (
-                Self::TemplateLiteral { value: l_value, .. },
-                Self::TemplateLiteral { value: r_value, .. },
-            ) => l_value == r_value,
-            (
-                Self::Range {
-                    from: l_from,
-                    limits: l_limits,
-                    to: l_to,
-                },
-                Self::Range {
-                    from: r_from,
-                    limits: r_limits,
-                    to: r_to,
-                },
-            ) => {
+            (Self::Range(l_from, l_limits, l_to), Self::Range(r_from, r_limits, r_to)) => {
                 let l_from = if l_from.is_none() {
-                    Some(Box::new(Expression::Literal {
-                        value: LiteralValue::Number(0.0),
-                        raw: "0".to_string(),
+                    Some(Box::new(Expression {
+                        kind: ExpressionKind::Literal(LiteralValue::Number(0.0), "0".to_string()),
                     }))
                 } else {
                     l_from.to_owned()
                 };
                 let r_from = if r_from.is_none() {
-                    Some(Box::new(Expression::Literal {
-                        value: LiteralValue::Number(0.0),
-                        raw: "0".to_string(),
+                    Some(Box::new(Expression {
+                        kind: ExpressionKind::Literal(LiteralValue::Number(0.0), "0".to_string()),
                     }))
                 } else {
                     r_from.to_owned()
@@ -454,33 +399,13 @@ impl PartialEq for Expression {
 
                 l_from == r_from && l_limits == r_limits && l_to == r_to
             }
+            (Self::Array(l_elements), Self::Array(r_elements)) => l_elements == r_elements,
+            (Self::Object(l_properties), Self::Object(r_properties)) => {
+                l_properties == r_properties
+            }
             (
-                Self::Array {
-                    elements: l_elements,
-                },
-                Self::Array {
-                    elements: r_elements,
-                },
-            ) => l_elements == r_elements,
-            (
-                Self::Object {
-                    properties: l_properties,
-                },
-                Self::Object {
-                    properties: r_properties,
-                },
-            ) => l_properties == r_properties,
-            (
-                Self::BinaryExpression {
-                    left: l_left,
-                    operator: l_operator,
-                    right: l_right,
-                },
-                Self::BinaryExpression {
-                    left: r_left,
-                    operator: r_operator,
-                    right: r_right,
-                },
+                Self::BinaryExpression(l_left, l_operator, l_right),
+                Self::BinaryExpression(r_left, r_operator, r_right),
             ) => l_left == r_left && l_operator == r_operator && l_right == r_right,
             (
                 Self::MemberExpression {
@@ -545,108 +470,143 @@ impl PartialEq for Expression {
 
 impl Expression {
     pub fn console_print(&self) -> String {
+        self.console_print()
+    }
+    pub fn get_type(self) -> DataType {
+        self.get_type()
+    }
+
+    pub fn ok(expr: Expression) -> Self {
+        Expression::with_kind(ExpressionKind::Ok(Box::new(expr)))
+    }
+    pub fn err(s: String) -> Self {
+        Expression::with_kind(ExpressionKind::Err(s))
+    }
+    pub fn err_propagation(expr: Expression) -> Self {
+        Expression::with_kind(ExpressionKind::ErrorPropagation(Box::new(expr)))
+    }
+    pub fn parenthesized(expr: Expression) -> Self {
+        Expression::with_kind(ExpressionKind::Parenthesized(Box::new(expr)))
+    }
+}
+
+impl ExpressionKind {
+    pub fn console_print(&self) -> String {
         match self {
-            Expression::Literal { value, .. } => value.to_string(),
+            ExpressionKind::Literal(value, _) => value.to_string(),
             _ => self.to_string(),
         }
     }
     pub fn get_type(self) -> DataType {
         match self {
-            Expression::Literal { value, .. } => value.get_type(),
-            Expression::TemplateLiteral { .. } => DataType::String,
-            Expression::Range { .. } => DataType::Range,
-            Expression::Array { .. } => DataType::Array,
-            Expression::Object { .. } => DataType::Object,
-            Expression::BinaryExpression { .. } => {
+            ExpressionKind::Literal(value, ..) => value.get_type(),
+            ExpressionKind::TemplateLiteral(..) => DataType::String,
+            ExpressionKind::Range(..) => DataType::Range,
+            ExpressionKind::Array(..) => DataType::Array,
+            ExpressionKind::Object(..) => DataType::Object,
+            ExpressionKind::BinaryExpression(..) => {
                 unreachable!("Cannot know the type of binary expression before interpretation")
             }
-            Expression::MemberExpression { .. } => {
+            ExpressionKind::MemberExpression { .. } => {
                 unreachable!("Cannot know the type of member expression before interpretation")
             }
-            Expression::CallExpression { .. } => {
+            ExpressionKind::CallExpression { .. } => {
                 unreachable!("Cannot know the type of call expression before interpretation")
             }
-            Expression::IdentifierExpression(_) => {
+            ExpressionKind::IdentifierExpression(_) => {
                 unreachable!("Cannot know the type of identifier expression before interpretation")
             }
-            Expression::Parenthesized(_) => unreachable!(
+            ExpressionKind::Parenthesized(_) => unreachable!(
                 "Cannot know the type of parenthesized expression before interpretation"
             ),
-            Expression::Comment { .. } => unreachable!("Comment has no data type"),
-            Expression::FnExpression { .. } => DataType::Fn,
-            Expression::ErrorPropagation(x) => DataType::Fallible(x),
-            Expression::Err(x) => DataType::Err(x),
-            Expression::Ok(ok) => DataType::Ok(ok),
+            ExpressionKind::Comment { .. } => unreachable!("Comment has no data type"),
+            ExpressionKind::FnExpression { .. } => DataType::Fn,
+            ExpressionKind::ErrorPropagation(x) => DataType::Fallible(x),
+            ExpressionKind::Err(x) => DataType::Err(x),
+            ExpressionKind::Ok(ok) => DataType::Ok(ok),
         }
     }
 }
 
 impl Into<Expression> for f32 {
     fn into(self) -> Expression {
-        Expression::Literal {
-            value: LiteralValue::Number(self),
-            raw: self.to_string(),
-        }
+        Expression::with_kind(ExpressionKind::Literal(
+            LiteralValue::Number(self),
+            self.to_string(),
+        ))
     }
 }
 impl Into<f32> for Expression {
     fn into(self) -> f32 {
-        match self {
-            Expression::Literal { value, .. } => match value {
+        match self.kind {
+            ExpressionKind::Literal(value, _) => match value {
                 LiteralValue::Number(x) => x,
                 _ => unreachable!(
-                    "Cannot transform i32 into something Other Than Expression::Literal::Number"
+                    "Cannot transform i32 into something Other Than ExpressionKind::Literal::Number"
                 ),
             },
             _ => unreachable!(
-                "Cannot transform i32 into something Other Than Expression::Literal::Number"
+                "Cannot transform i32 into something Other Than ExpressionKind::Literal::Number"
             ),
         }
     }
 }
 impl Into<Expression> for bool {
     fn into(self) -> Expression {
-        Expression::Literal {
-            value: LiteralValue::Boolean(self),
-            raw: self.to_string(),
-        }
+        Expression::with_kind(ExpressionKind::Literal(
+            LiteralValue::Boolean(self),
+            self.to_string(),
+        ))
     }
 }
 impl Into<bool> for Expression {
     fn into(self) -> bool {
-        match self {
-            Expression::Literal { value, .. } => match value {
+        match self.kind {
+            ExpressionKind::Literal(value, _) => match value {
                 LiteralValue::Boolean(b) => b,
                 _ => unreachable!(
-                    "Cannot transform bool into something Other Than Expression::Literal::Boolean"
+                    "Cannot transform bool into something Other Than ExpressionKind::Literal::Boolean"
                 ),
             },
             _ => unreachable!(
-                "Cannot transform bool into something Other Than Expression::Literal::Boolean"
+                "Cannot transform bool into something Other Than ExpressionKind::Literal::Boolean"
             ),
         }
     }
 }
 impl Into<Expression> for String {
     fn into(self) -> Expression {
-        Expression::Literal {
-            value: LiteralValue::Str(self.to_owned()),
-            raw: self,
-        }
+        Expression::with_kind(ExpressionKind::Literal(
+            LiteralValue::Str(self.to_owned()),
+            self,
+        ))
     }
 }
 impl Into<String> for Expression {
     fn into(self) -> String {
-        match self {
-            Expression::Literal { value, .. } => match value {
+        match self.kind {
+            ExpressionKind::Literal(value, _) => match value {
                 LiteralValue::Str(s) => s,
                 _ => unreachable!(
-                    "Cannot transform String into something Other Than Expression::Literal::Str"
+                    "Cannot transform String into something Other Than ExpressionKind::Literal::Str"
                 ),
             },
             _ => unreachable!(
-                "Cannot transform String into something Other Than Expression::Literal::Str"
+                "Cannot transform String into something Other Than ExpressionKind::Literal::Str"
             ),
+        }
+    }
+}
+
+impl Into<Statement> for StatementKind {
+    fn into(self) -> Statement {
+        Statement { kind: self }
+    }
+}
+impl Into<Statement> for Expression {
+    fn into(self) -> Statement {
+        Statement {
+            kind: StatementKind::Expression(self),
         }
     }
 }

@@ -26,7 +26,7 @@ use self::{
     template_literal::parse_template_literal,
 };
 use super::{
-    ast::{identifier::parse_identifier_expression, ASTNode},
+    ast::{identifier::parse_identifier_expression, ExpressionKind, Statement, StatementKind},
     function::parse_fn_expression,
     operations::{binary::parse_binary_operator, build_binary_expression},
 };
@@ -40,10 +40,10 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
-pub fn parse_expression_statement(i: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
+pub fn parse_expression_statement(i: &str) -> IResult<&str, Statement, ErrorTree<&str>> {
     let (i, expression) = parse_expression(i)?;
 
-    let expr_statement = ASTNode::ExpressionStatement { expression };
+    let expr_statement = Statement::with_kind(StatementKind::Expression(expression));
 
     let (i, _) = space0(i)?;
 
@@ -161,11 +161,11 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
 
                 (
                     i,
-                    Expression::MemberExpression {
+                    Expression::with_kind(ExpressionKind::MemberExpression {
                         indexed: Box::new(base_expr),
                         property,
                         computed: true,
-                    },
+                    }),
                 )
             } else {
                 (i, base_expr)
@@ -193,8 +193,8 @@ fn parse_basic_expression(i: &str) -> IResult<&str, Expression, ErrorTree<&str>>
     // range parsing
     let (i, expr) = parse_opt_range(expr)(i)?;
 
-    let (i, expr) = match expr {
-        Expression::Range { .. } => (i, expr),
+    let (i, expr) = match expr.kind {
+        ExpressionKind::Range { .. } => (i, expr),
         _ => parse_opt_member_expr(expr)(i)?,
     };
 

@@ -1,4 +1,4 @@
-use crate::parser::ast::Expression;
+use crate::parser::ast::{Expression, ExpressionKind};
 use nom::character::complete::char;
 use nom::{IResult, Parser};
 use nom_supreme::error::ErrorTree;
@@ -17,11 +17,11 @@ pub fn parse_opt_member_expr(
 
             return Ok((
                 i,
-                Expression::MemberExpression {
+                Expression::with_kind(ExpressionKind::MemberExpression {
                     indexed: Box::new(initial_expr.to_owned()),
                     property: Box::new(final_expr),
                     computed: false,
-                },
+                }),
             ));
         }
 

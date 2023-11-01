@@ -3,7 +3,7 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, ParserExt};
 
-use crate::parser::ast::{identifier::parse_identifier_expression, Expression};
+use crate::parser::ast::{identifier::parse_identifier_expression, Expression, ExpressionKind};
 
 use super::{
     function_call::parse_fn_call, parenthesized::parse_parenthesized, parse_expression,
@@ -24,11 +24,11 @@ pub fn parse_indexing(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
 
     Ok((
         i,
-        Expression::MemberExpression {
+        Expression::with_kind(ExpressionKind::MemberExpression {
             indexed: Box::new(indexed),
             property: Box::new(elements),
             computed: true,
-        },
+        }),
     ))
 }
 

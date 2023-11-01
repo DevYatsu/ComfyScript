@@ -10,7 +10,7 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
-use crate::parser::ast::Expression;
+use crate::parser::ast::{Expression, ExpressionKind};
 
 use super::{
     parse_expression1,
@@ -31,10 +31,10 @@ pub fn parse_template_literal(initial_i: &str) -> IResult<&str, Expression, Erro
     let (i, fragments) = build_template_literal(i)?;
     let (i, _) = char('"')(i)?;
 
-    let result_str = Expression::TemplateLiteral {
-        raw: initial_i[0..initial_i.len() - i.len()].to_string(),
-        value: fragments,
-    };
+    let result_str = Expression::with_kind(ExpressionKind::TemplateLiteral(
+        fragments,
+        initial_i[0..initial_i.len() - i.len()].to_string(),
+    ));
 
     Ok((i, result_str))
 }

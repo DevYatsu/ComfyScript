@@ -1,7 +1,7 @@
 use std::fmt;
 
 use nom::{branch::alt, IResult};
-use nom_supreme::{error::ErrorTree, tag::complete::tag};
+use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
 pub enum AssignmentOperator {
@@ -15,27 +15,16 @@ pub enum AssignmentOperator {
 
 pub fn parse_assignment_operator(i: &str) -> IResult<&str, AssignmentOperator, ErrorTree<&str>> {
     // one_of matches one of the characters we give it
-    let (i, t) = alt((
-        tag("="),
-        tag("+="),
-        tag("-="),
-        tag("*="),
-        tag("/="),
-        tag("%="),
+    let (i, assignment_op) = alt((
+        tag("=").value(AssignmentOperator::Equal),
+        tag("+=").complete().value(AssignmentOperator::PlusEqual),
+        tag("-=").complete().value(AssignmentOperator::MinusEqual),
+        tag("*=").complete().value(AssignmentOperator::TimesEqual),
+        tag("/=").complete().value(AssignmentOperator::DivideEqual),
+        tag("%=").complete().value(AssignmentOperator::ModuloEqual),
     ))(i)?;
 
-    Ok((
-        i,
-        match t {
-            "=" => AssignmentOperator::Equal,
-            "+=" => AssignmentOperator::PlusEqual,
-            "-=" => AssignmentOperator::MinusEqual,
-            "*=" => AssignmentOperator::TimesEqual,
-            "/=" => AssignmentOperator::DivideEqual,
-            "%=" => AssignmentOperator::ModuloEqual,
-            _ => unreachable!(),
-        },
-    ))
+    Ok((i, assignment_op))
 }
 
 impl fmt::Display for AssignmentOperator {

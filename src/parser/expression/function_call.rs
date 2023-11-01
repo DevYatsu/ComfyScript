@@ -1,5 +1,5 @@
 use crate::parser::{
-    ast::{identifier::parse_identifier_expression, Expression},
+    ast::{identifier::parse_identifier_expression, Expression, ExpressionKind},
     expression::parse_expression_with0,
 };
 
@@ -26,16 +26,13 @@ pub fn parse_fn_call(input: &str) -> IResult<&str, Expression, ErrorTree<&str>> 
 
     let (input, _) = char(')').preceded_by(multispace0).cut().parse(input)?;
 
-    let expr = Expression::CallExpression {
-        callee: Box::new(id),
-        args,
-    };
+    let expr: Expression = (id, args).into();
 
     let (input, opt_propagation_operator) =
         char('?').preceded_by(multispace0).opt().parse(input)?;
 
     if opt_propagation_operator.is_some() {
-        return Ok((input, Expression::ErrorPropagation(Box::new(expr))));
+        return Ok((input, Expression::err_propagation(expr)));
     }
 
     Ok((input, expr))
@@ -47,4 +44,13 @@ fn parse_expression_except_fn_call(i: &str) -> IResult<&str, Expression, ErrorTr
     let (i, expr) = alt((parse_parenthesized, parse_identifier_expression))(i)?;
 
     Ok((i, expr))
+}
+
+impl Into<Expression> for (Expression, Vec<Expression>) {
+    fn into(self) -> Expression {
+        Expression::with_kind(ExpressionKind::CallExpression {
+            callee: Box::new(self.0),
+            args: self.1,
+        })
+    }
 }

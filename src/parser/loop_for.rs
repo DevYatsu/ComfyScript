@@ -1,6 +1,6 @@
 use super::{
     assignment::initial::VariableKeyword,
-    ast::{identifier::Identifier, ASTNode},
+    ast::{identifier::Identifier, Statement, StatementKind},
     expression::parse_expression,
     parse_block,
 };
@@ -13,7 +13,7 @@ use nom::{
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
-pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
+pub fn parse_for_statement(input: &str) -> IResult<&str, Statement, ErrorTree<&str>> {
     let (input, _) = multispace1.parse(input)?;
 
     let (input, kind) = parse_for_var_keyword(input)?;
@@ -34,14 +34,14 @@ pub fn parse_for_statement(input: &str) -> IResult<&str, ASTNode, ErrorTree<&str
 
     let (input, _) = multispace0(input)?;
 
-    let (input, body) = parse_block.cut().map(|b| Box::new(b)).parse(input)?;
+    let (input, body) = parse_block.cut().parse(input)?;
 
-    let node = ASTNode::ForStatement {
+    let node = Statement::with_kind(StatementKind::ForStatement(
         kind,
-        declarations: identifiers,
-        source: indexed,
+        identifiers,
+        indexed,
         body,
-    };
+    ));
 
     Ok((input, node))
 }

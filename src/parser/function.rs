@@ -2,10 +2,13 @@ pub mod return_expression;
 
 use std::fmt::Display;
 
-use self::return_expression::parse_return_statement;
+use self::return_expression::{parse_return_statement, ReturnStatement};
 
 use super::{
-    ast::{identifier::Identifier, ASTNode, Expression},
+    ast::{
+        identifier::Identifier, BlockStatement, Expression, ExpressionKind, Statement,
+        StatementKind,
+    },
     data_type::{parse_data_type, parse_opt_type_assignement, DataType},
     parse_block,
     reserved::DEFINED_FUNCTIONS,
@@ -17,6 +20,23 @@ use nom::{
     IResult, Parser,
 };
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
+
+#[derive(Debug, Clone, PartialEq)]
+pub struct FunctionDeclaration {
+    pub id: Identifier,
+    pub is_exported: bool,
+    pub params: Vec<FunctionParam>,
+    pub body: FunctionBody,
+    pub return_type: Option<ReturnType>,
+    pub is_shortcut: bool,
+    // if is_shortcut == true then body = ASTNode::ReturnStatement
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum FunctionBody {
+    Block(BlockStatement),
+    ShortCut(ReturnStatement),
+}
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct FunctionParam {
@@ -31,12 +51,12 @@ pub struct ReturnType {
 
 pub fn parse_function(
     is_exported: bool,
-) -> impl Fn(&str) -> IResult<&str, ASTNode, ErrorTree<&str>> {
+) -> impl Fn(&str) -> IResult<&str, Statement, ErrorTree<&str>> {
     move |input| {
         let (input, _) = multispace1(input)?;
 
         let (input, id) = parse_identifier
-            .verify(|id| !DEFINED_FUNCTIONS.contains(&id.name.as_str()))
+            .verify(|id| !DEFINED_FUNCTIONS.contains(&id.0.as_str()))
             .context("invalid function name")
             .cut()
             .parse(input)?;
@@ -59,19 +79,16 @@ pub fn parse_function(
             .opt()
             .parse(input)?;
 
-        let (input, (body, is_shortcut)) = parse_fn_body
-            .cut()
-            .map(|(b, s)| (Box::new(b), s))
-            .parse(input)?;
+        let (input, (body, is_shortcut)) = parse_fn_body.cut().parse(input)?;
 
-        let node = ASTNode::FunctionDeclaration {
+        let node = Statement::with_kind(StatementKind::FunctionDeclaration(FunctionDeclaration {
             id,
             params,
             body,
             is_shortcut,
             return_type,
             is_exported,
-        };
+        }));
 
         Ok((input, node))
     }
@@ -94,12 +111,12 @@ pub fn parse_fn_expression(input: &str) -> IResult<&str, Expression, ErrorTree<&
 
     let (input, (body, is_shortcut)) = parse_fn_body.map(|(b, s)| (Box::new(b), s)).parse(input)?;
 
-    let node = Expression::FnExpression {
+    let node = Expression::with_kind(ExpressionKind::FnExpression {
         params,
         body,
         is_shortcut,
         return_type,
-    };
+    });
 
     Ok((input, node))
 }
@@ -110,16 +127,16 @@ fn parse_fn_params(input: &str) -> IResult<&str, Vec<FunctionParam>, ErrorTree<&
     Ok((input, params))
 }
 
-fn parse_fn_body(input: &str) -> IResult<&str, (ASTNode, bool), ErrorTree<&str>> {
+fn parse_fn_body(input: &str) -> IResult<&str, (FunctionBody, bool), ErrorTree<&str>> {
     let (input, return_statement) = parse_return_statement.opt().parse(input)?;
 
     if let Some(return_statement) = return_statement {
-        return Ok((input, (return_statement, true)));
+        return Ok((input, (return_statement.into(), true)));
     }
 
     let (input, body) = parse_block.cut().parse(input)?;
 
-    Ok((input, (body, false)))
+    Ok((input, (body.into(), false)))
 }
 
 fn parse_fn_param(input: &str) -> IResult<&str, FunctionParam, ErrorTree<&str>> {
@@ -172,5 +189,49 @@ impl Display for ReturnType {
         }
 
         write!(f, "")
+    }
+}
+
+impl Display for FunctionDeclaration {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.is_exported {
+            write!(f, "export ")?;
+        }
+
+        write!(f, "fn {}(", self.id)?;
+
+        for (i, param) in self.params.into_iter().enumerate() {
+            if i == self.params.len() - 1 {
+                write!(f, "{}", param)?;
+            } else {
+                write!(f, "{},", param)?;
+            }
+        }
+
+        write!(f, ")")?;
+
+        if let Some(return_type) = self.return_type {
+            write!(f, "{}", return_type)?;
+        }
+
+        write!(f, " {}", self.body)
+        // either put a block statement or a return statement (with shortcut)
+    }
+}
+impl Display for FunctionBody {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self)
+    }
+}
+
+impl Into<FunctionBody> for ReturnStatement {
+    fn into(self) -> FunctionBody {
+        FunctionBody::ShortCut(self)
+    }
+}
+
+impl Into<FunctionBody> for BlockStatement {
+    fn into(self) -> FunctionBody {
+        FunctionBody::Block(self)
     }
 }

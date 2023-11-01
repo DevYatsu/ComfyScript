@@ -13,11 +13,5 @@ pub fn parse_bool(i: &str) -> IResult<&str, Expression, ErrorTree<&str>> {
             .map(|b| (b, LiteralValue::Boolean(false))),
     ))(i)?;
 
-    Ok((
-        i,
-        Expression::Literal {
-            value,
-            raw: boolean.to_owned(),
-        },
-    ))
+    Ok((i, (value, boolean.to_string()).into()))
 }

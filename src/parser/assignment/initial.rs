@@ -1,7 +1,7 @@
 use std::fmt;
 
 use crate::parser::{
-    ast::{identifier::parse_identifier, vars::VariableDeclarator},
+    ast::{identifier::parse_identifier, vars::VariableDeclarator, Statement, StatementKind},
     comment::multispace0comments,
     data_type::parse_opt_type_assignement,
     expression::parse_expression,
@@ -20,15 +20,6 @@ pub enum VariableKeyword {
     Let,
 }
 
-impl fmt::Display for VariableKeyword {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        match self {
-            VariableKeyword::Var => write!(f, "var"),
-            VariableKeyword::Let => write!(f, "let"),
-        }
-    }
-}
-
 pub fn parse_var_init(input: &str) -> IResult<&str, Vec<VariableDeclarator>, ErrorTree<&str>> {
     let (input, _) = multispace1(input)?;
 
@@ -39,7 +30,7 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
     let (input, _) = multispace0(input)?;
 
     let (input, id) = parse_identifier
-        .verify(|id| id.name.parse::<i32>().is_err())
+        .verify(|id| id.0.parse::<i32>().is_err())
         .cut()
         .context("identifier")
         .parse(input)?;
@@ -82,5 +73,20 @@ pub fn parse_single_declaration(input: &str) -> IResult<&str, VariableDeclarator
 
             Ok((input, declarator))
         }
+    }
+}
+
+impl fmt::Display for VariableKeyword {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            VariableKeyword::Var => write!(f, "var"),
+            VariableKeyword::Let => write!(f, "let"),
+        }
+    }
+}
+
+impl Into<Statement> for (VariableKeyword, Vec<VariableDeclarator>) {
+    fn into(self) -> Statement {
+        Statement::with_kind(StatementKind::VariableDeclaration(self.0, self.1))
     }
 }

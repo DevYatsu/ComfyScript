@@ -2,6 +2,8 @@ use std::fmt::Display;
 
 use crate::parser::data_type::DataType;
 
+use super::{Expression, ExpressionKind};
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum LiteralValue {
     Number(f32),
@@ -39,5 +41,11 @@ impl LiteralValue {
             LiteralValue::Boolean(_) => DataType::Bool,
             LiteralValue::Nil => DataType::Nil,
         }
+    }
+}
+
+impl Into<Expression> for (LiteralValue, String) {
+    fn into(self) -> Expression {
+        Expression::with_kind(ExpressionKind::Literal(self.0, self.1))
     }
 }

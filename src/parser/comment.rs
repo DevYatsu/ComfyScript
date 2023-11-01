@@ -1,4 +1,4 @@
-use super::ast::Expression;
+use super::ast::{Expression, ExpressionKind};
 use nom::{
     branch::alt,
     bytes::complete::{take, take_until},
@@ -41,10 +41,10 @@ pub fn parse_line_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&s
 
         let (input, comment_value) = take(input.len())(input)?;
 
-        let comment_expr = Expression::Comment {
+        let comment_expr = Expression::with_kind(ExpressionKind::Comment {
             is_line: true,
             raw_value: "//".to_string() + &comment_value,
-        };
+        });
         return Ok((input, comment_expr));
     }
 
@@ -52,10 +52,10 @@ pub fn parse_line_comment(input: &str) -> IResult<&str, Expression, ErrorTree<&s
 
     let (input, comment_closing) = tag("\n").complete().parse(input)?;
 
-    let comment_expr = Expression::Comment {
+    let comment_expr = Expression::with_kind(ExpressionKind::Comment {
         is_line: true,
         raw_value: "//".to_string() + &comment_value + &comment_closing,
-    };
+    });
 
     Ok((input, comment_expr))
 }
@@ -64,10 +64,10 @@ pub fn parse_multiline_comment(input: &str) -> IResult<&str, Expression, ErrorTr
     let (input, comment_value) = take_until("*/").cut().parse(input)?;
     let (input, comment_closing) = tag("*/").parse(input)?;
 
-    let comment_expr = Expression::Comment {
+    let comment_expr = Expression::with_kind(ExpressionKind::Comment {
         is_line: false,
         raw_value: "/*".to_owned() + &comment_value + &comment_closing,
-    };
+    });
 
     Ok((input, comment_expr))
 }
