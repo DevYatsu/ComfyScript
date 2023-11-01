@@ -200,7 +200,7 @@ impl Display for FunctionDeclaration {
 
         write!(f, "fn {}(", self.id)?;
 
-        for (i, param) in self.params.into_iter().enumerate() {
+        for (i, param) in (&self.params).into_iter().enumerate() {
             if i == self.params.len() - 1 {
                 write!(f, "{}", param)?;
             } else {
@@ -210,7 +210,7 @@ impl Display for FunctionDeclaration {
 
         write!(f, ")")?;
 
-        if let Some(return_type) = self.return_type {
+        if let Some(return_type) = &self.return_type {
             write!(f, "{}", return_type)?;
         }
 

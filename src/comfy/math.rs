@@ -12,48 +12,30 @@ use std::rc::Rc;
 use super::{expected_number_arg, expected_x_args};
 
 lazy_static! {
-    static ref PI: Expression = {
-        Expression::Literal {
-            value: LiteralValue::Number(consts::PI),
-            raw: consts::PI.to_string(),
-        }
-    };
-    static ref FRAC_1_PI: Expression = {
-        Expression::Literal {
-            value: LiteralValue::Number(consts::FRAC_1_PI),
-            raw: consts::FRAC_1_PI.to_string(),
-        }
-    };
-    static ref E: Expression = {
-        Expression::Literal {
-            value: LiteralValue::Number(consts::E),
-            raw: consts::E.to_string(),
-        }
-    };
-    static ref LN_10: Expression = {
-        Expression::Literal {
-            value: LiteralValue::Number(consts::LN_10),
-            raw: consts::LN_10.to_string(),
-        }
-    };
-    static ref LN_2: Expression = {
-        Expression::Literal {
-            value: LiteralValue::Number(consts::LN_2),
-            raw: consts::LN_2.to_string(),
-        }
-    };
-    static ref LOG10_2: Expression = {
-        Expression::Literal {
-            value: LiteralValue::Number(consts::LOG10_2),
-            raw: consts::LOG10_2.to_string(),
-        }
-    };
-    static ref SQRT_2: Expression = {
-        Expression::Literal {
-            value: LiteralValue::Number(consts::SQRT_2),
-            raw: consts::SQRT_2.to_string(),
-        }
-    };
+    static ref PI: Expression = (LiteralValue::Number(consts::PI), consts::PI.to_string(),).into();
+    static ref FRAC_1_PI: Expression = (
+        LiteralValue::Number(consts::FRAC_1_PI),
+        consts::FRAC_1_PI.to_string(),
+    )
+        .into();
+    static ref E: Expression = (LiteralValue::Number(consts::E), consts::E.to_string(),).into();
+    static ref LN_10: Expression = (
+        LiteralValue::Number(consts::LN_10),
+        consts::LN_10.to_string(),
+    )
+        .into();
+    static ref LN_2: Expression =
+        (LiteralValue::Number(consts::LN_2), consts::LN_2.to_string(),).into();
+    static ref LOG10_2: Expression = (
+        LiteralValue::Number(consts::LOG10_2),
+        consts::LOG10_2.to_string(),
+    )
+        .into();
+    static ref SQRT_2: Expression = (
+        LiteralValue::Number(consts::SQRT_2),
+        consts::SQRT_2.to_string(),
+    )
+        .into();
 }
 
 pub fn import_math_fn(value: String) -> Result<InterpretedFn, String> {
@@ -169,10 +151,7 @@ fn cos(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
 
         let result = num.cos();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 
@@ -184,10 +163,7 @@ fn sin(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
 
         let result = num.sin();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 
@@ -199,10 +175,7 @@ fn tan(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
 
         let result = num.tan();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 
@@ -214,10 +187,7 @@ fn acos(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
 
         let result = num.acos();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 
@@ -229,10 +199,7 @@ fn asin(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
 
         let result = num.asin();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 
@@ -244,10 +211,7 @@ fn atan(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
 
         let result = num.atan();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 
@@ -259,10 +223,7 @@ fn ceil(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
 
         let result = num.ceil();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 
@@ -274,10 +235,7 @@ fn floor(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
 
         let result = num.floor();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 
@@ -290,10 +248,7 @@ fn log(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
 
         let result = num.log(base);
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 
@@ -305,10 +260,7 @@ fn ln(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Express
 
         let result = num.ln();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 
@@ -320,10 +272,7 @@ fn sqrt(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
 
         let result = num.sqrt();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 fn power(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
@@ -335,10 +284,7 @@ fn power(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
 
         let result = num.powf(power);
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 fn random(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
@@ -347,10 +293,7 @@ fn random(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Exp
 
         let result = rand::thread_rng().gen();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 fn abs(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
@@ -361,10 +304,7 @@ fn abs(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
 
         let result = num.abs();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 fn exp(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
@@ -375,10 +315,7 @@ fn exp(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
 
         let result = num.exp();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 fn max(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
@@ -390,10 +327,7 @@ fn max(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
 
         let result = num.max(max);
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 fn min(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
@@ -405,10 +339,7 @@ fn min(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
 
         let result = num.min(min);
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 fn round(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
@@ -419,10 +350,7 @@ fn round(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
 
         let result = num.round();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 fn trunc(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
@@ -433,10 +361,7 @@ fn trunc(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
 
         let result = num.trunc();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 fn clamp(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
@@ -449,10 +374,7 @@ fn clamp(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
 
         let result = num.clamp(min, max);
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 fn signum(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
@@ -463,10 +385,7 @@ fn signum(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Exp
 
         let result = num.signum();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 fn to_radians(
@@ -479,10 +398,7 @@ fn to_radians(
 
         let result = num.to_radians();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 fn to_degrees(
@@ -495,10 +411,7 @@ fn to_degrees(
 
         let result = num.to_degrees();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(result),
-            raw: result.to_string(),
-        })
+        Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
 

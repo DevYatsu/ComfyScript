@@ -43,10 +43,7 @@ fn sleep() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, Strin
         let dur = Duration::from_millis(num as u64);
 
         std::thread::sleep(dur);
-        Ok(Expression::Literal {
-            value: LiteralValue::Nil,
-            raw: "nil".to_owned(),
-        })
+        Ok((LiteralValue::Nil, "nil".to_owned()).into())
     }
 }
 
@@ -59,9 +56,10 @@ fn now() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String>
             .expect("Time went backwards")
             .as_millis();
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Number(instant as f32),
-            raw: instant.to_string().to_owned(),
-        })
+        Ok((
+            LiteralValue::Number(instant as f32),
+            instant.to_string().to_owned(),
+        )
+            .into())
     }
 }

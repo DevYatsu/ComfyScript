@@ -4,7 +4,7 @@ use std::{fs, rc::Rc};
 
 use crate::{
     interpreter::{InterpretedFn, SymbolTable},
-    parser::ast::{literal_value::LiteralValue, Expression},
+    parser::ast::{literal_value::LiteralValue, Expression, ExpressionKind},
 };
 
 use super::{expected_string_arg, expected_x_args};
@@ -37,11 +37,13 @@ fn read_to_string() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expressi
             expected_string_arg(symbol_table, "read_to_string", args[0].to_owned())?.into();
 
         match fs::read_to_string(&file_path) {
-            Ok(content) => Ok(Expression::Ok(Box::new(content.into()))),
-            Err(_) => Ok(Expression::Err(format!(
+            Ok(content) => Ok(Expression::with_kind(ExpressionKind::Ok(Box::new(
+                content.into(),
+            )))),
+            Err(_) => Ok(Expression::with_kind(ExpressionKind::Err(format!(
                 "Cannot read `{}`. File does not exist",
                 file_path
-            ))),
+            )))),
         }
     }
 }
@@ -56,14 +58,11 @@ fn rename() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, Stri
             expected_string_arg(symbol_table, "rename", args[1].to_owned())?.into();
 
         match fs::rename(&file_path, new_name) {
-            Ok(_) => Ok(Expression::Literal {
-                value: LiteralValue::Nil,
-                raw: "nil".to_owned(),
-            }),
-            Err(_) => Ok(Expression::Err(format!(
+            Ok(_) => Ok((LiteralValue::Nil, "nil".to_owned()).into()),
+            Err(_) => Ok(Expression::with_kind(ExpressionKind::Err(format!(
                 "Cannot rename `{}`. File does not exist",
                 file_path
-            ))),
+            )))),
         }
     }
 }
@@ -78,11 +77,8 @@ fn write() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, Strin
             expected_string_arg(symbol_table, "write", args[1].to_owned())?.into();
 
         match fs::write(&file_path, content) {
-            Ok(_) => Ok(Expression::Literal {
-                value: LiteralValue::Nil,
-                raw: "nil".to_owned(),
-            }),
-            Err(e) => Ok(Expression::Err(e.to_string())),
+            Ok(_) => Ok((LiteralValue::Nil, "nil".to_owned()).into()),
+            Err(e) => Ok(Expression::with_kind(ExpressionKind::Err(e.to_string()))),
         }
     }
 }

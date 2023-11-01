@@ -18,7 +18,7 @@ use hashbrown::HashMap;
 
 use crate::{
     interpreter::{InterpretedFn, SymbolTable},
-    parser::ast::{literal_value::LiteralValue, Expression},
+    parser::ast::{literal_value::LiteralValue, Expression, ExpressionKind},
 };
 pub fn init_std_functions(functions_hash: &mut HashMap<String, InterpretedFn>) {
     functions_hash.insert(
@@ -49,10 +49,7 @@ pub fn print() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, S
 
         println!("{}", print);
 
-        Ok(Expression::Literal {
-            value: crate::parser::ast::literal_value::LiteralValue::Nil,
-            raw: "nil".to_owned(),
-        })
+        Ok((LiteralValue::Nil, "nil".to_owned()).into())
     }
 }
 
@@ -75,8 +72,8 @@ pub fn input() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, S
         }
 
         if args.len() == 2 {
-            let restrain_empty = match symbol_table.evaluate_expr(args[1].to_owned())? {
-                Expression::Literal { value, .. } => match value {
+            let restrain_empty = match symbol_table.evaluate_expr(args[1].to_owned())?.kind {
+                ExpressionKind::Literal(value, ..) => match value {
                     LiteralValue::Boolean(b) => b,
                     _ => return Err("Second argument expected to be a boolean".into()),
                 },
@@ -88,10 +85,7 @@ pub fn input() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, S
             }
         }
 
-        Ok(Expression::Literal {
-            value: LiteralValue::Str(input.trim().to_owned()),
-            raw: input,
-        })
+        Ok((LiteralValue::Str(input.trim().to_owned()), input).into())
     }
 }
 
@@ -124,8 +118,8 @@ fn expected_number_arg(
 ) -> Result<Expression, String> {
     let arg = symbol_table.evaluate_expr(arg)?;
 
-    match &arg {
-        Expression::Literal { value, .. } => match value {
+    match &arg.kind {
+        ExpressionKind::Literal(value, ..) => match value {
             LiteralValue::Number(_) => (),
             _ => {
                 return Err(format!(
@@ -152,8 +146,8 @@ fn expected_string_arg(
 ) -> Result<Expression, String> {
     let arg = symbol_table.evaluate_expr(arg)?;
 
-    match &arg {
-        Expression::Literal { value, .. } => match value {
+    match &arg.kind {
+        ExpressionKind::Literal(value, ..) => match value {
             LiteralValue::Str(_) => (),
             _ => {
                 return Err(format!(

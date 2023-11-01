@@ -170,7 +170,7 @@ impl Expression {
 
 impl Display for Program {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        for node in self.body {
+        for node in &self.body {
             write!(f, "{};", node)?;
         }
         write!(f, "")
@@ -180,7 +180,7 @@ impl Display for Program {
 impl Display for BlockStatement {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, " {{")?;
-        for node in self.body {
+        for node in &self.body {
             write!(f, "{}", node)?;
         }
         write!(f, "}}")
@@ -470,10 +470,10 @@ impl PartialEq for ExpressionKind {
 
 impl Expression {
     pub fn console_print(&self) -> String {
-        self.console_print()
+        self.kind.console_print()
     }
     pub fn get_type(self) -> DataType {
-        self.get_type()
+        self.kind.get_type()
     }
 
     pub fn ok(expr: Expression) -> Self {

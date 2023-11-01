@@ -70,7 +70,7 @@ impl Display for IfStatement {
         write!(f, "if {} {}", self.0, self.1)?;
 
         if self.2.is_some() {
-            write!(f, "{}", self.2.unwrap())?;
+            write!(f, "{}", self.2.as_ref().unwrap())?;
         }
 
         write!(f, "")

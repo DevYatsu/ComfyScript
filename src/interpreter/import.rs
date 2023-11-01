@@ -16,22 +16,22 @@ pub fn import(
     match source.console_print().as_str() {
         "math" => {
             for specifier in specifiers {
-                let f = import_math_fn(specifier.imported.name)?;
-                symbol_table.functions.insert(specifier.local.name, f);
+                let f = import_math_fn(specifier.imported.value())?;
+                symbol_table.functions.insert(specifier.local.value(), f);
             }
         }
         "fs" => {
             for specifier in specifiers {
-                let f = import_fs_fn(specifier.imported.name)?;
-                symbol_table.functions.insert(specifier.local.name, f);
+                let f = import_fs_fn(specifier.imported.value())?;
+                symbol_table.functions.insert(specifier.local.value(), f);
             }
         }
         "json" => todo!(),
         "thread" => todo!(),
         "time" => {
             for specifier in specifiers {
-                let f = import_time_fn(specifier.imported.name)?;
-                symbol_table.functions.insert(specifier.local.name, f);
+                let f = import_time_fn(specifier.imported.value())?;
+                symbol_table.functions.insert(specifier.local.value(), f);
             }
         }
         "http" => todo!(),
@@ -53,11 +53,11 @@ pub fn import(
                         Ok(mut importing_table) => {
                             for specifier in specifiers {
                                 let exported_fn =
-                                    importing_table.export_function(&specifier.imported.name)?;
+                                    importing_table.export_function(&specifier.imported.value())?;
 
                                 symbol_table
                                     .functions
-                                    .insert(specifier.local.name, exported_fn);
+                                    .insert(specifier.local.value(), exported_fn);
                             }
                         }
                         Err((e, file)) => {

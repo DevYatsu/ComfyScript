@@ -19,7 +19,7 @@ fn add_variables_declarations(
     declarations: Vec<VariableDeclarator>,
 ) -> Result<(), String> {
     for declaration in declarations {
-        let name = declaration.id.name.to_owned();
+        let name = declaration.id.value();
         let expr = symbol_table.evaluate_expr(declaration.init)?;
 
         symbol_table.add_variable(name, expr)
@@ -32,7 +32,7 @@ fn add_constants_declarations(
     declarations: Vec<VariableDeclarator>,
 ) -> Result<(), String> {
     for declaration in declarations {
-        let name = declaration.id.name.to_owned();
+        let name = declaration.id.value();
         let expr = symbol_table.evaluate_expr(declaration.init)?;
 
         symbol_table.add_constant(name, expr)

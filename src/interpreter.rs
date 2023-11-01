@@ -937,13 +937,15 @@ impl SymbolTable {
                             body,
                             is_shortcut,
                             return_type,
-                        } => todo!(),
+                        } => {
+                            todo!()
+                        }
                         expr => {
                             return Err(format!("Cannot call `{}`. It is not a function.", expr))
                         }
                     };
 
-                    Ok((LiteralValue::Nil, "".to_owned()).into())
+                    return Ok((LiteralValue::Nil, "".to_owned()).into());
                 }
                 _ => unreachable!(),
             },
@@ -952,7 +954,7 @@ impl SymbolTable {
 
                 Ok(value.to_owned())
             }
-            ExpressionKind::Parenthesized(expr) => self.evaluate_expr((*expr).kind),
+            ExpressionKind::Parenthesized(expr) => self.evaluate_expr(*expr),
             ExpressionKind::Comment { .. } => unreachable!("Cannot evaluate a comment"),
         }
     }
@@ -1055,7 +1057,7 @@ impl SymbolTable {
                 is_exported,
                 ..
             }) => {
-                let name = id.value();
+                let name = id.to_owned().value();
                 let symbol_table = self.to_owned();
 
                 let executable: Rc<
@@ -1070,20 +1072,22 @@ impl SymbolTable {
                             return Err(format!(
                                 "Expected {} arguments when calling function `{}`",
                                 params.len(),
-                                id.value()
+                                id.to_owned().value()
                             ));
                         }
 
                         for (i, param) in params.iter().enumerate() {
                             let value = actual_symbol_table.evaluate_expr(args[i].to_owned())?;
 
-                            local_symbol_table.add_variable(param.id.value(), value);
+                            local_symbol_table.add_variable(param.id.to_owned().value(), value);
                         }
 
-                        let result = match body {
-                            FunctionBody::Block(body) => local_symbol_table.interpret(body)?,
+                        let result = match &body {
+                            FunctionBody::Block(body) => {
+                                local_symbol_table.interpret(body.to_owned())?
+                            }
                             FunctionBody::ShortCut(ReturnStatement(argument, ..)) => {
-                                local_symbol_table.evaluate_expr(argument)?
+                                local_symbol_table.evaluate_expr(argument.clone())?
                             }
                             _ => unreachable!(),
                         };

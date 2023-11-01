@@ -38,7 +38,7 @@ pub fn parse_identifier_expression(i: &str) -> IResult<&str, Expression, ErrorTr
 }
 
 impl Identifier {
-    pub fn value(&self) -> String {
+    pub fn value(self) -> String {
         self.0
     }
 }
