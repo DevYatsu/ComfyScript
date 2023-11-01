@@ -170,10 +170,17 @@ impl Expression {
 
 impl Display for Program {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
-        for node in &self.body {
-            write!(f, "{};", node)?;
-        }
-        write!(f, "")
+        let node_str: String = self
+            .body
+            .iter()
+            .map(|node| {
+                println!("{}", node);
+                format!("{}", node.kind)
+            })
+            .collect::<Vec<String>>()
+            .join(";");
+
+        write!(f, "{}", node_str)
     }
 }
 
@@ -218,15 +225,13 @@ impl Display for StatementKind {
             StatementKind::VariableDeclaration(kind, declarations) => {
                 write!(f, "{} ", kind)?;
 
-                for (i, declaration) in declarations.iter().enumerate() {
+                Ok(for (i, declaration) in declarations.iter().enumerate() {
                     if i == declarations.len() - 1 {
                         write!(f, "{}", declaration)?;
                     } else {
                         write!(f, "{},", declaration)?;
                     }
-                }
-
-                write!(f, "")
+                })
             }
             StatementKind::Expression(expression) => {
                 write!(f, "{};", expression)
@@ -355,11 +360,9 @@ impl fmt::Display for ExpressionKind {
 
                 write!(f, "{limits}")?;
 
-                if let Some(to) = to {
+                Ok(if let Some(to) = to {
                     write!(f, "{to}")?;
-                }
-
-                write!(f, "")
+                })
             }
             ExpressionKind::ErrorPropagation(expr) => {
                 write!(f, "{}?", expr)

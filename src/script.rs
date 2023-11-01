@@ -41,19 +41,18 @@ impl<Name: Display + Clone> ComfyScript<Name> {
             }
         };
 
-        &program.body.iter().for_each(|node| println!("{:?}", node));
+        program.body.iter().for_each(|node| println!("{:?}", node));
 
-        std::process::exit(1);
 
-        match interpret(program) {
-            Ok(_) => {
-                println!("worked!");
-            }
-            Err(e) => {
-                eprintln!("error {}!", e);
-                std::process::exit(1)
-            }
-        };
+        // match interpret(program) {
+        //     Ok(_) => {
+        //         println!("worked!");
+        //     }
+        //     Err(e) => {
+        //         eprintln!("error {}!", e);
+        //         std::process::exit(1)
+        //     }
+        // };
 
         Ok(())
     }
@@ -287,13 +286,10 @@ impl<Name: Display + Clone> ComfyScript<Name> {
             Ok(r) => r,
             Err(_) => return Err("Failed to parse script! Contains an error!".into()),
         };
+        println!("working: {}", program.to_string());
 
-        let mut buffer = String::new();
+        let content = String::from(program.to_string());
 
-        for node in program.body {
-            buffer.push_str(&node.to_string())
-        }
-
-        Ok(buffer)
+        Ok(content)
     }
 }

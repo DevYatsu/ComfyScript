@@ -87,7 +87,6 @@ fn parse_import_specifier(i: &str) -> IResult<&str, ImportSpecifier, ErrorTree<&
     let (i, imported_name) = parse_identifier
         .verify(|id| !DEFINED_FUNCTIONS.contains(&id.0.as_str()))
         .context("import specifier")
-        .cut()
         .parse(i)?;
     let (i, local_name) = import_as.opt().parse(i)?;
 
