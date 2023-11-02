@@ -73,8 +73,8 @@ impl Display for DataType {
             DataType::Fn => write!(f, "Fn"),
             DataType::Class(value) => write!(f, "{}", value),
             DataType::Fallible(expr) => write!(f, "{}?", expr),
-            DataType::Err(s) => write!(f, "Err({})", s),
-            DataType::Ok(expr) => write!(f, "Ok({})", expr),
+            DataType::Err(_) => write!(f, "Err(x)"),
+            DataType::Ok(_) => write!(f, "Ok(x)"),
         }
     }
 }

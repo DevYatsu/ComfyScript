@@ -142,17 +142,19 @@ fn expected_string_arg(
     match &arg.kind {
         ExpressionKind::Literal(value, ..) => match value {
             LiteralValue::Str(_) => (),
-            _ => {
+            value => {
                 return Err(format!(
-                    "Expected arguments of type 'String' for function `{}`",
-                    fn_name
+                    "Expected arguments of type 'String' for function `{}`, found type `{}`",
+                    fn_name,
+                    value.get_type()
                 ))
             }
         },
-        _ => {
+        value => {
             return Err(format!(
-                "Expected arguments of type 'String' for function `{}`",
-                fn_name
+                "Expected arguments of type 'String' for function `{}`, found type `{}`",
+                fn_name,
+                value.clone().get_type()
             ))
         }
     }
