@@ -20,21 +20,10 @@ use crate::{
     interpreter::{InterpretedFn, SymbolTable},
     parser::ast::{literal_value::LiteralValue, Expression, ExpressionKind},
 };
-pub fn init_std_functions(functions_hash: &mut HashMap<String, InterpretedFn>) {
-    functions_hash.insert(
-        "print".to_owned(),
-        InterpretedFn {
-            name: "print".to_owned(),
-            executable: Rc::new(print()),
-        },
-    );
-    functions_hash.insert(
-        "input".to_owned(),
-        InterpretedFn {
-            name: "input".to_owned(),
-            executable: Rc::new(input()),
-        },
-    );
+
+pub fn init_std_functions(functions_hash: &mut HashMap<String, Rc<InterpretedFn>>) {
+    functions_hash.insert("print".to_owned(), Rc::new(InterpretedFn(Rc::new(print()))));
+    functions_hash.insert("input".to_owned(), Rc::new(InterpretedFn(Rc::new(input()))));
 }
 
 pub fn print() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {

@@ -1,5 +1,4 @@
-var count = 1
+import read_to_string from "fs"
 
-while count <= 100000 {
-    count += 1
-}
+let content = read_to_string("x.cfs")?
+print(content)

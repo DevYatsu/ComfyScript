@@ -29,7 +29,6 @@ pub fn execute_folder(folder_path: &Path) -> Result<(), Box<dyn Error>> {
                     file_path.display(),
                     e
                 );
-                        
 
                 return;
             }

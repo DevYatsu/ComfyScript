@@ -1,5 +1,5 @@
 use crate::{
-    interpreter::{interpret_import, SymbolTable},
+    interpreter::SymbolTable,
     parser::{
         ast::identifier::parse_raw_id,
         comment::jump_comments,
@@ -43,22 +43,24 @@ impl<Name: Display + Clone> ComfyScript<Name> {
 
         program.body.iter().for_each(|node| println!("{:?}", node));
 
+        let mut symbol_table = SymbolTable::new();
 
-        // match interpret(program) {
-        //     Ok(_) => {
-        //         println!("worked!");
-        //     }
-        //     Err(e) => {
-        //         eprintln!("error {}!", e);
-        //         std::process::exit(1)
-        //     }
-        // };
+        match symbol_table.interpret(program) {
+            Ok(_) => {
+                println!("worked!");
+            }
+            Err(e) => {
+                eprintln!("error {}!", e);
+                std::process::exit(1)
+            }
+        };
 
         Ok(())
     }
 
     pub fn execute_as_import(
         &self,
+        global_table: &SymbolTable,
     ) -> Result<SymbolTable, (SyntaxError<()>, SimpleFile<Name, String>)> {
         let content = &self.content;
         let file = SimpleFile::new(self.name.to_owned(), content.to_owned());
@@ -70,28 +72,24 @@ impl<Name: Display + Clone> ComfyScript<Name> {
         let program = match parse_input(&content) {
             Ok(r) => r,
             Err(e) => {
-                return Err((self.match_error(&e), file));
+                return Err((SyntaxError::in_import(self.match_error(&e)), file));
             }
         };
 
-        // let _nodes = match &program {
-        //     ast::ASTNode::Program { body } => body,
-        //     _ => unreachable!(),
-        // };
-        // _nodes.iter().for_each(|node| println!("{:?}", node));
+        let mut import_table = SymbolTable::new_import_table(global_table);
 
-        let symbol_table = match interpret_import(program) {
+        let symbol_table = match import_table.interpret_import(program) {
             Ok(symbol_table) => {
                 println!("worked!");
                 symbol_table
             }
             Err(e) => {
-                eprintln!("error {}!", e);
+                eprintln!("In import: {}!", e);
                 std::process::exit(1)
             }
         };
 
-        Ok(symbol_table)
+        Ok(import_table)
     }
 
     fn match_error(

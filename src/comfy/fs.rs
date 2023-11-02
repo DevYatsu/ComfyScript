@@ -11,18 +11,9 @@ use super::{expected_string_arg, expected_x_args};
 
 pub fn import_fs_fn(name: String) -> Result<InterpretedFn, String> {
     let result = match name.as_str() {
-        "read_to_string" => InterpretedFn {
-            name: name.to_owned(),
-            executable: Rc::new(read_to_string()),
-        },
-        "rename" => InterpretedFn {
-            name: name.to_owned(),
-            executable: Rc::new(rename()),
-        },
-        "write" => InterpretedFn {
-            name: name.to_owned(),
-            executable: Rc::new(write()),
-        },
+        "read_to_string" => InterpretedFn(Rc::new(read_to_string())),
+        "rename" => InterpretedFn(Rc::new(rename())),
+        "write" => InterpretedFn(Rc::new(write())),
         _ => return Err(format!("'fs' package does not export a `{}` member", name)),
     };
 

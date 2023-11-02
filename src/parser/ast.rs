@@ -368,10 +368,10 @@ impl fmt::Display for ExpressionKind {
                 write!(f, "{}?", expr)
             }
             ExpressionKind::Err(s) => {
-                write!(f, "{}", s)
+                write!(f, "Err({})", s)
             }
             ExpressionKind::Ok(expr) => {
-                write!(f, "{}", expr)
+                write!(f, "Ok({})", expr)
             }
         }
     }
@@ -384,6 +384,7 @@ impl PartialEq for ExpressionKind {
             (Self::TemplateLiteral(l_value, _), Self::TemplateLiteral(r_value, _)) => {
                 l_value == r_value
             }
+
             (Self::Range(l_from, l_limits, l_to), Self::Range(r_from, r_limits, r_to)) => {
                 let l_from = if l_from.is_none() {
                     Some(Box::new(Expression {
@@ -444,25 +445,7 @@ impl PartialEq for ExpressionKind {
                     raw_value: r_raw_value,
                 },
             ) => l_is_line == r_is_line && l_raw_value == r_raw_value,
-            (
-                Self::FnExpression {
-                    params: l_params,
-                    body: l_body,
-                    is_shortcut: l_is_shortcut,
-                    return_type: l_return_type,
-                },
-                Self::FnExpression {
-                    params: r_params,
-                    body: r_body,
-                    is_shortcut: r_is_shortcut,
-                    return_type: r_return_type,
-                },
-            ) => {
-                l_params == r_params
-                    && l_body == r_body
-                    && l_is_shortcut == r_is_shortcut
-                    && l_return_type == r_return_type
-            }
+
             (Self::ErrorPropagation(r0), Self::ErrorPropagation(r1)) => r0 == r1,
             (Self::Err(r0), Self::Err(r1)) => r0 == r1,
             (Self::Ok(r0), Self::Ok(r1)) => r0 == r1,
@@ -490,6 +473,9 @@ impl Expression {
     }
     pub fn parenthesized(expr: Expression) -> Self {
         Expression::with_kind(ExpressionKind::Parenthesized(Box::new(expr)))
+    }
+    pub fn nil() -> Self {
+        Expression::with_kind(ExpressionKind::Literal(LiteralValue::Nil, "nil".to_owned()))
     }
 }
 

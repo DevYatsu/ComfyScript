@@ -14,15 +14,8 @@ use super::{expected_number_arg, expected_x_args};
 
 pub fn import_time_fn(name: String) -> Result<InterpretedFn, String> {
     let result = match name.as_str() {
-        "sleep" => InterpretedFn {
-            name: name.to_owned(),
-            executable: Rc::new(sleep()),
-        },
-        "now" => InterpretedFn {
-            name: name.to_owned(),
-            executable: Rc::new(now()),
-        },
-
+        "sleep" => InterpretedFn(Rc::new(sleep())),
+        "now" => InterpretedFn(Rc::new(now())),
         _ => {
             return Err(format!(
                 "'time' package does not export a `{}` member",

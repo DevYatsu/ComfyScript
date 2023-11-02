@@ -17,13 +17,17 @@ pub fn import(
         "math" => {
             for specifier in specifiers {
                 let f = import_math_fn(specifier.imported.value())?;
-                symbol_table.functions.insert(specifier.local.value(), f);
+                symbol_table
+                    .functions
+                    .insert(specifier.local.value(), f.into());
             }
         }
         "fs" => {
             for specifier in specifiers {
                 let f = import_fs_fn(specifier.imported.value())?;
-                symbol_table.functions.insert(specifier.local.value(), f);
+                symbol_table
+                    .functions
+                    .insert(specifier.local.value(), f.into());
             }
         }
         "json" => todo!(),
@@ -31,7 +35,9 @@ pub fn import(
         "time" => {
             for specifier in specifiers {
                 let f = import_time_fn(specifier.imported.value())?;
-                symbol_table.functions.insert(specifier.local.value(), f);
+                symbol_table
+                    .functions
+                    .insert(specifier.local.value(), f.into());
             }
         }
         "http" => todo!(),
@@ -49,7 +55,7 @@ pub fn import(
                 Ok(content) => {
                     let script = ComfyScript::new(file_name, content);
 
-                    match script.execute_as_import() {
+                    match script.execute_as_import(&symbol_table) {
                         Ok(mut importing_table) => {
                             for specifier in specifiers {
                                 let exported_fn =

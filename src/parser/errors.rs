@@ -49,6 +49,14 @@ impl<FileId> SyntaxError<FileId> {
     pub fn add_note(&mut self, note: String) {
         self.notes.push(note);
     }
+    pub fn in_import(self) -> Self {
+        SyntaxError {
+            message: format!("In import: {}", self.message),
+            code: self.code,
+            labels: self.labels,
+            notes: self.notes,
+        }
+    }
 
     pub fn identifier(found: &str) -> Self {
         SyntaxError {

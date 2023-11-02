@@ -40,98 +40,29 @@ lazy_static! {
 
 pub fn import_math_fn(value: String) -> Result<InterpretedFn, String> {
     let result = match value.as_str() {
-        "cos" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(cos(value)),
-        },
-        "sin" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(sin(value)),
-        },
-        "tan" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(tan(value)),
-        },
-        "acos" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(acos(value)),
-        },
-        "asin" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(asin(value)),
-        },
-        "atan" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(atan(value)),
-        },
-        "ceil" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(ceil(value)),
-        },
-        "floor" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(floor(value)),
-        },
-        "log" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(log(value)),
-        },
-        "ln" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(ln(value)),
-        },
-        "sqrt" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(sqrt(value)),
-        },
-        "power" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(power(value)),
-        },
-        "random" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(random(value)),
-        },
-        "abs" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(abs(value)),
-        },
-        "exp" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(exp(value)),
-        },
-        "max" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(max(value)),
-        },
-        "min" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(min(value)),
-        },
-        "round" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(round(value)),
-        },
-        "trunc" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(trunc(value)),
-        },
-        "clamp" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(clamp(value)),
-        },
-        "signum" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(signum(value)),
-        },
-        "to_radians" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(to_radians(value)),
-        },
-        "to_degrees" => InterpretedFn {
-            name: value.to_owned(),
-            executable: Rc::new(to_degrees(value)),
-        },
+        "cos" => InterpretedFn(Rc::new(cos())),
+        "sin" => InterpretedFn(Rc::new(sin())),
+        "tan" => InterpretedFn(Rc::new(tan())),
+        "acos" => InterpretedFn(Rc::new(acos())),
+        "asin" => InterpretedFn(Rc::new(asin())),
+        "atan" => InterpretedFn(Rc::new(atan())),
+        "ceil" => InterpretedFn(Rc::new(ceil())),
+        "floor" => InterpretedFn(Rc::new(floor())),
+        "log" => InterpretedFn(Rc::new(log())),
+        "ln" => InterpretedFn(Rc::new(ln())),
+        "sqrt" => InterpretedFn(Rc::new(sqrt())),
+        "power" => InterpretedFn(Rc::new(power())),
+        "random" => InterpretedFn(Rc::new(random())),
+        "abs" => InterpretedFn(Rc::new(abs())),
+        "exp" => InterpretedFn(Rc::new(exp())),
+        "max" => InterpretedFn(Rc::new(max())),
+        "min" => InterpretedFn(Rc::new(min())),
+        "round" => InterpretedFn(Rc::new(round())),
+        "trunc" => InterpretedFn(Rc::new(trunc())),
+        "clamp" => InterpretedFn(Rc::new(clamp())),
+        "signum" => InterpretedFn(Rc::new(signum())),
+        "to_radians" => InterpretedFn(Rc::new(to_radians())),
+        "to_degrees" => InterpretedFn(Rc::new(to_degrees())),
         _ => {
             return Err(format!(
                 "'math' package does not export a `{}` member",
@@ -143,9 +74,9 @@ pub fn import_math_fn(value: String) -> Result<InterpretedFn, String> {
     Ok(result)
 }
 
-fn cos(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn cos() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "cos", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -155,9 +86,9 @@ fn cos(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
     }
 }
 
-fn sin(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn sin() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "sin", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -167,9 +98,9 @@ fn sin(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
     }
 }
 
-fn tan(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn tan() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "tan", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -179,9 +110,9 @@ fn tan(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
     }
 }
 
-fn acos(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn acos() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "acos", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -191,9 +122,9 @@ fn acos(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
     }
 }
 
-fn asin(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn asin() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "asin", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -203,9 +134,9 @@ fn asin(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
     }
 }
 
-fn atan(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn atan() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "atan", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -215,9 +146,9 @@ fn atan(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
     }
 }
 
-fn ceil(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn ceil() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "ceil", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -227,9 +158,9 @@ fn ceil(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
     }
 }
 
-fn floor(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn floor() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "floor", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -239,9 +170,9 @@ fn floor(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
     }
 }
 
-fn log(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn log() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 2, args)?;
+        let args = sanitize_math_args(symbol_table, "log", 2, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
         let base: f32 = args[1].to_owned().into();
@@ -252,9 +183,9 @@ fn log(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
     }
 }
 
-fn ln(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn ln() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "ln", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -264,9 +195,9 @@ fn ln(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Express
     }
 }
 
-fn sqrt(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn sqrt() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "sqrt", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -275,9 +206,9 @@ fn sqrt(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expre
         Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
-fn power(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn power() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 2, args)?;
+        let args = sanitize_math_args(symbol_table, "power", 2, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
         let power: f32 = args[1].to_owned().into();
@@ -287,18 +218,18 @@ fn power(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
         Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
-fn random(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn random() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |s: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        sanitize_math_args(s, &value, 0, args)?;
+        sanitize_math_args(s, "random", 0, args)?;
 
         let result = rand::thread_rng().gen();
 
         Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
-fn abs(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn abs() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "abs", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -307,9 +238,9 @@ fn abs(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
         Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
-fn exp(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn exp() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "exp", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -318,9 +249,9 @@ fn exp(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
         Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
-fn max(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn max() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 2, args)?;
+        let args = sanitize_math_args(symbol_table, "max", 2, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
         let max: f32 = args[1].to_owned().into();
@@ -330,9 +261,9 @@ fn max(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
         Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
-fn min(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn min() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 2, args)?;
+        let args = sanitize_math_args(symbol_table, "min", 2, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
         let min: f32 = args[1].to_owned().into();
@@ -342,9 +273,9 @@ fn min(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expres
         Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
-fn round(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn round() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "round", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -353,9 +284,9 @@ fn round(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
         Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
-fn trunc(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn trunc() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "trunc", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -364,9 +295,9 @@ fn trunc(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
         Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
-fn clamp(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn clamp() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 3, args)?;
+        let args = sanitize_math_args(symbol_table, "clamp", 3, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
         let min: f32 = args[1].to_owned().into();
@@ -377,9 +308,9 @@ fn clamp(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expr
         Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
-fn signum(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn signum() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "signum", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -388,11 +319,9 @@ fn signum(value: String) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Exp
         Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
-fn to_radians(
-    value: String,
-) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn to_radians() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "to_radians", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 
@@ -401,11 +330,9 @@ fn to_radians(
         Ok((LiteralValue::Number(result), result.to_string()).into())
     }
 }
-fn to_degrees(
-    value: String,
-) -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
+fn to_degrees() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String> {
     move |symbol_table: &SymbolTable, args: Vec<Expression>| -> Result<Expression, String> {
-        let args = sanitize_math_args(symbol_table, &value, 1, args)?;
+        let args = sanitize_math_args(symbol_table, "to_degrees", 1, args)?;
 
         let num: f32 = symbol_table.evaluate_expr(args[0].to_owned())?.into();
 

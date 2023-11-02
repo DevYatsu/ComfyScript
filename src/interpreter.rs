@@ -13,7 +13,7 @@ use crate::{
             literal_value::LiteralValue,
             range::RangeType,
             vars::VariableDeclarator,
-            Expression, ExpressionKind, Program, Statement, StatementKind,
+            Expression, ExpressionKind, Statement, StatementKind,
         },
         expression::template_literal::TemplateLiteralFragment,
         function::{return_expression::ReturnStatement, FunctionBody, FunctionDeclaration},
@@ -21,42 +21,25 @@ use crate::{
     },
 };
 use hashbrown::HashMap;
+use moka::sync::Cache;
 
 pub trait RunnableCode {
     fn get_statements(self) -> Vec<Statement>;
 }
 
-pub fn interpret(program: impl RunnableCode) -> Result<SymbolTable, String> {
-    let mut symbol_table = SymbolTable::new();
-
-    symbol_table.interpret(program)?;
-
-    println!("{:?}", symbol_table);
-    Ok(symbol_table)
-}
-
-pub fn interpret_import(program: Program) -> Result<SymbolTable, String> {
-    let mut symbol_table = SymbolTable::new();
-
-    symbol_table.interpret_import(program)?;
-
-    Ok(symbol_table)
-}
-
 #[derive(Debug, Clone, PartialEq)]
 pub struct SymbolTable {
-    pub functions: HashMap<String, InterpretedFn>,
+    pub functions: HashMap<String, Rc<InterpretedFn>>,
     pub constants: HashMap<String, Expression>,
     pub variables: HashMap<String, Expression>,
-    pub exported: HashMap<String, InterpretedFn>,
+    pub exported: HashMap<String, Rc<InterpretedFn>>,
     pub scopes: Vec<SymbolTable>,
 }
 
 #[derive(Clone)]
-pub struct InterpretedFn {
-    pub name: String,
-    pub executable: Rc<dyn Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String>>,
-}
+pub struct InterpretedFn(
+    pub Rc<dyn Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, String>>,
+);
 
 impl SymbolTable {
     pub fn new() -> Self {
@@ -71,6 +54,27 @@ impl SymbolTable {
             scopes: Vec::new(),
         }
     }
+    pub fn new_import_table(global_symbol_table: &SymbolTable) -> Self {
+        let mut functions = HashMap::new();
+        functions.insert(
+            "print".to_owned(),
+            global_symbol_table.get_function("print").unwrap().clone(),
+        );
+        functions.insert(
+            "input".to_owned(),
+            global_symbol_table.get_function("input").unwrap().clone(),
+        );
+        // clone the Rc instead of reinit the functions from the start
+
+        Self {
+            functions,
+            constants: HashMap::new(),
+            variables: HashMap::new(),
+            exported: HashMap::new(),
+            scopes: Vec::new(),
+        }
+    }
+
     pub fn new_scope() -> Self {
         Self {
             functions: HashMap::new(),
@@ -87,7 +91,7 @@ impl SymbolTable {
         self.scopes.pop();
     }
 
-    pub fn interpret(&mut self, program: impl RunnableCode) -> Result<Expression, String> {
+    pub fn interpret(&mut self, program: impl RunnableCode) -> Result<Option<Expression>, String> {
         for node in program.get_statements() {
             match node.kind {
                 StatementKind::Import(source, specifiers) => {
@@ -172,20 +176,44 @@ impl SymbolTable {
                 }
                 StatementKind::FunctionDeclaration { .. } => self.add_function(node),
                 StatementKind::ForStatement(kind, declarations, source, body) => todo!(),
-                StatementKind::WhileStatement { .. } => todo!(),
+                StatementKind::WhileStatement(test, body) => {
+                    self.add_scope();
+                    let mut test_value = self.evaluate_expr(test.to_owned())?;
+
+                    loop {
+                        match &test_value.kind {
+                            ExpressionKind::Literal(value, ..) => {
+                                if value.is_falsy() {
+                                    break;
+                                }
+                            }
+                            _ => {}
+                        };
+
+                        if let Some(_) = self.interpret(body.to_owned())? {
+                            return Err(
+                                "Return statement not allowed inside of While statement".into()
+                            );
+                        }
+
+                        test_value = self.evaluate_expr(test.to_owned())?;
+                    }
+                    self.remove_last_scope();
+                }
                 StatementKind::IfStatement { .. } => todo!(),
                 StatementKind::MatchStatement(test, body) => todo!(),
                 StatementKind::ReturnStatement(ReturnStatement(argument, ..)) => {
-                    // maybe put ReturnStatement inside of StatementKind::Expression ?
-                    return Ok(self.evaluate_expr(argument)?);
+                    return Ok(Some(self.evaluate_expr(argument)?));
                 }
             }
         }
 
-        Ok((LiteralValue::Nil, "nil".to_string()).into())
+        Ok(None)
     }
 
     pub fn interpret_import(&mut self, program: impl RunnableCode) -> Result<Expression, String> {
+        let mut import_symbol_table = SymbolTable::new();
+
         for node in program.get_statements() {
             match node.kind {
                 StatementKind::Import(source, specifiers) => {
@@ -925,7 +953,7 @@ impl SymbolTable {
                     name => {
                         let x = self.get_function(name)?;
 
-                        Ok((x.executable)(self, args)?)
+                        Ok((x.0)(self, args)?)
                     }
                 },
                 ExpressionKind::Parenthesized(expr) => {
@@ -1019,15 +1047,15 @@ impl SymbolTable {
         self.constants.insert(name, expr);
     }
 
-    fn add_scoped_function(&mut self, name: String, func: InterpretedFn) {
+    fn add_scoped_function(&mut self, name: String, func: Rc<InterpretedFn>) {
         if let Some(symbol_table) = self.scopes.last_mut() {
             symbol_table.functions.insert(name, func);
             return;
         }
 
-        self.functions.insert(name, func);
+        self.functions.insert(name, func.into());
     }
-    fn get_function(&self, name: &str) -> Result<&InterpretedFn, String> {
+    fn get_function(&self, name: &str) -> Result<&Rc<InterpretedFn>, String> {
         for symbol_table in self.scopes.iter().rev() {
             if let Some(value) = symbol_table.functions.get(name) {
                 return Ok(value);
@@ -1040,7 +1068,7 @@ impl SymbolTable {
 
         Err(format!("Undefined function '{}'", name))
     }
-    fn export_function(&mut self, name: &str) -> Result<InterpretedFn, String> {
+    fn export_function(&mut self, name: &str) -> Result<Rc<InterpretedFn>, String> {
         // when importing another symbol table, thus after reading, parsing and importing another file
         if let Some(value) = self.exported.remove(name) {
             return Ok(value);
@@ -1083,9 +1111,9 @@ impl SymbolTable {
                         }
 
                         let result = match &body {
-                            FunctionBody::Block(body) => {
-                                local_symbol_table.interpret(body.to_owned())?
-                            }
+                            FunctionBody::Block(body) => local_symbol_table
+                                .interpret(body.to_owned())?
+                                .unwrap_or(Expression::nil()),
                             FunctionBody::ShortCut(ReturnStatement(argument, ..)) => {
                                 local_symbol_table.evaluate_expr(argument.clone())?
                             }
@@ -1096,17 +1124,13 @@ impl SymbolTable {
                     },
                 );
 
+                let exported_fn = Rc::new(InterpretedFn(executable.to_owned()));
+
                 if is_exported {
-                    self.exported.insert(
-                        name.to_owned(),
-                        InterpretedFn {
-                            name: name.to_owned(),
-                            executable: executable.to_owned(),
-                        },
-                    );
+                    self.exported.insert(name.to_owned(), exported_fn.clone());
                 }
 
-                self.add_scoped_function(name.to_owned(), InterpretedFn { name, executable });
+                self.add_scoped_function(name.to_owned(), exported_fn);
             }
             _ => unreachable!(),
         }
@@ -1130,13 +1154,12 @@ impl SymbolTable {
 
 impl Debug for InterpretedFn {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("InterpretedFn")
-            .field("name", &self.name)
-            .finish()
+        f.debug_struct("InterpretedFn").finish()
     }
 }
 impl PartialEq for InterpretedFn {
-    fn eq(&self, other: &Self) -> bool {
-        self.name == other.name
+    fn eq(&self, _: &Self) -> bool {
+        // cannot check for equality of functions
+        false
     }
 }
