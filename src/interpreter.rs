@@ -672,16 +672,11 @@ impl SymbolTable {
                                 ExpressionKind::Literal(value, ..),
                                 ExpressionKind::Literal(value_2, ..),
                             ) => match (value, value_2) {
-                                (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
-                                    println!("{}", num1);
-                                    println!("{}", num2);
-
-                                    Ok((
-                                        LiteralValue::Boolean(num1 < num2),
-                                        (num1 < num2).to_string(),
-                                    )
-                                        .into())
-                                }
+                                (LiteralValue::Number(num1), LiteralValue::Number(num2)) => Ok((
+                                    LiteralValue::Boolean(num1 < num2),
+                                    (num1 < num2).to_string(),
+                                )
+                                    .into()),
                                 _ => {
                                     return Err(format!(
                                         "Cannot compare {} for '<' equality {}",

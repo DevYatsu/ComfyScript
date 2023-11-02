@@ -84,10 +84,7 @@ pub fn parse_import(i: &str) -> IResult<&str, Statement, ErrorTree<&str>> {
 }
 
 fn parse_import_specifier(i: &str) -> IResult<&str, ImportSpecifier, ErrorTree<&str>> {
-    let (i, imported_name) = parse_identifier
-        .verify(|id| !DEFINED_FUNCTIONS.contains(&id.0.as_str()))
-        .context("import specifier")
-        .parse(i)?;
+    let (i, imported_name) = parse_identifier.parse(i)?;
     let (i, local_name) = import_as.opt().parse(i)?;
 
     match local_name {
@@ -115,7 +112,11 @@ fn import_as(i: &str) -> IResult<&str, Identifier, ErrorTree<&str>> {
     let (i, _) = tag("as").complete().parse(i)?;
 
     let (i, _) = multispace1.cut().parse(i)?;
-    let (i, local_name) = parse_identifier.cut().parse(i)?;
+    let (i, local_name) = parse_identifier
+        .verify(|id| !DEFINED_FUNCTIONS.contains(&id.0.as_str()))
+        .context("import specifier")
+        .cut()
+        .parse(i)?;
 
     return Ok((i, local_name));
 }

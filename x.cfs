@@ -1,4 +1,4 @@
-import random,floor from "math"
+import random, import as print from "math"
 
 var count = 1
 

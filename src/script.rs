@@ -153,7 +153,6 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                         nom_supreme::error::Expectation::Char(expected_token) => {
                             let closing_tag = expected_token.to_string();
                             let opening_tag = get_opposing_tag(&closing_tag).to_owned();
-                            println!("open {}, close {}", opening_tag, closing_tag);
 
                             let (place, length, _) = self.get_error_data(location);
 
@@ -189,14 +188,12 @@ impl<Name: Display + Clone> ComfyScript<Name> {
                         }
                     },
                     nom_supreme::error::BaseErrorKind::Kind(kind) => {
-                        println!("{:?}", kind);
                         let (place, length, found) = self.get_error_data(location);
 
                         match kind {
                             nom::error::ErrorKind::Tag => unreachable!(),
                             nom::error::ErrorKind::Alt => unreachable!(),
                             nom::error::ErrorKind::TakeUntil => {
-                                println!("hey takeuntil: {:?}", location);
                                 let closing_tag = if &self.content[place - 2..place - 1] == "/" {
                                     // it means the opening tag is /*
                                     &self.content[place - 2..place]
