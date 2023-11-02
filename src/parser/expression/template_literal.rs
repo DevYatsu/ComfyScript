@@ -89,3 +89,12 @@ impl Display for TemplateLiteralFragment {
         }
     }
 }
+
+impl TemplateLiteralFragment {
+    pub fn is_empty(&self) -> bool {
+        match self {
+            TemplateLiteralFragment::Literal(s) => s.is_empty(),
+            _ => false,
+        }
+    }
+}

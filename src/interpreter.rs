@@ -21,7 +21,6 @@ use crate::{
     },
 };
 use hashbrown::HashMap;
-use moka::sync::Cache;
 
 pub trait RunnableCode {
     fn get_statements(self) -> Vec<Statement>;
