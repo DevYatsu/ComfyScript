@@ -1,5 +1,5 @@
 use crate::{
-    interpreter::{interpret, interpret_import, SymbolTable},
+    interpreter::{interpret_import, SymbolTable},
     parser::{
         ast::identifier::parse_raw_id,
         comment::jump_comments,
