@@ -1,6 +1,6 @@
 var count = 1
 
-while count < 100000 {
+while count < 100 {
     count += 1
 }
 

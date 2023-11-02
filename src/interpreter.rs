@@ -193,7 +193,9 @@ impl SymbolTable {
                     }
                     self.remove_last_scope();
                 }
-                StatementKind::IfStatement { .. } => todo!(),
+                StatementKind::IfStatement(if_statement) => {
+                    todo!()
+                }
                 StatementKind::MatchStatement(test, body) => todo!(),
                 StatementKind::ReturnStatement(ReturnStatement(argument, ..)) => {
                     return Ok(Some(self.evaluate_expr(argument)?));
