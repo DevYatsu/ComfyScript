@@ -21,7 +21,6 @@ use crate::{
     },
 };
 use hashbrown::HashMap;
-use moka::sync::Cache;
 
 pub trait RunnableCode {
     fn get_statements(self) -> Vec<Statement>;
@@ -211,9 +210,10 @@ impl SymbolTable {
         Ok(None)
     }
 
-    pub fn interpret_import(&mut self, program: impl RunnableCode) -> Result<Expression, String> {
-        let mut import_symbol_table = SymbolTable::new();
-
+    pub fn interpret_as_import(
+        &mut self,
+        program: impl RunnableCode,
+    ) -> Result<Expression, String> {
         for node in program.get_statements() {
             match node.kind {
                 StatementKind::Import(source, specifiers) => {
@@ -386,7 +386,14 @@ impl SymbolTable {
 
                                 Ok((LiteralValue::Str(s1.to_owned()), s1).into())
                             }
-                            _ => return Err(format!("Cannot add {} with {}", left, right).into()),
+                            _ => {
+                                return Err(format!(
+                                    "Cannot add {} with {}",
+                                    left.get_type(),
+                                    right.get_type()
+                                )
+                                .into())
+                            }
                         },
                         (ExpressionKind::Array(elements), ExpressionKind::Array(elements_2)) => {
                             let mut array = elements;
@@ -404,7 +411,14 @@ impl SymbolTable {
                                 props.to_vec(),
                             )))
                         }
-                        _ => return Err(format!("Cannot add {} with {}", left, right).into()),
+                        _ => {
+                            return Err(format!(
+                                "Cannot add {} with {}",
+                                left.get_type(),
+                                right.get_type()
+                            )
+                            .into())
+                        }
                     },
                     BinaryOperator::Minus => match (left.kind.to_owned(), right.kind.to_owned()) {
                         (
@@ -417,12 +431,22 @@ impl SymbolTable {
                                 Ok((LiteralValue::Number(num), num.to_string()).into())
                             }
                             _ => {
-                                return Err(
-                                    format!("Cannot substract {} with {}", left, right).into()
+                                return Err(format!(
+                                    "Cannot substract {} with {}",
+                                    left.get_type(),
+                                    right.get_type()
                                 )
+                                .into())
                             }
                         },
-                        _ => return Err(format!("Cannot substract {} with {}", left, right).into()),
+                        _ => {
+                            return Err(format!(
+                                "Cannot substract {} with {}",
+                                left.get_type(),
+                                right.get_type()
+                            )
+                            .into())
+                        }
                     },
                     BinaryOperator::Times => match (left.kind.to_owned(), right.kind.to_owned()) {
                         (
@@ -435,12 +459,22 @@ impl SymbolTable {
                                 Ok((LiteralValue::Number(num), num.to_string()).into())
                             }
                             _ => {
-                                return Err(
-                                    format!("Cannot multiply {} with {}", left, right).into()
+                                return Err(format!(
+                                    "Cannot multiply {} with {}",
+                                    left.get_type(),
+                                    right.get_type()
                                 )
+                                .into())
                             }
                         },
-                        _ => return Err(format!("Cannot multiply {} with {}", left, right).into()),
+                        _ => {
+                            return Err(format!(
+                                "Cannot multiply {} with {}",
+                                left.get_type(),
+                                right.get_type()
+                            )
+                            .into())
+                        }
                     },
                     BinaryOperator::Divide => match (left.kind.to_owned(), right.kind.to_owned()) {
                         (
@@ -453,10 +487,22 @@ impl SymbolTable {
                                 Ok((LiteralValue::Number(num), num.to_string()).into())
                             }
                             _ => {
-                                return Err(format!("Cannot divide {} with {}", left, right).into())
+                                return Err(format!(
+                                    "Cannot divide {} with {}",
+                                    left.get_type(),
+                                    right.get_type()
+                                )
+                                .into())
                             }
                         },
-                        _ => return Err(format!("Cannot divide {} with {}", left, right).into()),
+                        _ => {
+                            return Err(format!(
+                                "Cannot divide {} with {}",
+                                left.get_type(),
+                                right.get_type()
+                            )
+                            .into())
+                        }
                     },
                     BinaryOperator::Exponential => {
                         match (left.kind.to_owned(), right.kind.to_owned()) {
@@ -472,7 +518,8 @@ impl SymbolTable {
                                 _ => {
                                     return Err(format!(
                                         "Cannot calculate {} raised to the power of {}",
-                                        left, right
+                                        left.get_type(),
+                                        right.get_type()
                                     )
                                     .into())
                                 }
@@ -480,7 +527,8 @@ impl SymbolTable {
                             _ => {
                                 return Err(format!(
                                     "Cannot calculate {} raised to the power of {}",
-                                    left, right
+                                    left.get_type(),
+                                    right.get_type()
                                 )
                                 .into())
                             }
@@ -511,13 +559,21 @@ impl SymbolTable {
                                 Ok((LiteralValue::Number(num), num.to_string()).into())
                             }
                             _ => {
-                                return Err(
-                                    format!("Cannot calculate {} modulo {}", left, right).into()
+                                return Err(format!(
+                                    "Cannot calculate {} modulo {}",
+                                    left.get_type(),
+                                    right.get_type()
                                 )
+                                .into())
                             }
                         },
                         _ => {
-                            return Err(format!("Cannot calculate {} modulo {}", left, right).into())
+                            return Err(format!(
+                                "Cannot calculate {} modulo {}",
+                                left.get_type(),
+                                right.get_type()
+                            )
+                            .into())
                         }
                     },
                     BinaryOperator::Greater => {
@@ -534,7 +590,8 @@ impl SymbolTable {
                                 _ => {
                                     return Err(format!(
                                         "Cannot compare {} for '>' equality {}",
-                                        left, right
+                                        left.get_type(),
+                                        right.get_type()
                                     )
                                     .into())
                                 }
@@ -542,7 +599,8 @@ impl SymbolTable {
                             _ => {
                                 return Err(format!(
                                     "Cannot compare {} for '>' equality {}",
-                                    left, right
+                                    left.get_type(),
+                                    right.get_type()
                                 )
                                 .into())
                             }
@@ -562,7 +620,8 @@ impl SymbolTable {
                                 _ => {
                                     return Err(format!(
                                         "Cannot compare {} for '>=' equality {}",
-                                        left, right
+                                        left.get_type(),
+                                        right.get_type()
                                     )
                                     .into())
                                 }
@@ -570,7 +629,8 @@ impl SymbolTable {
                             _ => {
                                 return Err(format!(
                                     "Cannot compare {} for '>=' equality {}",
-                                    left, right
+                                    left.get_type(),
+                                    right.get_type()
                                 )
                                 .into())
                             }
@@ -590,7 +650,8 @@ impl SymbolTable {
                                 _ => {
                                     return Err(format!(
                                         "Cannot compare {} for '<' equality {}",
-                                        left, right
+                                        left.get_type(),
+                                        right.get_type()
                                     )
                                     .into())
                                 }
@@ -598,7 +659,8 @@ impl SymbolTable {
                             _ => {
                                 return Err(format!(
                                     "Cannot compare {} for '<' equality {}",
-                                    left, right
+                                    left.get_type(),
+                                    right.get_type()
                                 )
                                 .into())
                             }
@@ -618,7 +680,8 @@ impl SymbolTable {
                                 _ => {
                                     return Err(format!(
                                         "Cannot compare {} for '<=' equality {}",
-                                        left, right
+                                        left.get_type(),
+                                        right.get_type()
                                     )
                                     .into())
                                 }
@@ -626,7 +689,8 @@ impl SymbolTable {
                             _ => {
                                 return Err(format!(
                                     "Cannot compare {} for '<=' equality {}",
-                                    left, right
+                                    left.get_type(),
+                                    right.get_type()
                                 )
                                 .into())
                             }

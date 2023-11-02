@@ -27,8 +27,8 @@ pub fn parse_binary_operator(i: &str) -> IResult<&str, BinaryOperator, ErrorTree
     let (i, operator) = alt((
         tag("+").value(BinaryOperator::Plus),
         tag("-").value(BinaryOperator::Minus),
-        tag("**").complete().value(BinaryOperator::Times),
-        tag("*").value(BinaryOperator::Exponential),
+        tag("**").complete().value(BinaryOperator::Exponential),
+        tag("*").value(BinaryOperator::Times),
         tag("/").value(BinaryOperator::Divide),
         tag("%").value(BinaryOperator::Modulo),
         tag("==").complete().value(BinaryOperator::Equal),

@@ -368,7 +368,7 @@ impl fmt::Display for ExpressionKind {
                 write!(f, "{}?", expr)
             }
             ExpressionKind::Err(s) => {
-                write!(f, "Err({})", s)
+                write!(f, "Err(\"{}\")", s)
             }
             ExpressionKind::Ok(expr) => {
                 write!(f, "Ok({})", expr)

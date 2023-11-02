@@ -1,4 +1,5 @@
-import read_to_string from "fs"
+import read_to_string, write from "fs"
 
-let content = read_to_string("x.cfs")?
-print(content)
+let content = read_to_string("src/interpreter.rs")?
+let content = content * 2
+write("xx.cfs", content)?

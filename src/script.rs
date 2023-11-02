@@ -78,7 +78,7 @@ impl<Name: Display + Clone> ComfyScript<Name> {
 
         let mut import_table = SymbolTable::new_import_table(global_table);
 
-        let symbol_table = match import_table.interpret_import(program) {
+        let symbol_table = match import_table.interpret_as_import(program) {
             Ok(symbol_table) => {
                 println!("worked!");
                 symbol_table

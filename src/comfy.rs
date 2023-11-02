@@ -32,9 +32,13 @@ pub fn print() -> impl Fn(&SymbolTable, Vec<Expression>) -> Result<Expression, S
             return Err("Expected 1 argument for function `print`".into());
         }
 
-        let print = symbol_table
-            .evaluate_expr(args[0].to_owned())?
-            .console_print();
+        let arg = args[0].to_owned();
+
+        let print = match arg.kind {
+            ExpressionKind::Err(_) => arg.kind.console_print(),
+            ExpressionKind::Ok(_) => arg.kind.console_print(),
+            _ => symbol_table.evaluate_expr(arg)?.console_print(),
+        };
 
         println!("{}", print);
 
