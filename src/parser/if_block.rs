@@ -12,7 +12,11 @@ use nom::{
 use nom_supreme::{error::ErrorTree, tag::complete::tag, ParserExt};
 
 #[derive(Debug, Clone, PartialEq)]
-pub struct IfStatement(Expression, BlockStatement, Option<OptionalBlock>);
+pub struct IfStatement(
+    pub Expression,
+    pub BlockStatement,
+    pub Option<OptionalBlock>,
+);
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum OptionalBlock {

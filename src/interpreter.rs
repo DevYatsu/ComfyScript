@@ -17,6 +17,7 @@ use crate::{
         },
         expression::template_literal::TemplateLiteralFragment,
         function::{return_expression::ReturnStatement, FunctionBody, FunctionDeclaration},
+        if_block::{IfStatement, OptionalBlock},
         operations::{assignment::AssignmentOperator, binary::BinaryOperator},
     },
 };
@@ -193,7 +194,10 @@ impl SymbolTable {
                     self.remove_last_scope();
                 }
                 StatementKind::IfStatement(if_statement) => {
-                    todo!()
+                    let result = self.interpret_if_statement(if_statement)?;
+                    if result.is_some() {
+                        return Ok(result);
+                    }
                 }
                 StatementKind::MatchStatement(test, body) => todo!(),
                 StatementKind::ReturnStatement(ReturnStatement(argument, ..)) => {
@@ -203,6 +207,37 @@ impl SymbolTable {
         }
 
         Ok(None)
+    }
+
+    fn interpret_if_statement(
+        &mut self,
+        IfStatement(test, block, optional_if): IfStatement,
+    ) -> Result<Option<Expression>, String> {
+        let test_value = self.evaluate_expr(test.to_owned())?;
+
+        println!("is truthy {}", test_value);
+        if test_value.is_truthy() {
+            let result = self.interpret(block)?;
+            if result.is_some() {
+                return Ok(result);
+            }
+        } else {
+            if let Some(opt_block) = optional_if {
+                match opt_block {
+                    OptionalBlock::IfStatement(other_if) => {
+                        return Ok(self.interpret_if_statement(*other_if)?)
+                    }
+                    OptionalBlock::ElseStatement(else_block) => {
+                        let result = self.interpret(else_block)?;
+                        if result.is_some() {
+                            return Ok(result);
+                        }
+                    }
+                }
+            }
+        }
+
+        return Ok(None);
     }
 
     pub fn interpret_as_import(
@@ -637,11 +672,16 @@ impl SymbolTable {
                                 ExpressionKind::Literal(value, ..),
                                 ExpressionKind::Literal(value_2, ..),
                             ) => match (value, value_2) {
-                                (LiteralValue::Number(num1), LiteralValue::Number(num2)) => Ok((
-                                    LiteralValue::Boolean(num1 < num2),
-                                    (num1 < num2).to_string(),
-                                )
-                                    .into()),
+                                (LiteralValue::Number(num1), LiteralValue::Number(num2)) => {
+                                    println!("{}", num1);
+                                    println!("{}", num2);
+
+                                    Ok((
+                                        LiteralValue::Boolean(num1 < num2),
+                                        (num1 < num2).to_string(),
+                                    )
+                                        .into())
+                                }
                                 _ => {
                                     return Err(format!(
                                         "Cannot compare {} for '<' equality {}",

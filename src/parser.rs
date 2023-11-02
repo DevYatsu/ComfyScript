@@ -5,11 +5,11 @@ mod data_type;
 pub mod errors;
 pub mod expression;
 pub mod function;
-mod if_block;
+pub mod if_block;
 mod import;
 mod loop_for;
 mod loop_while;
-mod match_block;
+pub mod match_block;
 pub mod operations;
 mod reserved;
 

@@ -1,6 +1,17 @@
+import random,floor from "math"
+
 var count = 1
 
-while count < 100 {
+while count < 98 {
     count += 1
 }
 
+count += floor(random() * 10)
+
+if count > 100 {
+    print(#" count is more than 100, count: {count}")
+}else if count < 100 {
+    print(#" count is lower than 100, count: {count}")
+} else {
+    print("count equals 100")
+}

@@ -36,7 +36,7 @@ pub fn parse_binary_operator(i: &str) -> IResult<&str, BinaryOperator, ErrorTree
         tag(">=").complete().value(BinaryOperator::GreaterOrEqual),
         tag(">").value(BinaryOperator::Greater),
         tag("<=").complete().value(BinaryOperator::SmallerOrEqual),
-        tag("<").value(BinaryOperator::SmallerOrEqual),
+        tag("<").value(BinaryOperator::Smaller),
         tag("&&").complete().value(BinaryOperator::And),
         tag("||").complete().value(BinaryOperator::Or),
     ))(i)?;

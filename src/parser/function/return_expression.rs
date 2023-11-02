@@ -34,9 +34,9 @@ impl Into<Statement> for ReturnStatement {
 impl Display for ReturnStatement {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.1 {
-            write!(f, ">> ");
+            write!(f, ">> ")?;
         } else {
-            write!(f, "return ");
+            write!(f, "return ")?;
         }
 
         write!(f, "{}", self.0)
