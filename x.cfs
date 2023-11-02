@@ -1,5 +1,6 @@
-import read_to_string, write from "fs"
+var count = 1
 
-let content = read_to_string("src/interpreter.rs")?
+while count < 100000 {
+    count += 1
+}
 
-write("test.rs", content)?

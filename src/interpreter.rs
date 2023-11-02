@@ -21,12 +21,13 @@ use crate::{
     },
 };
 use hashbrown::HashMap;
+use moka::sync::Cache;
 
 pub trait RunnableCode {
     fn get_statements(self) -> Vec<Statement>;
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone)]
 pub struct SymbolTable {
     pub functions: HashMap<String, Rc<InterpretedFn>>,
     pub constants: HashMap<String, Expression>,
@@ -112,6 +113,8 @@ impl SymbolTable {
                             return Err(format!("Cannot reassign constant '{}'", name));
                         }
 
+                        let assigned = self.evaluate_expr(assigned)?;
+
                         match operator {
                             AssignmentOperator::Equal => {
                                 self.reassign_variable(name, assigned)?;
@@ -179,16 +182,7 @@ impl SymbolTable {
                     self.add_scope();
                     let mut test_value = self.evaluate_expr(test.to_owned())?;
 
-                    loop {
-                        match &test_value.kind {
-                            ExpressionKind::Literal(value, ..) => {
-                                if value.is_falsy() {
-                                    break;
-                                }
-                            }
-                            _ => {}
-                        };
-
+                    while test_value.is_truthy() {
                         if let Some(_) = self.interpret(body.to_owned())? {
                             return Err(
                                 "Return statement not allowed inside of While statement".into()
@@ -1225,5 +1219,17 @@ impl PartialEq for InterpretedFn {
     fn eq(&self, _: &Self) -> bool {
         // cannot check for equality of functions
         false
+    }
+}
+
+impl Debug for SymbolTable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SymbolTable")
+            .field("functions", &self.functions)
+            .field("constants", &self.constants)
+            .field("variables", &self.variables)
+            .field("exported", &self.exported)
+            .field("scopes", &self.scopes)
+            .finish()
     }
 }

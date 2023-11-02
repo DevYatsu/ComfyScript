@@ -462,6 +462,20 @@ impl Expression {
         self.kind.get_type()
     }
 
+    pub fn is_truthy(&self) -> bool {
+        match &self.kind {
+            ExpressionKind::Literal(val, _) => !val.is_falsy(),
+            ExpressionKind::Range(_, _, _)
+            | ExpressionKind::Array(_)
+            | ExpressionKind::Object(_)
+            | ExpressionKind::FnExpression { .. }
+            | ExpressionKind::ErrorPropagation(_)
+            | ExpressionKind::Err(_)
+            | ExpressionKind::Ok(_) => true,
+            _ => unreachable!(),
+        }
+    }
+
     pub fn ok(expr: Expression) -> Self {
         Expression::with_kind(ExpressionKind::Ok(Box::new(expr)))
     }
@@ -494,21 +508,21 @@ impl ExpressionKind {
             ExpressionKind::Array(..) => DataType::Array,
             ExpressionKind::Object(..) => DataType::Object,
             ExpressionKind::BinaryExpression(..) => {
-                unreachable!("Cannot know the type of binary expression before interpretation")
+                unreachable!("Cannot know the type of binary expression before interpretation [in ExpressionKind::get_type()]")
             }
             ExpressionKind::MemberExpression { .. } => {
-                unreachable!("Cannot know the type of member expression before interpretation")
+                unreachable!("Cannot know the type of member expression before interpretation [in ExpressionKind::get_type()]")
             }
             ExpressionKind::CallExpression { .. } => {
-                unreachable!("Cannot know the type of call expression before interpretation")
+                unreachable!("Cannot know the type of call expression before interpretation [in ExpressionKind::get_type()]")
             }
             ExpressionKind::IdentifierExpression(_) => {
-                unreachable!("Cannot know the type of identifier expression before interpretation")
+                unreachable!("Cannot know the type of identifier expression before interpretation [in ExpressionKind::get_type()]")
             }
             ExpressionKind::Parenthesized(_) => unreachable!(
-                "Cannot know the type of parenthesized expression before interpretation"
+                "Cannot know the type of parenthesized expression before interpretation [in ExpressionKind::get_type()]"
             ),
-            ExpressionKind::Comment { .. } => unreachable!("Comment has no data type"),
+            ExpressionKind::Comment { .. } => unreachable!("Comment has no data type [in ExpressionKind::get_type()]"),
             ExpressionKind::FnExpression { .. } => DataType::Fn,
             ExpressionKind::ErrorPropagation(x) => DataType::Fallible(x),
             ExpressionKind::Err(x) => DataType::Err(x),
